@@ -4,9 +4,6 @@ import static org.folio.edge.core.Constants.PARAM_API_KEY;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.patron.Constants.MSG_MISSING_HOLD_ID;
-import static org.folio.edge.patron.Constants.MSG_MISSING_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.MSG_MISSING_ITEM_ID;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
@@ -16,6 +13,8 @@ import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
@@ -39,281 +38,147 @@ public class PatronHandler {
     this.iuHelper = new InstitutionalUserHelper(secureStore);
   }
 
-  public void handleGetAccount(RoutingContext ctx) {
+  private void handleCommon(RoutingContext ctx, String[] requiredParams,
+      TwoParamVoidFunction<PatronOkapiClient, Map<String, String>> action) {
     String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
 
     if (key == null || key.isEmpty()) {
       accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
+      return;
+    }
+
+    Map<String, String> params = new HashMap<>(requiredParams.length);
+
+    for (String param : requiredParams) {
+      String value = ctx.request().getParam(param);
+      if (value == null || value.isEmpty()) {
+        badRequest(ctx, "Missing required parameter: " + param);
         return;
+      } else {
+        params.put(param, value);
       }
+    }
 
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
+    String tenant = iuHelper.getTenant(key);
+    if (tenant == null) {
+      accessDenied(ctx);
+      return;
+    }
 
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
+    final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
 
-          boolean includeLoans = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_LOANS));
-          boolean includeCharges = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_CHARGES));
-          boolean includeHolds = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_HOLDS));
+    iuHelper.getToken(client, tenant, tenant)
+      .exceptionally(t -> {
+        accessDenied(ctx);
+        return null;
+      })
+      .thenAcceptAsync(token -> {
+        client.setToken(token);
+        action.apply(client, params);
+      });
+  }
 
-          client.getAccount(patronId, includeLoans, includeCharges, includeHolds, ctx.request().headers(),
+  public void handleGetAccount(RoutingContext ctx) {
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID },
+        (client, params) -> {
+
+          boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
+          boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
+          boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
+
+          client.getAccount(params.get(PARAM_PATRON_ID),
+              includeLoans,
+              includeCharges,
+              includeHolds,
+              ctx.request().headers(),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t));
         });
-    }
   }
 
   public void handleRenew(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
+        (client, params) -> client.renewItem(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_ITEM_ID),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
 
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_ITEM_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.renewItem(patronId, itemId, ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
   }
 
   public void handlePlaceItemHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
-
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_ITEM_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.placeItemHold(patronId, itemId, ctx.getBodyAsString(), ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
+        (client, params) -> client.placeItemHold(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_ITEM_ID),
+            ctx.getBodyAsString(),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
   }
 
   public void handleEditItemHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
-    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID, PARAM_HOLD_ID },
+        (client, params) -> client.editItemHold(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_ITEM_ID),
+            params.get(PARAM_HOLD_ID),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
 
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_ITEM_ID);
-    } else if (holdId == null || holdId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_HOLD_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.editItemHold(patronId, itemId, holdId, ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
   }
 
   public void handleRemoveItemHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
-    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
-
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_ITEM_ID);
-    } else if (holdId == null || holdId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_HOLD_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.removeItemHold(patronId, itemId, holdId, ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID, PARAM_HOLD_ID },
+        (client, params) -> client.removeItemHold(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_ITEM_ID),
+            params.get(PARAM_HOLD_ID),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_INSTANCE_ID);
-
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_INSTANCE_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.placeInstanceHold(patronId, itemId, ctx.getBodyAsString(), ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
+        (client, params) -> client.placeInstanceHold(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_INSTANCE_ID),
+            ctx.getBodyAsString(),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
   }
 
   public void handleEditInstanceHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_INSTANCE_ID);
-    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
-
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_INSTANCE_ID);
-    } else if (holdId == null || holdId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_HOLD_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.editInstanceHold(patronId, itemId, holdId, ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID, PARAM_HOLD_ID },
+        (client, params) -> client.editInstanceHold(
+            params.get(PARAM_PATRON_ID),
+            params.get(PARAM_INSTANCE_ID),
+            params.get(PARAM_HOLD_ID),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
   }
 
   public void handleRemoveInstanceHold(RoutingContext ctx) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_INSTANCE_ID);
-    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
-
-    if (itemId == null || itemId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_INSTANCE_ID);
-    } else if (holdId == null || holdId.isEmpty()) {
-      badRequest(ctx, MSG_MISSING_HOLD_ID);
-    } else if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-    } else {
-      String tenant = iuHelper.getTenant(key);
-      if (tenant == null) {
-        accessDenied(ctx);
-        return;
-      }
-
-      final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
-
-      iuHelper.getToken(client, tenant, tenant)
-        .exceptionally(t -> {
-          accessDenied(ctx);
-          return null;
-        })
-        .thenAcceptAsync(token -> {
-          client.setToken(token);
-
-          client.removeInstanceHold(patronId, itemId, holdId, ctx.request().headers(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
-    }
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID, PARAM_HOLD_ID },
+        (client, params) -> client.removeInstanceHold(params.get(PARAM_PATRON_ID),
+            params.get(PARAM_INSTANCE_ID),
+            params.get(PARAM_HOLD_ID),
+            ctx.request().headers(),
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t)));
   }
 
   private void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
@@ -360,5 +225,10 @@ public class PatronHandler {
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(MSG_INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @FunctionalInterface
+  private interface TwoParamVoidFunction<A, B> {
+    public void apply(A a, B b);
   }
 }

@@ -14,9 +14,6 @@ public class Constants {
   public static final String PARAM_INSTANCE_ID = "instanceId";
   public static final String PARAM_HOLD_ID = "holdId";
 
-  public static final String MSG_MISSING_ITEM_ID = "Missing Item ID";
-  public static final String MSG_MISSING_INSTANCE_ID = "Missing Instance ID";
-  public static final String MSG_MISSING_HOLD_ID = "Missing Hold ID";
   public static final String MSG_ACCESS_DENIED = "Access Denied";
   public static final String MSG_INTERNAL_SERVER_ERROR = "Internal Server Error";
   public static final String MSG_REQUEST_TIMEOUT = "Request to FOLIO timed out";

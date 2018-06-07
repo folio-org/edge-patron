@@ -292,7 +292,7 @@ public class PatronMockOkapi extends MockOkapi {
 
     String ret = null;
     try {
-      ret = acctBldr.build().toJson();
+      ret = acctBldr.build().toJson(includeLoans, includeCharges, includeHolds);
     } catch (JsonProcessingException e) {
       logger.warn("Failed to generate Account JSON", e);
     }

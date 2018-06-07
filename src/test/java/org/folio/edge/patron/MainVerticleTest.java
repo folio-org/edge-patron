@@ -77,7 +77,7 @@ public class MainVerticleTest {
     System.setProperty(SYS_PORT, String.valueOf(serverPort));
     System.setProperty(SYS_OKAPI_URL, "http://localhost:" + okapiPort);
     System.setProperty(SYS_SECURE_STORE_PROP_FILE, "src/main/resources/ephemeral.properties");
-    System.setProperty(SYS_LOG_LEVEL, "INFO");
+    System.setProperty(SYS_LOG_LEVEL, "DEBUG");
     System.setProperty(SYS_REQUEST_TIMEOUT_MS, String.valueOf(requestTimeoutMs));
 
     final DeploymentOptions opt = new DeploymentOptions();
@@ -264,7 +264,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeCharges=true&includeLoans=true&includeCharges=true",
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true",
           patronId, apiKey))
       .then()
       .statusCode(200)

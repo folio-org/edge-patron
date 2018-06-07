@@ -1,4 +1,4 @@
-# edge-rtac
+# edge-patron
 
 Copyright (C) 2018 The Open Library Foundation
 

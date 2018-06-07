@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:complexType name="money">
+  <xs:sequence>
+    <xs:element name="amount" type="xs:float" minOccurs="1" maxOccurs="1"/>
+    <xs:element name="isoCurrencyCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:simpleType name="requiredString">
+ <xs:restriction base="xs:string">
+   <xs:minLength value="1"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:element name="currency" type="money"/>
+
+<xs:element name="item">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="title" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="author" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="instanceId" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="itemId" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="isbn" type="requiredString" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="hold">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="requestId" type="requiredString" minOccurs="1" maxOccurs="1"/>    
+      <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="requestDate" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="expirationDate" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="fulfillmentPreference" minOccurs="1" maxOccurs="1">
+        <xs:simpleType final="restriction" >
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Hold Shelf" />
+            <xs:enumeration value="Delivery" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="status" minOccurs="0" maxOccurs="1">
+        <xs:simpleType final="restriction" >
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Open - Not yet filled" />
+            <xs:enumeration value="Open - Awaiting pickup" />
+            <xs:enumeration value="Closed - Filled" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="queueLength" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="queuePosition" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="charge">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element ref="item" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="chargeAmount" type="money" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="accrualDate" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="state" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="reason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="loan">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element ref="item" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="loanDate" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="dueDate" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="overdue" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="account">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="id" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="totalCharges" type="money" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="totalChargesCount" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="totalLoans" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="totalHolds" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="charges" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="charge" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="holds" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="hold" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="loans" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="loan" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+</xs:schema>

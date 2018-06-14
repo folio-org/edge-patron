@@ -19,6 +19,8 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 import org.folio.edge.core.InstitutionalUserHelper;
+import org.folio.edge.core.InstitutionalUserHelper.MalformedApiKeyException;
+import org.folio.edge.core.model.ClientInfo;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
@@ -63,15 +65,20 @@ public class PatronHandler {
       params.put(param, ctx.request().getParam(param));
     }
 
-    String tenant = iuHelper.getTenant(key);
-    if (tenant == null) {
+    ClientInfo clientInfo;
+    try {
+      clientInfo = InstitutionalUserHelper.parseApiKey(key);
+    } catch (MalformedApiKeyException e) {
       accessDenied(ctx);
       return;
     }
 
-    final PatronOkapiClient client = ocf.getPatronOkapiClient(tenant);
+    final PatronOkapiClient client = ocf.getPatronOkapiClient(clientInfo.tenantId);
 
-    iuHelper.getToken(client, tenant, tenant)
+    iuHelper.getToken(client, 
+        clientInfo.clientId, 
+        clientInfo.tenantId, 
+        clientInfo.username)
       .exceptionally(t -> {
         accessDenied(ctx);
         return null;

@@ -24,14 +24,17 @@ public final class Charge {
   public final String description;
   public final String state;
   public final String reason;
+  public final String feeFineId;
 
-  private Charge(Item item, Money chargeAmount, Date accrualDate, String description, String state, String reason) {
+  private Charge(Item item, Money chargeAmount, Date accrualDate, String description, String state, String reason,
+      String feeFineId) {
     this.item = item;
     this.chargeAmount = chargeAmount;
     this.accrualDate = accrualDate;
     this.description = description;
     this.state = state;
     this.reason = reason;
+    this.feeFineId = feeFineId;
   }
 
   public static Builder builder() {
@@ -45,6 +48,7 @@ public final class Charge {
     private String description;
     private String state;
     private String reason;
+    private String feeFineId;
 
     @JsonProperty("item")
     public Builder item(Item item) {
@@ -82,8 +86,14 @@ public final class Charge {
       return this;
     }
 
+    @JsonProperty("feeFineId")
+    public Builder feeFineId(String feeFineId) {
+      this.feeFineId = feeFineId;
+      return this;
+    }
+
     public Charge build() {
-      return new Charge(item, chargeAmount, accrualDate, description, state, reason);
+      return new Charge(item, chargeAmount, accrualDate, description, state, reason, feeFineId);
     }
   }
 
@@ -97,6 +107,7 @@ public final class Charge {
     result = prime * result + ((description == null) ? 0 : description.hashCode());
     result = prime * result + ((item == null) ? 0 : item.hashCode());
     result = prime * result + ((reason == null) ? 0 : reason.hashCode());
+    result = prime * result + ((feeFineId == null) ? 0 : feeFineId.hashCode());
     result = prime * result + ((state == null) ? 0 : state.hashCode());
     return result;
   }
@@ -147,6 +158,13 @@ public final class Charge {
         return false;
       }
     } else if (!reason.equals(other.reason)) {
+      return false;
+    }
+    if (feeFineId == null) {
+      if (other.feeFineId != null) {
+        return false;
+      }
+    } else if (!feeFineId.equals(other.feeFineId)) {
       return false;
     }
     if (state == null) {

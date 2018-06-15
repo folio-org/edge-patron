@@ -67,6 +67,7 @@
       <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="state" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="reason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="feeFineId" type="xs:string" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 </xs:element>

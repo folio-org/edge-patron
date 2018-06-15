@@ -60,6 +60,7 @@ public class ChargeTest {
 
     charge = Charge.builder()
       .item(item)
+      .feeFineId(UUID.randomUUID().toString())
       .accrualDate(new Date(accrualTs))
       .chargeAmount(new Money(1.23f, Currency.getInstance("USD").getCurrencyCode()))
       .description("late fee")

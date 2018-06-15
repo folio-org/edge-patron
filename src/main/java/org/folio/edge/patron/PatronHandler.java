@@ -75,9 +75,9 @@ public class PatronHandler {
 
     final PatronOkapiClient client = ocf.getPatronOkapiClient(clientInfo.tenantId);
 
-    iuHelper.getToken(client, 
-        clientInfo.clientId, 
-        clientInfo.tenantId, 
+    iuHelper.getToken(client,
+        clientInfo.clientId,
+        clientInfo.tenantId,
         clientInfo.username)
       .exceptionally(t -> {
         accessDenied(ctx);

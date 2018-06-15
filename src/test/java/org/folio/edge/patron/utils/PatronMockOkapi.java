@@ -51,6 +51,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId = UUID.randomUUID().toString();
   public static final String itemId_notFound = UUID.randomUUID().toString();
   public static final String patronId_notFound = UUID.randomUUID().toString();
+  public static final String feeFineId = UUID.randomUUID().toString();
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -324,6 +325,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))
+      .feeFineId(feeFineId)
       .chargeAmount(new Money(1.23f, Currency.getInstance("USD").getCurrencyCode()))
       .accrualDate(new Date(accrualDateTs))
       .description("late fee")

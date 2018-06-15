@@ -67,7 +67,7 @@ public class loanTest {
       .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema schema = schemaFactory.newSchema(new File(XSD));
     xmlValidator = schema.newValidator();
-    
+
     FormatValidator formatValidator = new FormatValidator() {
 
       @Override

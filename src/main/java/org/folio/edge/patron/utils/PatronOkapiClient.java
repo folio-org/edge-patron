@@ -152,5 +152,5 @@ public class PatronOkapiClient extends OkapiClient {
         responseHandler,
         exceptionHandler);
   }
-  
+
 }

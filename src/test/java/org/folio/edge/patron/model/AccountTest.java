@@ -124,6 +124,7 @@ public class AccountTest {
 
     charges.add(Charge.builder()
       .item(overdueCheckedOutItem1)
+      .feeFineId(UUID.randomUUID().toString())
       .accrualDate(new Date(accrualTs))
       .chargeAmount(new Money(1.23f, Currency.getInstance("USD").getCurrencyCode()))
       .description("late fee")
@@ -133,6 +134,7 @@ public class AccountTest {
 
     charges.add(Charge.builder()
       .item(overdueCheckedOutItem2)
+      .feeFineId(UUID.randomUUID().toString())
       .accrualDate(new Date(accrualTs + (2 * DAY_IN_MILLIS)))
       .chargeAmount(new Money(1.12f, Currency.getInstance("USD").getCurrencyCode()))
       .description("late fee")

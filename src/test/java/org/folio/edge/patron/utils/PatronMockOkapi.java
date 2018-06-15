@@ -324,6 +324,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))
+      .feeFineId(UUID.randomUUID().toString())
       .chargeAmount(new Money(1.23f, Currency.getInstance("USD").getCurrencyCode()))
       .accrualDate(new Date(accrualDateTs))
       .description("late fee")

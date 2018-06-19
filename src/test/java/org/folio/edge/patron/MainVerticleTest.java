@@ -127,13 +127,13 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s", patronId, unknownTenantApiKey))
       .then()
-      .statusCode(403)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
     String actual = resp.body().asString();
-    assertEquals("Access requires permission: patron.account.get", actual);
+    assertEquals(MSG_ACCESS_DENIED, actual);
   }
 
   @Test
@@ -374,13 +374,13 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId, unknownTenantApiKey))
       .then()
-      .statusCode(403)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
     String actual = resp.body().asString();
-    assertEquals("Access requires permission: patron.loan.renew.post", actual);
+    assertEquals(MSG_ACCESS_DENIED, actual);
   }
 
   @Test
@@ -496,11 +496,11 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, unknownTenantApiKey))
       .then()
-      .statusCode(501)
+      .statusCode(401)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals(MSG_ACCESS_DENIED, resp.getBody().asString());
   }
 
   @Test
@@ -630,12 +630,12 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId,
               unknownTenantApiKey))
       .then()
-      .statusCode(501)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals(MSG_ACCESS_DENIED, resp.getBody().asString());
   }
 
   @Test
@@ -758,12 +758,12 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId,
               unknownTenantApiKey))
       .then()
-      .statusCode(501)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals(MSG_ACCESS_DENIED, resp.getBody().asString());
   }
 
   @Test
@@ -881,13 +881,13 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, unknownTenantApiKey))
       .then()
-      .statusCode(403)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
     String actual = resp.body().asString();
-    assertEquals("Access requires permission: patron.item.hold.post", actual);
+    assertEquals(MSG_ACCESS_DENIED, actual);
   }
 
   @Test
@@ -1017,13 +1017,13 @@ public class MainVerticleTest {
       .delete(
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, unknownTenantApiKey))
       .then()
-      .statusCode(403)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
     String actual = resp.body().asString();
-    assertEquals("Access requires permission: patron.item.hold.delete", actual);
+    assertEquals(MSG_ACCESS_DENIED, actual);
   }
 
   @Test
@@ -1141,13 +1141,13 @@ public class MainVerticleTest {
       .delete(
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, unknownTenantApiKey))
       .then()
-      .statusCode(403)
+      .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
     String actual = resp.body().asString();
-    assertEquals("Access requires permission: patron.item.hold.delete", actual);
+    assertEquals(MSG_ACCESS_DENIED, actual);
   }
 
   @Test

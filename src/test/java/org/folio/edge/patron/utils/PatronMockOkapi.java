@@ -35,12 +35,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 public class PatronMockOkapi extends MockOkapi {
 
   private static final Logger logger = Logger.getLogger(PatronMockOkapi.class);
+
+  public static final String PARAM_QUERY = "query";
 
   public static final String isbn = "0008675309";
   public static final String instanceId = UUID.randomUUID().toString();
@@ -50,7 +54,10 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId_overdue = UUID.randomUUID().toString();
   public static final String itemId = UUID.randomUUID().toString();
   public static final String itemId_notFound = UUID.randomUUID().toString();
+  public static final String patronId = UUID.randomUUID().toString();
   public static final String patronId_notFound = UUID.randomUUID().toString();
+  public static final String extPatronId = UUID.randomUUID().toString();
+  public static final String extPatronId_notFound = UUID.randomUUID().toString();
   public static final String feeFineId = UUID.randomUUID().toString();
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
@@ -67,6 +74,9 @@ public class PatronMockOkapi extends MockOkapi {
   @Override
   public Router defineRoutes() {
     Router router = super.defineRoutes();
+
+    router.route(HttpMethod.GET, "/users")
+      .handler(this::getPatronHandler);
 
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(this::getAccountHandler);
@@ -93,6 +103,26 @@ public class PatronMockOkapi extends MockOkapi {
       .handler(this::removeInstanceHoldHandler);
 
     return router;
+  }
+
+  public void getPatronHandler(RoutingContext ctx) {
+    String query = ctx.request().getParam(PARAM_QUERY);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: users.item.get");
+    } else {
+      String[] parts = query.split("==");
+      String extPatronId = parts[1];
+
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getPatronJson(extPatronId));
+    }
   }
 
   public void getAccountHandler(RoutingContext ctx) {
@@ -271,6 +301,27 @@ public class PatronMockOkapi extends MockOkapi {
       .setStatusCode(501)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .end(MSG_NOT_IMPLEMENTED);
+  }
+
+  public static String getPatronJson(String extPatronId) {
+    JsonArray users = new JsonArray();
+    logger.info(extPatronId_notFound);
+    logger.info(extPatronId);
+    if (!extPatronId_notFound.equals(extPatronId)) {
+      users.add(new JsonObject()
+        .put("externalSystemId", extPatronId)
+        .put("id", patronId));
+    }
+
+    JsonObject json = new JsonObject()
+      .put("users", users)
+      .put("totalRecords", users.size())
+      .put("resultInfo", new JsonObject()
+        .put("totalRecords", users.size())
+        .put("facets", new JsonArray())
+        .put("diagnostics", new JsonArray()));
+
+    return json.encodePrettily();
   }
 
   public static String getAccountJson(String patronId, boolean includeLoans, boolean includeCharges,

@@ -43,9 +43,15 @@ public class PatronHandler {
   private void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
       TwoParamVoidFunction<PatronOkapiClient, Map<String, String>> action) {
     String key = ctx.request().getParam(PARAM_API_KEY);
+    String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
 
     if (key == null || key.isEmpty()) {
       accessDenied(ctx);
+      return;
+    }
+
+    if (extPatronId == null || extPatronId.isEmpty()) {
+      badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;
     }
 
@@ -85,20 +91,29 @@ public class PatronHandler {
       })
       .thenAcceptAsync(token -> {
         client.setToken(token);
-        action.apply(client, params);
+        client.getPatron(extPatronId)
+          .exceptionally(t -> {
+            if (t instanceof TimeoutException) {
+              requestTimeout(ctx);
+            } else {
+              notFound(ctx, "Unable to find patron " + extPatronId);
+            }
+            return null;
+          })
+          .thenAcceptAsync(patronId -> {
+            if (patronId != null) {
+              params.put(PARAM_PATRON_ID, patronId);
+              action.apply(client, params);
+            }
+          });
       });
   }
 
   public void handleGetAccount(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID },
-        new String[] {
-            PARAM_INCLUDE_LOANS,
-            PARAM_INCLUDE_CHARGES,
-            PARAM_INCLUDE_HOLDS
-        },
+        new String[] {},
+        new String[] { PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS },
         (client, params) -> {
-
           boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
           boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
           boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
@@ -115,7 +130,7 @@ public class PatronHandler {
 
   public void handleRenew(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
+        new String[] { PARAM_ITEM_ID },
         new String[] {},
         (client, params) -> client.renewItem(
             params.get(PARAM_PATRON_ID),
@@ -128,7 +143,7 @@ public class PatronHandler {
 
   public void handlePlaceItemHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
+        new String[] { PARAM_ITEM_ID },
         new String[] {},
         (client, params) -> client.placeItemHold(
             params.get(PARAM_PATRON_ID),
@@ -141,7 +156,7 @@ public class PatronHandler {
 
   public void handleEditItemHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID, PARAM_HOLD_ID },
+        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
         new String[] {},
         (client, params) -> client.editItemHold(
             params.get(PARAM_PATRON_ID),
@@ -155,7 +170,7 @@ public class PatronHandler {
 
   public void handleRemoveItemHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID, PARAM_HOLD_ID },
+        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
         new String[] {},
         (client, params) -> client.removeItemHold(
             params.get(PARAM_PATRON_ID),
@@ -168,7 +183,7 @@ public class PatronHandler {
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
+        new String[] { PARAM_INSTANCE_ID },
         new String[] {},
         (client, params) -> client.placeInstanceHold(
             params.get(PARAM_PATRON_ID),
@@ -181,7 +196,7 @@ public class PatronHandler {
 
   public void handleEditInstanceHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID, PARAM_HOLD_ID },
+        new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
         new String[] {},
         (client, params) -> client.editInstanceHold(
             params.get(PARAM_PATRON_ID),
@@ -194,7 +209,7 @@ public class PatronHandler {
 
   public void handleRemoveInstanceHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID, PARAM_HOLD_ID },
+        new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
         new String[] {},
         (client, params) -> client.removeInstanceHold(params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
@@ -230,6 +245,13 @@ public class PatronHandler {
   private void badRequest(RoutingContext ctx, String body) {
     ctx.response()
       .setStatusCode(400)
+      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .end(body);
+  }
+
+  private void notFound(RoutingContext ctx, String body) {
+    ctx.response()
+      .setStatusCode(404)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .end(body);
   }

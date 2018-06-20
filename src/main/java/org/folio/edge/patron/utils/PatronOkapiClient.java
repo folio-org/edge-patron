@@ -1,16 +1,56 @@
 package org.folio.edge.patron.utils;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.JsonObject;
 
 public class PatronOkapiClient extends OkapiClient {
 
+  private static final Logger logger = Logger.getLogger(PatronOkapiClient.class);
+
   protected PatronOkapiClient(Vertx vertx, String okapiURL, String tenant, long timeout) {
     super(vertx, okapiURL, tenant, timeout);
+  }
+
+  public void getPatron(String extPatronId, Handler<HttpClientResponse> responseHandler,
+      Handler<Throwable> exceptionHandler) {
+    get(
+        String.format("%s/users?query=externalSystemId==%s",
+            okapiURL,
+            extPatronId),
+        tenant,
+        defaultHeaders,
+        responseHandler,
+        exceptionHandler);
+  }
+
+  public CompletableFuture<String> getPatron(String extPatronId) {
+    CompletableFuture<String> future = new CompletableFuture<>();
+
+    getPatron(
+        extPatronId,
+        resp -> resp.bodyHandler(body -> {
+          logger.info("Response from mod-users: " + body);
+          JsonObject json = body.toJsonObject();
+          try {
+            future.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+          } catch (Exception e) {
+            logger.error("Exception parsing response from mod-users", e);
+            future.completeExceptionally(new PatronLookupException(e));
+          }
+        }),
+        t -> {
+          logger.error("Exception calling mod-users", t);
+          future.completeExceptionally(new PatronLookupException(t));
+        });
+    return future;
   }
 
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges,
@@ -151,6 +191,19 @@ public class PatronOkapiClient extends OkapiClient {
         combineHeadersWithDefaults(headers),
         responseHandler,
         exceptionHandler);
+  }
+
+  public static class PatronLookupException extends Exception {
+
+    private static final long serialVersionUID = -8671018675309863637L;
+
+    public PatronLookupException(Throwable t) {
+      super(t);
+    }
+
+    public PatronLookupException(String msg) {
+      super(msg);
+    }
   }
 
 }

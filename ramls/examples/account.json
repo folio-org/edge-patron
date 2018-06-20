@@ -18,7 +18,8 @@
         "author": "John Lennon; Paul McCartney"
       },
       "fulfillmentPreference": "Hold Shelf",
-      "status": "Open - Not yet filled"
+      "status": "Open - Not yet filled",
+      "requestDate": "2018-06-01T11:12:00Z"
     }
   ],
   "loans": [
@@ -30,8 +31,8 @@
         "title": "Some Book About Something",
         "author": "Some Guy; Another Guy"
       },
-      "loanDate": "2018-06-01T11:12:00.000+0000",
-      "dueDate": "2525-01-01T11:12:00.000+0000",
+      "loanDate": "2018-06-01T11:12:00Z",
+      "dueDate": "2525-01-01T11:12:00Z",
       "overdue": false
     }
   ]

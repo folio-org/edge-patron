@@ -25,7 +25,7 @@ Configuration information is specified in two forms:
 
 ### System Properties
 
-Proprety                      | Default     | Description
+Property                      | Default     | Description
 ----------------------------- | ----------- | -------------
 `port`                        | `8081`      | Server port to listen on
 `okapi_url`                   | *required*  | Where to find Okapi (URL)
@@ -42,7 +42,7 @@ Proprety                      | Default     | Description
 
 ## Patron Mapping
 
-In order to map external patron Ids to those used within FOLIO, the `externalSystemId` field in the user metadata is used.  The mapping flow works like this:
+In order to map external patron IDs to those used within FOLIO, the `externalSystemId` field in the user metadata is used.  The mapping flow works like this:
 
 1. A request is made containing an external system's patron ID
 1. The patron ID cache is consulted.  If a mapping has been cached, skip to #5.

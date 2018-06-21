@@ -32,11 +32,11 @@ Proprety                      | Default     | Description
 `secure_store`                | `Ephemeral` | Type of secure store to use.  Valid: `Ephemeral`, `AwsSsm`, `Vault`
 `secure_store_props`          | `NA`        | Path to a properties file specifying secure store configuration
 `token_cache_ttl_ms`          | `3600000`   | How long to cache JWTs, in milliseconds (ms)
-`null_token_cache_ttl_ms`     | `10000`     | How long to cache login failures (null JWTs), in milliseconds (ms)
+`null_token_cache_ttl_ms`     | `30000`     | How long to cache login failures (null JWTs), in milliseconds (ms)
 `token_cache_capacity`        | `100`       | Max token cache size
 `patron_id_cache_ttl_ms`      | `3600000`   | How long to cache patron ID mappings in milliseconds (ms)
-`null_patron_id_cache_ttl_ms` | `10000`     | How long to cache patron lookup failures in milliseconds (ms)
-`patron_id_cache_capacity`    | `100`       | Max token cache size
+`null_patron_id_cache_ttl_ms` | `30000`     | How long to cache patron lookup failures in milliseconds (ms)
+`patron_id_cache_capacity`    | `1000`      | Max token cache size
 `log_level`                   | `INFO`      | Log4j Log Level
 `request_timeout_ms`          | `30000`     | Request Timeout
 

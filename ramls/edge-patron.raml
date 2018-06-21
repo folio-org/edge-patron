@@ -21,15 +21,15 @@ schemas:
   description: "Services that allow patron empowerment from 3rd party discovery services"
   /account:
     /{id}:
-      displayName: "Manage Accounts By Id"
-      description: "Service endpoints that manage accounts by an existing Id"
+      displayName: "Manage Accounts By ID"
+      description: "Service endpoints that manage accounts by an existing ID"
       uriParameters:
         id:
           description: "The UUID of a FOLIO user"
           type: string
           pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
       get:
-        description: "Return account details for the specified FOLIO user id"
+        description: "Return account details for the specified FOLIO user ID"
         queryParameters:
           includeLoans:
             description: "Indicates whether or not to include the loans array in the response"
@@ -166,8 +166,8 @@ schemas:
                     text/plain:
                       example: "internal server error, contact administrator"
             /{holdId}:
-              displayName: "Hold Management By Id"
-              description: "Services that provide hold management by Id"
+              displayName: "Hold Management By ID"
+              description: "Services that provide hold management by ID"
               uriParameters:
                 holdId:
                   description: "The UUID of a FOLIO hold request"
@@ -224,8 +224,8 @@ schemas:
                 501:
                   description: "Not implemented"
             /{holdId}:
-              displayName: "Hold Management By Id"
-              description: "Services that provide hold management by Id"
+              displayName: "Hold Management By ID"
+              description: "Services that provide hold management by ID"
               uriParameters:
                 holdId:
                   description: "The UUID of a FOLIO hold request"

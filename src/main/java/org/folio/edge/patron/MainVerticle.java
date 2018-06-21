@@ -1,6 +1,15 @@
 package org.folio.edge.patron;
 
+import static org.folio.edge.patron.Constants.DEFAULT_NULL_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_CAPACITY;
+import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.SYS_NULL_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_CAPACITY;
+import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_TTL_MS;
+
+import org.apache.log4j.Logger;
 import org.folio.edge.core.EdgeVerticle;
+import org.folio.edge.patron.cache.PatronIdCache;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
 import io.vertx.core.http.HttpMethod;
@@ -9,8 +18,28 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends EdgeVerticle {
 
+  private static final Logger logger = Logger.getLogger(MainVerticle.class);
+
   public MainVerticle() {
     super();
+
+    final String patronIdCacheTtlMs = System.getProperty(SYS_PATRON_ID_CACHE_TTL_MS);
+    final long cacheTtlMs = patronIdCacheTtlMs != null ? Long.parseLong(patronIdCacheTtlMs)
+        : DEFAULT_PATRON_ID_CACHE_TTL_MS;
+    logger.info("Using patronId cache TTL (ms): " + patronIdCacheTtlMs);
+
+    final String nullTokenCacheTtlMs = System.getProperty(SYS_NULL_PATRON_ID_CACHE_TTL_MS);
+    final long failureCacheTtlMs = nullTokenCacheTtlMs != null ? Long.parseLong(nullTokenCacheTtlMs)
+        : DEFAULT_NULL_PATRON_ID_CACHE_TTL_MS;
+    logger.info("Using patronId cache TTL (ms): " + failureCacheTtlMs);
+
+    final String patronIdCacheCapacity = System.getProperty(SYS_PATRON_ID_CACHE_CAPACITY);
+    final int cacheCapacity = patronIdCacheCapacity != null ? Integer.parseInt(patronIdCacheCapacity)
+        : DEFAULT_PATRON_ID_CACHE_CAPACITY;
+    logger.info("Using patronId cache capacity: " + patronIdCacheCapacity);
+
+    // initialize the TokenCache
+    PatronIdCache.initialize(cacheTtlMs, failureCacheTtlMs, cacheCapacity);
   }
 
   @Override

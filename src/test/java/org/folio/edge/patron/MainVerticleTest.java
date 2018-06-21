@@ -48,7 +48,8 @@ public class MainVerticleTest {
 
   private static final Logger logger = Logger.getLogger(MainVerticleTest.class);
 
-  private static final String patronId = UUID.randomUUID().toString();
+  private static final String extPatronId = PatronMockOkapi.extPatronId;
+  private static final String patronId = PatronMockOkapi.patronId;
   private static final String itemId = UUID.randomUUID().toString();
   private static final String instanceId = UUID.randomUUID().toString();
   private static final String holdId = UUID.randomUUID().toString();
@@ -125,7 +126,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount with unknown apiKey (tenant) ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", patronId, unknownTenantApiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", extPatronId, unknownTenantApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -141,7 +142,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount with malformed apiKey ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", patronId, badApiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", extPatronId, badApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -158,7 +159,7 @@ public class MainVerticleTest {
     logger.info("=== Test request where patron is found ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -176,7 +177,7 @@ public class MainVerticleTest {
     logger.info("=== Test request where patron isn't found ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", PatronMockOkapi.patronId_notFound, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound, apiKey))
       .then()
       .statusCode(404)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -185,7 +186,7 @@ public class MainVerticleTest {
 
     String actual = resp.body().asString();
 
-    assertEquals(PatronMockOkapi.patronId_notFound + " not found", actual);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, actual);
   }
 
   @Test
@@ -339,7 +340,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .post(
-          String.format("/patron/account/%s/item/%s/renew?apikey=%s", PatronMockOkapi.patronId_notFound, itemId,
+          String.format("/patron/account/%s/item/%s/renew?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
               apiKey))
       .then()
       .statusCode(404)
@@ -347,7 +348,7 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.patronId_notFound + " not found", resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -356,7 +357,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .post(
-          String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_notFound,
+          String.format("/patron/account/%s/item/%s/renew?apikey=%s", extPatronId, PatronMockOkapi.itemId_notFound,
               apiKey))
       .then()
       .statusCode(404)
@@ -450,15 +451,16 @@ public class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PatronMockOkapi.patronId_notFound, instanceId,
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound,
+              instanceId,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(404)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -571,17 +573,17 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", PatronMockOkapi.patronId_notFound,
+          String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound,
               instanceId,
               holdId,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(404)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -837,14 +839,15 @@ public class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PatronMockOkapi.patronId_notFound, itemId, apiKey))
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
+              apiKey))
       .then()
       .statusCode(404)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.patronId_notFound + " not found", resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -961,7 +964,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", PatronMockOkapi.patronId_notFound, itemId,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
               holdId,
               apiKey))
       .then()
@@ -970,7 +973,7 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.patronId_notFound + " not found", resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -979,7 +982,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, PatronMockOkapi.itemId_notFound,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, PatronMockOkapi.itemId_notFound,
               holdId,
               apiKey))
       .then()
@@ -997,7 +1000,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId,
               PatronMockOkapi.holdReqId_notFound,
               apiKey))
       .then()
@@ -1015,7 +1018,8 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, unknownTenantApiKey))
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
+              unknownTenantApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -1031,7 +1035,7 @@ public class MainVerticleTest {
     logger.info("=== Test remove item hold with malformed apiKey ===");
 
     final Response resp = RestAssured
-      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, badApiKey))
+      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId, badApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -1050,7 +1054,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
-      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId,
+      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
           apiKey))
       .then()
       .contentType(TEXT_PLAIN)
@@ -1069,7 +1073,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .put(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, hold.requestId, apiKey))
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, hold.requestId, apiKey))
       .then()
       .statusCode(501)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -1085,7 +1089,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", PatronMockOkapi.patronId_notFound, itemId,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
               holdId,
               apiKey))
       .then()
@@ -1094,7 +1098,7 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.patronId_notFound + " not found", resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
   }
 
   @Test
@@ -1103,7 +1107,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, PatronMockOkapi.itemId_notFound,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, PatronMockOkapi.itemId_notFound,
               holdId,
               apiKey))
       .then()
@@ -1121,7 +1125,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId,
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId,
               PatronMockOkapi.holdReqId_notFound,
               apiKey))
       .then()
@@ -1139,7 +1143,8 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .delete(
-          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, unknownTenantApiKey))
+          String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
+              unknownTenantApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -1155,7 +1160,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit item hold with malformed apiKey ===");
 
     final Response resp = RestAssured
-      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId, badApiKey))
+      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId, badApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -1174,7 +1179,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
-      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", patronId, itemId, holdId,
+      .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
           apiKey))
       .then()
       .contentType(TEXT_PLAIN)
@@ -1194,7 +1199,7 @@ public class MainVerticleTest {
 
     for (int i = 0; i < iters; i++) {
       final Response resp = RestAssured
-        .get(String.format("/patron/account/%s?apikey=%s", patronId, apiKey))
+        .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
         .then()
         .contentType(APPLICATION_JSON)
         .statusCode(200)

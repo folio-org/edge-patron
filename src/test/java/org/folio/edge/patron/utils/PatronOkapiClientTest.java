@@ -2,6 +2,7 @@ package org.folio.edge.patron.utils;
 
 import static org.folio.edge.core.utils.test.MockOkapi.MOCK_TOKEN;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.utils.PatronOkapiClient.PatronLookupException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +52,48 @@ public class PatronOkapiClientTest {
   @After
   public void tearDown(TestContext context) {
     mockOkapi.close();
+  }
+
+  @Test
+  public void testGetPatronExistent(TestContext context) throws Exception {
+    logger.info("=== Test getPatron exists ===");
+
+    client.login("admin", "password").get();
+    assertEquals(MOCK_TOKEN, client.getToken());
+    String patronId = client.getPatron(PatronMockOkapi.extPatronId).get();
+    assertEquals(PatronMockOkapi.patronId, patronId);
+  }
+
+  @Test
+  public void testGetPatronNonExistentPatron(TestContext context) throws Exception {
+    logger.info("=== Test getPatron patron doesn't exist ===");
+
+    client.login("admin", "password").get();
+    assertEquals(MOCK_TOKEN, client.getToken());
+    try {
+      client.getPatron(PatronMockOkapi.extPatronId_notFound).get();
+      fail("Expected " + PatronLookupException.class.getName() + " to be thrown");
+    } catch (Exception e) {
+      if (!(e.getCause() instanceof PatronLookupException)) {
+        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getCause().getClass().getName());
+        throw e;
+      }
+    }
+  }
+
+  @Test
+  public void testGetPatronInsufficientPrivs(TestContext context) throws Exception {
+    logger.info("=== Test getPatron patron doesn't exist ===");
+
+    try {
+      client.getPatron(PatronMockOkapi.extPatronId).get();
+      fail("Expected " + PatronLookupException.class.getName() + " to be thrown");
+    } catch (Exception e) {
+      if (!(e.getCause() instanceof PatronLookupException)) {
+        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getCause().getClass().getName());
+        throw e;
+      }
+    }
   }
 
   @Test

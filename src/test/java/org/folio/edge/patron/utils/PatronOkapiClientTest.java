@@ -82,6 +82,21 @@ public class PatronOkapiClientTest {
   }
 
   @Test
+  public void testGetPatronInsufficientPrivs(TestContext context) throws Exception {
+    logger.info("=== Test getPatron patron doesn't exist ===");
+
+    try {
+      client.getPatron(PatronMockOkapi.extPatronId).get();
+      fail("Expected " + PatronLookupException.class.getName() + " to be thrown");
+    } catch (Exception e) {
+      if (!(e.getCause() instanceof PatronLookupException)) {
+        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getCause().getClass().getName());
+        throw e;
+      }
+    }
+  }
+
+  @Test
   public void testGetAccountWithAll(TestContext context) throws Exception {
     logger.info("=== Test successful getAccount request w/ all data ===");
 

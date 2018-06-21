@@ -37,13 +37,19 @@ public class PatronOkapiClient extends OkapiClient {
     getPatron(
         extPatronId,
         resp -> resp.bodyHandler(body -> {
-          logger.info("Response from mod-users: " + body);
-          JsonObject json = body.toJsonObject();
-          try {
-            future.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
-          } catch (Exception e) {
-            logger.error("Exception parsing response from mod-users", e);
-            future.completeExceptionally(new PatronLookupException(e));
+          int status = resp.statusCode();
+          String bodyStr = body.toString();
+          logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
+          if (status != 200) {
+            future.completeExceptionally(new PatronLookupException(bodyStr));
+          } else {
+            JsonObject json = body.toJsonObject();
+            try {
+              future.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+            } catch (Exception e) {
+              logger.error("Exception parsing response from mod-users", e);
+              future.completeExceptionally(new PatronLookupException(e));
+            }
           }
         }),
         t -> {

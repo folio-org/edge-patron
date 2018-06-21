@@ -113,7 +113,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(403)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Access requires permission: users.item.get");
+        .end("Access requires permission: users.collection.get");
     } else {
       String[] parts = query.split("==");
       String extPatronId = parts[1];

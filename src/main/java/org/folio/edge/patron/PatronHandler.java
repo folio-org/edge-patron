@@ -15,6 +15,7 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
@@ -22,6 +23,7 @@ import org.folio.edge.core.InstitutionalUserHelper;
 import org.folio.edge.core.InstitutionalUserHelper.MalformedApiKeyException;
 import org.folio.edge.core.model.ClientInfo;
 import org.folio.edge.core.security.SecureStore;
+import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
@@ -43,20 +45,18 @@ public class PatronHandler {
   private void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
       TwoParamVoidFunction<PatronOkapiClient, Map<String, String>> action) {
     String key = ctx.request().getParam(PARAM_API_KEY);
-    String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
-
     if (key == null || key.isEmpty()) {
       accessDenied(ctx);
       return;
     }
 
+    String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
     if (extPatronId == null || extPatronId.isEmpty()) {
       badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;
     }
 
     Map<String, String> params = new HashMap<>(requiredParams.length);
-
     for (String param : requiredParams) {
       String value = ctx.request().getParam(param);
       if (value == null || value.isEmpty()) {
@@ -81,31 +81,42 @@ public class PatronHandler {
 
     final PatronOkapiClient client = ocf.getPatronOkapiClient(clientInfo.tenantId);
 
-    iuHelper.getToken(client,
+    getToken(ctx, client, clientInfo)
+      .thenAcceptAsync(token -> {
+        client.setToken(token);
+        getPatron(ctx, client, clientInfo, extPatronId)
+          .thenAcceptAsync(patronId -> {
+            params.put(PARAM_PATRON_ID, patronId);
+            action.apply(client, params);
+          });
+      });
+  }
+
+  private CompletableFuture<String> getToken(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo) {
+    return iuHelper.getToken(client,
         clientInfo.clientId,
         clientInfo.tenantId,
         clientInfo.username)
       .exceptionally(t -> {
-        accessDenied(ctx);
+        if (t instanceof TimeoutException) {
+          requestTimeout(ctx);
+        } else {
+          accessDenied(ctx);
+        }
         return null;
-      })
-      .thenAcceptAsync(token -> {
-        client.setToken(token);
-        client.getPatron(extPatronId)
-          .exceptionally(t -> {
-            if (t instanceof TimeoutException) {
-              requestTimeout(ctx);
-            } else {
-              notFound(ctx, "Unable to find patron " + extPatronId);
-            }
-            return null;
-          })
-          .thenAcceptAsync(patronId -> {
-            if (patronId != null) {
-              params.put(PARAM_PATRON_ID, patronId);
-              action.apply(client, params);
-            }
-          });
+      });
+  }
+
+  private CompletableFuture<String> getPatron(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo,
+      String extPatronId) {
+    return PatronIdHelper.lookupPatron(client, clientInfo.tenantId, extPatronId)
+      .exceptionally(t -> {
+        if (t instanceof TimeoutException) {
+          requestTimeout(ctx);
+        } else {
+          notFound(ctx, "Unable to find patron " + extPatronId);
+        }
+        return null;
       });
   }
 

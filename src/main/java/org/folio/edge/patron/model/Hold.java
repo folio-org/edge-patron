@@ -36,7 +36,7 @@ public final class Hold {
 
   @JsonIgnore
   public static final String DATE_FORMAT = "yyyy-MM-dd";
-  
+
   public final Item item;
   public final String requestId;
   public final Date requestDate;

@@ -29,13 +29,13 @@ public class PatronIdHelper {
       logger.info("Using cached patronId");
       future.complete(patronId);
     } else {
-      client.getPatron(extPatronId).exceptionally(t -> {
+      client.getPatron(extPatronId).thenAcceptAsync(internalId -> {
+        logger.info(String.format("Patron lookup successful: %s -> %s", extPatronId, internalId));
+        future.complete(internalId);
+      }).exceptionally(t -> {
         logger.error("Patron lookup failed for " + extPatronId, t);
         future.completeExceptionally(t);
         return null;
-      }).thenAcceptAsync(internalId -> {
-        logger.info(String.format("Patron lookup successful: %s -> %s", extPatronId, internalId));
-        future.complete(internalId);
       });
     }
     return future;

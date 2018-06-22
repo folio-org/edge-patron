@@ -44,11 +44,11 @@ Property                      | Default     | Description
 
 In order to map external patron IDs to those used within FOLIO, the `externalSystemId` field in the user metadata is used.  The mapping flow works like this:
 
-1. A request is made containing an external system's patron ID
+1. A request arrives containing an external system's patron ID
 1. The patron ID cache is consulted.  If a mapping has been cached, skip to #5.
-1. Edge-patron makes a request to mod-users, querying for the user having the provided `externalSystemId`
-1. The external ID -> internal ID mapping is cached for a configurable amount of time.
-1. FOLIO's user/patron ID is used when calling mod-patron
+1. A request is made to mod-users, querying for the user having the provided `externalSystemId`
+1. The external ID -> internal/FOLIO ID mapping is cached for a configurable amount of time.
+1. The internal/FOLIO ID is used when calling mod-patron
 
 ## Additional information
 

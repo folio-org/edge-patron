@@ -15,7 +15,6 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
@@ -81,40 +80,38 @@ public class PatronHandler {
 
     final PatronOkapiClient client = ocf.getPatronOkapiClient(clientInfo.tenantId);
 
-    getToken(ctx, client, clientInfo)
-      .thenAcceptAsync(token -> {
-        client.setToken(token);
-        getPatron(ctx, client, clientInfo, extPatronId)
-          .thenAcceptAsync(patronId -> {
-            params.put(PARAM_PATRON_ID, patronId);
-            action.apply(client, params);
-          });
-      });
+    getTokenAndPatron(ctx, client, clientInfo, extPatronId, params,
+        () -> action.apply(client, params));
   }
 
-  private CompletableFuture<String> getToken(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo) {
-    return iuHelper.getToken(client,
+  private void getTokenAndPatron(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo,
+      String extPatronId, Map<String, String> params,
+      Runnable action) {
+    iuHelper.getToken(client,
         clientInfo.clientId,
         clientInfo.tenantId,
         clientInfo.username)
+      .thenAcceptAsync(token -> {
+        client.setToken(token);
+        PatronIdHelper.lookupPatron(client, clientInfo.tenantId, extPatronId)
+          .thenAcceptAsync(patronId -> {
+            params.put(PARAM_PATRON_ID, patronId);
+            action.run();
+          })
+          .exceptionally(t -> {
+            if (t instanceof TimeoutException) {
+              requestTimeout(ctx);
+            } else {
+              notFound(ctx, "Unable to find patron " + extPatronId);
+            }
+            return null;
+          });
+      })
       .exceptionally(t -> {
         if (t instanceof TimeoutException) {
           requestTimeout(ctx);
         } else {
           accessDenied(ctx);
-        }
-        return null;
-      });
-  }
-
-  private CompletableFuture<String> getPatron(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo,
-      String extPatronId) {
-    return PatronIdHelper.lookupPatron(client, clientInfo.tenantId, extPatronId)
-      .exceptionally(t -> {
-        if (t instanceof TimeoutException) {
-          requestTimeout(ctx);
-        } else {
-          notFound(ctx, "Unable to find patron " + extPatronId);
         }
         return null;
       });

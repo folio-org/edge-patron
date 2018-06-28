@@ -4,7 +4,6 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.MSG_NOT_IMPLEMENTED;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -238,8 +237,7 @@ public class PatronMockOkapi extends MockOkapi {
   public void editItemHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_NOT_IMPLEMENTED);
+      .end();
   }
 
   public void removeItemHoldHandler(RoutingContext ctx) {
@@ -285,22 +283,19 @@ public class PatronMockOkapi extends MockOkapi {
   public void placeInstanceHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_NOT_IMPLEMENTED);
+      .end();
   }
 
   public void editInstanceHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_NOT_IMPLEMENTED);
+      .end();
   }
 
   public void removeInstanceHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_NOT_IMPLEMENTED);
+      .end();
   }
 
   public static String getPatronJson(String extPatronId) {

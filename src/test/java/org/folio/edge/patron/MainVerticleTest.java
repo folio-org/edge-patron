@@ -9,7 +9,6 @@ import static org.folio.edge.core.Constants.SYS_SECURE_STORE_PROP_FILE;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.utils.test.MockOkapi.X_DURATION;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_NOT_IMPLEMENTED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -433,11 +432,10 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals("", resp.getBody().asString());
   }
 
   @Test
@@ -478,11 +476,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -560,11 +557,10 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId, apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals("", resp.getBody().asString());
   }
 
   @Test
@@ -598,11 +594,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -616,11 +611,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -688,11 +682,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals("", resp.getBody().asString());
   }
 
   @Test
@@ -707,11 +700,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -726,11 +718,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -744,11 +735,10 @@ public class MainVerticleTest {
               apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.body().asString());
+    assertEquals("", resp.body().asString());
   }
 
   @Test
@@ -1076,11 +1066,10 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, hold.requestId, apiKey))
       .then()
       .statusCode(501)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .extract()
       .response();
 
-    assertEquals(MSG_NOT_IMPLEMENTED, resp.getBody().asString());
+    assertEquals("", resp.getBody().asString());
   }
 
   @Test

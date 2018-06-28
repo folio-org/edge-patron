@@ -228,10 +228,20 @@ public class PatronHandler {
   }
 
   private void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
-    resp.bodyHandler(body -> ctx.response()
-      .setStatusCode(resp.statusCode())
-      .putHeader(HttpHeaders.CONTENT_TYPE, resp.getHeader(HttpHeaders.CONTENT_TYPE))
-      .end(body.toString()));
+    final StringBuilder body = new StringBuilder();
+    resp.handler(buf -> {
+      logger.debug("read Bytes: " + buf.toString());
+      body.append(buf);
+    }).endHandler(v -> {
+      ctx.response().setStatusCode(resp.statusCode());
+
+      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
+      if (contentType != null) {
+        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      }
+
+      ctx.response().end(body.toString());
+    });
   }
 
   private void handleProxyException(RoutingContext ctx, Throwable t) {

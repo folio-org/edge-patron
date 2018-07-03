@@ -1,10 +1,9 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.PARAM_API_KEY;
+import static org.folio.edge.core.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.core.Constants.MSG_INTERNAL_SERVER_ERROR;
+import static org.folio.edge.core.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
-import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -13,41 +12,28 @@ import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.log4j.Logger;
-import org.folio.edge.core.InstitutionalUserHelper;
-import org.folio.edge.core.InstitutionalUserHelper.MalformedApiKeyException;
-import org.folio.edge.core.model.ClientInfo;
+import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
+import org.folio.edge.core.utils.OkapiClient;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
 
-public class PatronHandler {
-  private static final Logger logger = Logger.getLogger(PatronHandler.class);
-
-  private InstitutionalUserHelper iuHelper;
-  private PatronOkapiClientFactory ocf;
+public class PatronHandler extends Handler {
 
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
-    this.ocf = ocf;
-    this.iuHelper = new InstitutionalUserHelper(secureStore);
+    super(secureStore, ocf);
   }
 
-  private void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
-      TwoParamVoidFunction<PatronOkapiClient, Map<String, String>> action) {
-    String key = ctx.request().getParam(PARAM_API_KEY);
-    if (key == null || key.isEmpty()) {
-      accessDenied(ctx);
-      return;
-    }
+  @Override
+  protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
+      TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
 
     String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
     if (extPatronId == null || extPatronId.isEmpty()) {
@@ -55,66 +41,23 @@ public class PatronHandler {
       return;
     }
 
-    Map<String, String> params = new HashMap<>(requiredParams.length);
-    for (String param : requiredParams) {
-      String value = ctx.request().getParam(param);
-      if (value == null || value.isEmpty()) {
-        badRequest(ctx, "Missing required parameter: " + param);
-        return;
-      } else {
-        params.put(param, value);
-      }
-    }
+    super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client);
 
-    for (String param : optionalParams) {
-      params.put(param, ctx.request().getParam(param));
-    }
-
-    ClientInfo clientInfo;
-    try {
-      clientInfo = InstitutionalUserHelper.parseApiKey(key);
-    } catch (MalformedApiKeyException e) {
-      accessDenied(ctx);
-      return;
-    }
-
-    final PatronOkapiClient client = ocf.getPatronOkapiClient(clientInfo.tenantId);
-
-    getTokenAndPatron(ctx, client, clientInfo, extPatronId, params,
-        () -> action.apply(client, params));
-  }
-
-  private void getTokenAndPatron(RoutingContext ctx, PatronOkapiClient client, ClientInfo clientInfo,
-      String extPatronId, Map<String, String> params,
-      Runnable action) {
-    iuHelper.getToken(client,
-        clientInfo.clientId,
-        clientInfo.tenantId,
-        clientInfo.username)
-      .thenAcceptAsync(token -> {
-        client.setToken(token);
-        PatronIdHelper.lookupPatron(client, clientInfo.tenantId, extPatronId)
-          .thenAcceptAsync(patronId -> {
-            params.put(PARAM_PATRON_ID, patronId);
-            action.run();
-          })
-          .exceptionally(t -> {
-            if (t instanceof TimeoutException) {
-              requestTimeout(ctx);
-            } else {
-              notFound(ctx, "Unable to find patron " + extPatronId);
-            }
-            return null;
-          });
-      })
-      .exceptionally(t -> {
-        if (t instanceof TimeoutException) {
-          requestTimeout(ctx);
-        } else {
-          accessDenied(ctx);
-        }
-        return null;
-      });
+      PatronIdHelper.lookupPatron(patronClient, client.tenant, extPatronId)
+        .thenAcceptAsync(patronId -> {
+          params.put(PARAM_PATRON_ID, patronId);
+          action.apply(patronClient, params);
+        })
+        .exceptionally(t -> {
+          if (t instanceof TimeoutException) {
+            requestTimeout(ctx, t.getMessage());
+          } else {
+            notFound(ctx, "Unable to find patron " + extPatronId);
+          }
+          return null;
+        });
+    });
   }
 
   public void handleGetAccount(RoutingContext ctx) {
@@ -126,7 +69,7 @@ public class PatronHandler {
           boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
           boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
 
-          client.getAccount(params.get(PARAM_PATRON_ID),
+          ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
               includeLoans,
               includeCharges,
               includeHolds,
@@ -140,7 +83,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID },
         new String[] {},
-        (client, params) -> client.renewItem(
+        (client, params) -> ((PatronOkapiClient) client).renewItem(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             ctx.request().headers(),
@@ -153,7 +96,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID },
         new String[] {},
-        (client, params) -> client.placeItemHold(
+        (client, params) -> ((PatronOkapiClient) client).placeItemHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             ctx.getBodyAsString(),
@@ -166,7 +109,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> client.editItemHold(
+        (client, params) -> ((PatronOkapiClient) client).editItemHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             params.get(PARAM_HOLD_ID),
@@ -180,7 +123,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> client.removeItemHold(
+        (client, params) -> ((PatronOkapiClient) client).removeItemHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             params.get(PARAM_HOLD_ID),
@@ -193,7 +136,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID },
         new String[] {},
-        (client, params) -> client.placeInstanceHold(
+        (client, params) -> ((PatronOkapiClient) client).placeInstanceHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             ctx.getBodyAsString(),
@@ -206,7 +149,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> client.editInstanceHold(
+        (client, params) -> ((PatronOkapiClient) client).editInstanceHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             params.get(PARAM_HOLD_ID),
@@ -219,7 +162,7 @@ public class PatronHandler {
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> client.removeInstanceHold(params.get(PARAM_PATRON_ID),
+        (client, params) -> ((PatronOkapiClient) client).removeInstanceHold(params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             params.get(PARAM_HOLD_ID),
             ctx.request().headers(),
@@ -227,71 +170,45 @@ public class PatronHandler {
             t -> handleProxyException(ctx, t)));
   }
 
-  private void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
-    final StringBuilder body = new StringBuilder();
-    resp.handler(buf -> {
-      logger.debug("read Bytes: " + buf.toString());
-      body.append(buf);
-    }).endHandler(v -> {
-      ctx.response().setStatusCode(resp.statusCode());
-
-      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
-      if (contentType != null) {
-        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-      }
-
-      ctx.response().end(body.toString());
-    });
-  }
-
-  private void handleProxyException(RoutingContext ctx, Throwable t) {
-    logger.error("Exception calling mod-patron (Place Instance Hold)", t);
-    if (t instanceof TimeoutException) {
-      requestTimeout(ctx);
-    } else {
-      internalServerError(ctx);
-    }
-  }
-
-  private void accessDenied(RoutingContext ctx) {
+  @Override
+  protected void accessDenied(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(401)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .end(MSG_ACCESS_DENIED);
   }
 
-  private void badRequest(RoutingContext ctx, String body) {
+  @Override
+  protected void badRequest(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(400)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(body);
+      .end(msg);
   }
 
-  private void notFound(RoutingContext ctx, String body) {
+  @Override
+  protected void notFound(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(404)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(body);
+      .end(msg);
   }
 
-  private void requestTimeout(RoutingContext ctx) {
+  @Override
+  protected void requestTimeout(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(408)
       .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
       .end(MSG_REQUEST_TIMEOUT);
   }
 
-  private void internalServerError(RoutingContext ctx) {
+  @Override
+  protected void internalServerError(RoutingContext ctx, String msg) {
     if (!ctx.response().ended()) {
       ctx.response()
         .setStatusCode(500)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(MSG_INTERNAL_SERVER_ERROR);
     }
-  }
-
-  @FunctionalInterface
-  private interface TwoParamVoidFunction<A, B> {
-    public void apply(A a, B b);
   }
 }

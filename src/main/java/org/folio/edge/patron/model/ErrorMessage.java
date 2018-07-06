@@ -13,7 +13,7 @@ import java.io.IOException;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "error")
-@JsonDeserialize(builder = Item.Builder.class)
+@JsonDeserialize(builder = ErrorMessage.Builder.class)
 @JsonPropertyOrder({
         "code",
         "message"
@@ -76,7 +76,33 @@ public class ErrorMessage {
         return Mappers.jsonMapper.readValue(json, ErrorMessage.class);
     }
 
-    public static ErrorMessage fromXml(String xml) throws IOException {
+    public static ErrorMessage fromXml(String xml) throws IOException{
         return Mappers.xmlMapper.readValue(xml, ErrorMessage.class);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private Integer httpStatusCode;
+        private String errorMessage;
+
+        @JsonProperty("code")
+        public Builder item(Integer httpStatusCode) {
+            this.httpStatusCode = httpStatusCode;
+            return this;
+        }
+
+        @JsonProperty("message")
+        public Builder chargeAmount(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+        public ErrorMessage build() {
+            return new ErrorMessage(httpStatusCode, errorMessage);
+        }
     }
 }

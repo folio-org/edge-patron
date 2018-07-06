@@ -15,6 +15,10 @@ public class PatronOkapiClient extends OkapiClient {
 
   private static final Logger logger = Logger.getLogger(PatronOkapiClient.class);
 
+  public PatronOkapiClient(OkapiClient client) {
+    super(client);
+  }
+
   protected PatronOkapiClient(Vertx vertx, String okapiURL, String tenant, long timeout) {
     super(vertx, okapiURL, tenant, timeout);
   }

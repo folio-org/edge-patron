@@ -1,9 +1,6 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.core.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.core.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.core.Constants.TEXT_PLAIN;
+import static org.folio.edge.core.Constants.*;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -15,9 +12,11 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.patron.model.ErrorMessage;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
@@ -174,32 +173,32 @@ public class PatronHandler extends Handler {
   protected void accessDenied(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(401)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_ACCESS_DENIED);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getFinalErrorMessage(401, MSG_ACCESS_DENIED));
   }
 
   @Override
-  protected void badRequest(RoutingContext ctx, String msg) {
+  protected void badRequest(RoutingContext ctx, String msg){
     ctx.response()
       .setStatusCode(400)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(msg);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getFinalErrorMessage(400, msg));
   }
 
   @Override
   protected void notFound(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(404)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(msg);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getFinalErrorMessage(404, msg));
   }
 
   @Override
   protected void requestTimeout(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(408)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_REQUEST_TIMEOUT);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getFinalErrorMessage(408, MSG_REQUEST_TIMEOUT));
   }
 
   @Override
@@ -207,8 +206,20 @@ public class PatronHandler extends Handler {
     if (!ctx.response().ended()) {
       ctx.response()
         .setStatusCode(500)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(MSG_INTERNAL_SERVER_ERROR);
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getFinalErrorMessage(500, MSG_INTERNAL_SERVER_ERROR));
     }
+  }
+
+  private String getFinalErrorMessage(int statusCode, String message){
+      String finalMsg;
+      try{
+          ErrorMessage error = new ErrorMessage(statusCode, message);
+          finalMsg = error.toJson();
+      }
+      catch(JsonProcessingException ex){
+          finalMsg = message;
+      }
+      return finalMsg;
   }
 }

@@ -127,33 +127,39 @@ public class MainVerticleTest {
   public void testGetAccountUnknownApiKey(TestContext context) throws Exception {
     logger.info("=== Test getAccount with unknown apiKey (tenant) ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s", extPatronId, unknownTenantApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testGetAccountBadApiKey(TestContext context) throws Exception {
     logger.info("=== Test getAccount with malformed apiKey ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s", extPatronId, badApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -178,17 +184,20 @@ public class MainVerticleTest {
   public void testGetAccountPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test request where patron isn't found ===");
 
+    int expectedStatusCode = 404;
+
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound, apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, actual);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -348,34 +357,42 @@ public class MainVerticleTest {
   public void testRenewPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test renew w/ patron not found ===");
 
+    int expectedStatusCode = 404;
+
     final Response resp = RestAssured
       .post(
           String.format("/patron/account/%s/item/%s/renew?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testRenewItemNotFound(TestContext context) throws Exception {
     logger.info("=== Test renew w/ item not found ===");
 
+    int expectedStatusCode = 404;
+
     final Response resp = RestAssured
       .post(
           String.format("/patron/account/%s/item/%s/renew?apikey=%s", extPatronId, PatronMockOkapi.itemId_notFound,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
@@ -420,6 +437,8 @@ public class MainVerticleTest {
   public void testRenewRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test renew request timeout ===");
 
+    int expectedStatusCode = 408;
+
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
@@ -427,13 +446,14 @@ public class MainVerticleTest {
           apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(408)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    String actual =  ErrorMessage.fromJson(resp.body().asString()).errorMessage;
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_REQUEST_TIMEOUT, actual);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -441,6 +461,8 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold success ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
+    int expectedStatusCode = 501;
+
 
     final Response resp = RestAssured
       .with()
@@ -449,11 +471,13 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.getBody().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -461,6 +485,7 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold w/ patron not found ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .with()
@@ -471,12 +496,14 @@ public class MainVerticleTest {
               instanceId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -484,6 +511,7 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold w/ instance not found ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.instanceId_notFound);
+    int expectedStatusCode = 501;
 
     final Response resp = RestAssured
       .with()
@@ -493,11 +521,13 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, PatronMockOkapi.instanceId_notFound,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -556,6 +586,7 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
+    int expectedStatusCode = 408;
 
     final Response resp = RestAssured
       .with()
@@ -566,32 +597,40 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
               apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
   public void testRemoveInstanceHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test remove instance hold success ===");
 
+    int expectedStatusCode = 501;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId, apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.getBody().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
   public void testRemoveInstanceHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test remove instance hold w/ patron not found ===");
+
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .delete(
@@ -600,17 +639,21 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testRemoveInstanceHoldInstanceNotFound(TestContext context) throws Exception {
     logger.info("=== Test remove instance hold w/ instance not found ===");
+
+    int expectedStatusCode = 501;
 
     final Response resp = RestAssured
       .delete(
@@ -619,16 +662,20 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
   public void testRemoveInstanceHoldHoldNotFound(TestContext context) throws Exception {
     logger.info("=== Test remove instance hold w/ hold not found ===");
+
+    int expectedStatusCode = 501;
 
     final Response resp = RestAssured
       .delete(
@@ -636,11 +683,13 @@ public class MainVerticleTest {
               PatronMockOkapi.holdReqId_notFound,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -690,18 +739,22 @@ public class MainVerticleTest {
   public void testRemoveInstanceHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test remove instance hold request timeout ===");
 
+    int expectedStatusCode = 408;
+
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
       .delete(String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId,
           apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -730,6 +783,8 @@ public class MainVerticleTest {
   public void testEditInstanceHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test edit instance hold w/ patron not found ===");
 
+    int expectedStatusCode = 501;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", PatronMockOkapi.patronId_notFound,
@@ -737,16 +792,20 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditInstanceHoldInstanceNotFound(TestContext context) throws Exception {
     logger.info("=== Test edit instance hold w/ instance not found ===");
+
+    int expectedStatusCode = 501;
 
     final Response resp = RestAssured
       .delete(
@@ -755,11 +814,13 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
@@ -788,40 +849,49 @@ public class MainVerticleTest {
   public void testEditInstanceHoldUnknownApiKey(TestContext context) throws Exception {
     logger.info("=== Test edit instance hold with unknown apiKey (tenant) ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId,
               unknownTenantApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(MSG_ACCESS_DENIED, resp.getBody().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditInstanceHoldBadApiKey(TestContext context) throws Exception {
     logger.info("=== Test edit instance hold with malformed apiKey ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId, badApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditInstanceHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test edit instance hold request timeout ===");
+
+    int expectedStatusCode = 408;
 
     final Response resp = RestAssured
       .with()
@@ -829,12 +899,14 @@ public class MainVerticleTest {
       .delete(String.format("/patron/account/%s/instance/%s/hold/%s?apikey=%s", patronId, instanceId, holdId,
           apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -866,6 +938,7 @@ public class MainVerticleTest {
     logger.info("=== Test place item hold w/ patron not found ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .with()
@@ -875,12 +948,14 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -888,6 +963,7 @@ public class MainVerticleTest {
     logger.info("=== Test place item hold w/ item not found ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.itemId_notFound);
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .with()
@@ -896,12 +972,14 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, PatronMockOkapi.itemId_notFound, apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -934,6 +1012,7 @@ public class MainVerticleTest {
     logger.info("=== Test place item hold with malformed apiKey ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
+    int expectedStatusCode = 401;
 
     final Response resp = RestAssured
       .with()
@@ -942,14 +1021,15 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, badApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -957,6 +1037,7 @@ public class MainVerticleTest {
     logger.info("=== Test place item hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
+    int expectedStatusCode = 408;
 
     final Response resp = RestAssured
       .with()
@@ -967,12 +1048,14 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
               apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
@@ -1020,23 +1103,29 @@ public class MainVerticleTest {
   public void testRemoveItemHoldItemNotFound(TestContext context) throws Exception {
     logger.info("=== Test remove item hold w/ item not found ===");
 
+    int expectedStatusCode = 404;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, PatronMockOkapi.itemId_notFound,
               holdId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
   public void testRemoveItemHoldHoldNotFound(TestContext context) throws Exception {
     logger.info("=== Test remove item hold w/ hold not found ===");
+
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .delete(
@@ -1044,12 +1133,14 @@ public class MainVerticleTest {
               PatronMockOkapi.holdReqId_notFound,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.holdReqId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.holdReqId_notFound  + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
   }
 
   @Test
@@ -1083,7 +1174,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId, badApiKey))
       .then()
-      .statusCode(401)
+      .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
@@ -1103,6 +1194,7 @@ public class MainVerticleTest {
   @Test
   public void testRemoveItemHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test remove item hold request timeout ===");
+    int expectedStatusCode = 408;
 
     final Response resp = RestAssured
       .with()
@@ -1110,17 +1202,22 @@ public class MainVerticleTest {
       .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
           apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test edit item hold success ===");
+
+    int expectedStatusCode = 501;
 
     Hold hold = PatronMockOkapi.getHold(itemId);
 
@@ -1128,16 +1225,20 @@ public class MainVerticleTest {
       .put(
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, hold.requestId, apiKey))
       .then()
-      .statusCode(501)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals("", resp.getBody().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test edit item hold w/ patron not found ===");
+
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .delete(
@@ -1145,17 +1246,20 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldItemNotFound(TestContext context) throws Exception {
     logger.info("=== Test edit item hold w/ item not found ===");
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .delete(
@@ -1163,17 +1267,21 @@ public class MainVerticleTest {
               holdId,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldHoldNotFound(TestContext context) throws Exception {
     logger.info("=== Test edit item hold w/ hold not found ===");
+
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .delete(
@@ -1181,52 +1289,62 @@ public class MainVerticleTest {
               PatronMockOkapi.holdReqId_notFound,
               apiKey))
       .then()
-      .statusCode(404)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    assertEquals(PatronMockOkapi.holdReqId_notFound + " not found", resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(PatronMockOkapi.holdReqId_notFound + " not found", msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldUnknownApiKey(TestContext context) throws Exception {
     logger.info("=== Test edit item hold with unknown apiKey (tenant) ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .delete(
           String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
               unknownTenantApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldBadApiKey(TestContext context) throws Exception {
     logger.info("=== Test edit item hold with malformed apiKey ===");
 
+    int expectedStatusCode = 401;
+
     final Response resp = RestAssured
       .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId, badApiKey))
       .then()
-      .statusCode(401)
-      .header(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String actual = resp.body().asString();
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, actual);
+    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test
   public void testEditItemHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test edit item hold request timeout ===");
+
+    int expectedStatusCode = 408;
 
     final Response resp = RestAssured
       .with()
@@ -1234,12 +1352,14 @@ public class MainVerticleTest {
       .delete(String.format("/patron/account/%s/item/%s/hold/%s?apikey=%s", extPatronId, itemId, holdId,
           apiKey))
       .then()
-      .contentType(TEXT_PLAIN)
-      .statusCode(408)
+      .contentType(APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    assertEquals(MSG_REQUEST_TIMEOUT, resp.body().asString());
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
+    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
 
   @Test

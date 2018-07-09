@@ -12,7 +12,14 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import com.amazonaws.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import org.apache.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
@@ -29,6 +36,7 @@ public class PatronHandler extends Handler {
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
+  private static final Logger logger = Logger.getLogger(Handler.class);
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -211,15 +219,92 @@ public class PatronHandler extends Handler {
     }
   }
 
+  @Override
+  protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
+
+    HttpServerResponse serverResponse = ctx.response();
+
+    final StringBuilder body = new StringBuilder();
+    resp.handler(buf -> {
+
+      if (logger.isTraceEnabled()) {
+        logger.trace("read bytes: " + buf.toString());
+      }
+
+      body.append(buf);
+    }).endHandler(v -> {
+
+      int statusCode = resp.statusCode();
+      serverResponse.setStatusCode(statusCode);
+
+      String respBody = body.toString();
+      if (logger.isDebugEnabled()) {
+        logger.debug("response: " + respBody);
+      }
+
+      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
+      setContentType(serverResponse, contentType);
+
+      if (resp.statusCode() < 400){
+        serverResponse.end(respBody);  //pass on the response body as received
+      }
+      else {
+        handleAllErors(serverResponse, respBody, statusCode);
+      }
+    });
+  }
+
+  @Override
+  protected void handleProxyException(RoutingContext ctx, Throwable t) {
+    logger.error("Exception calling OKAPI", t);
+    if (t instanceof TimeoutException) {
+      requestTimeout(ctx, t.getMessage());
+    } else {
+      internalServerError(ctx, t.getMessage());
+    }
+  }
+
   private String getFinalErrorMessage(int statusCode, String message){
-      String finalMsg;
-      try{
-          ErrorMessage error = new ErrorMessage(statusCode, message);
-          finalMsg = error.toJson();
-      }
-      catch(JsonProcessingException ex){
-          finalMsg = message;
-      }
-      return finalMsg;
+    String finalMsg;
+    try{
+      ErrorMessage error = new ErrorMessage(statusCode, message);
+      finalMsg = error.toJson();
+    }
+    catch(JsonProcessingException ex){
+      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
+    }
+    return finalMsg;
+  }
+
+  private String handle422Errors(HttpServerResponse response, String respBody){
+
+    final JsonObject responseJson = new JsonObject(respBody);
+    //final Errors errors = Json.decodeValue(responseJson.getString("errorMessage"), Errors.class);
+
+    return "";
+  }
+
+  private void handleErrors(HttpServerResponse response, String respBody, int statusCode){
+
+    response.end(getFinalErrorMessage(statusCode, respBody));
+  }
+
+  private void handleAllErors(HttpServerResponse response, String respBody, int statusCode){
+
+    setContentType(response, APPLICATION_JSON);
+    response.setStatusCode(statusCode);
+
+    if (statusCode == 422){
+      handle422Errors(response, respBody);
+    }
+    else{
+      handleErrors(response, respBody, statusCode);
+    }
+  }
+
+  private void setContentType(HttpServerResponse response, String contentType){
+    if (contentType != null) {
+      response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+    }
   }
 }

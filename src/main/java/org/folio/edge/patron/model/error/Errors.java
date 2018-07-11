@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({ "errors", "total_records" })
-public class Errors {
+public class Errors {  //NOSONAR
 
     @JsonProperty("errors")
     private List<Error> errors = new ArrayList<Error>();

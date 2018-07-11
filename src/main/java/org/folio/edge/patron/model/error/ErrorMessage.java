@@ -21,7 +21,7 @@ import java.io.IOException;
 public class ErrorMessage {
 
     @JsonProperty("code")
-    public final Integer httpStatusCode;
+    public final int httpStatusCode;
 
     @JsonProperty("message")
     public final String message;
@@ -45,13 +45,8 @@ public class ErrorMessage {
         }
         ErrorMessage other = (ErrorMessage) obj;
 
-        if (this.httpStatusCode == null) {
-            if (other.httpStatusCode != null) {
-                return false;
-            }
-        } else if (!httpStatusCode.equals(other.httpStatusCode)) {
+        if (httpStatusCode != other.httpStatusCode)
             return false;
-        }
 
         if (this.message == null) {
             if (other.message != null) {

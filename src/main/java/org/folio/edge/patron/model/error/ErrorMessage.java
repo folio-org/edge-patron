@@ -24,11 +24,11 @@ public class ErrorMessage {
     public final Integer httpStatusCode;
 
     @JsonProperty("message")
-    public final String errorMessage;
+    public final String message;
 
     public ErrorMessage(int statusCode, String errorMsg){
         this.httpStatusCode = statusCode;
-        this.errorMessage = errorMsg;
+        this.message = errorMsg;
     }
 
     @Override
@@ -53,11 +53,11 @@ public class ErrorMessage {
             return false;
         }
 
-        if (this.errorMessage == null) {
-            if (other.errorMessage != null) {
+        if (this.message == null) {
+            if (other.message != null) {
                 return false;
             }
-        } else if (!errorMessage.equals(other.errorMessage)) {
+        } else if (!message.equals(other.message)) {
             return false;
         }
 
@@ -87,7 +87,7 @@ public class ErrorMessage {
     public static class Builder {
 
         private Integer httpStatusCode;
-        private String errorMessage;
+        private String message;
 
         @JsonProperty("code")
         public Builder item(Integer httpStatusCode) {
@@ -97,12 +97,12 @@ public class ErrorMessage {
 
         @JsonProperty("message")
         public Builder chargeAmount(String errorMessage) {
-            this.errorMessage = errorMessage;
+            this.message = errorMessage;
             return this;
         }
 
         public ErrorMessage build() {
-            return new ErrorMessage(httpStatusCode, errorMessage);
+            return new ErrorMessage(httpStatusCode, message);
         }
     }
 }

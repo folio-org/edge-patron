@@ -289,7 +289,7 @@ public class PatronHandler extends Handler {
       Errors err  =  Json.decodeValue(respBody, Errors.class);
       List<Error> errors = err.getErrors();
 
-      if (errors != null && errors.size() > 0) {
+      if (errors != null && !errors.isEmpty()) {
         Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
         if (firstErrorInstance != null) {
           errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());

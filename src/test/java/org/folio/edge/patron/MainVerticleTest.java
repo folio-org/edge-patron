@@ -138,8 +138,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -158,8 +158,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -196,8 +196,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -216,8 +216,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -330,8 +330,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-      assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-      assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+      assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+      assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -370,8 +370,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -391,8 +391,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -411,8 +411,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -429,8 +429,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(401, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(401, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -452,8 +452,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
     @Test
@@ -474,8 +474,8 @@ public class MainVerticleTest {
 
         ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("loan has reached its maximum number of renewals", msg.errorMessage);
-        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+        assertEquals("loan has reached its maximum number of renewals", msg.message);
+        assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
     }
 
     @Test
@@ -496,8 +496,8 @@ public class MainVerticleTest {
 
         ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("No error message found", msg.errorMessage);
-        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+        assertEquals("No error message found", msg.message);
+        assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
     }
 
     @Test
@@ -518,8 +518,8 @@ public class MainVerticleTest {
 
         ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("A problem encountered when extracting error message", msg.errorMessage);
-        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+        assertEquals("A problem encountered when extracting error message", msg.message);
+        assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
     }
 
   @Test
@@ -542,8 +542,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -568,8 +568,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -592,8 +592,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -616,8 +616,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-      assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-      assertEquals(statusCode, (long)msg.httpStatusCode);
+      assertEquals(MSG_ACCESS_DENIED, msg.message);
+      assertEquals(statusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -643,8 +643,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -669,8 +669,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -688,8 +688,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -711,8 +711,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -733,8 +733,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -754,8 +754,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -776,8 +776,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage );
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message );
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -797,8 +797,8 @@ public class MainVerticleTest {
     String actual = resp.body().asString();
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -819,8 +819,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -841,8 +841,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals("", msg.errorMessage );
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message );
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -863,8 +863,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -885,8 +885,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -907,8 +907,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -928,8 +928,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -949,8 +949,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -971,8 +971,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1020,8 +1020,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1044,8 +1044,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1069,8 +1069,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1094,8 +1094,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1120,8 +1120,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1161,8 +1161,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-      assertEquals(statusCode, (long)msg.httpStatusCode);
-      assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
+      assertEquals(statusCode, (int)msg.httpStatusCode);
+      assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
   }
 
   @Test
@@ -1183,8 +1183,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -1205,8 +1205,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.holdReqId_notFound  + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.holdReqId_notFound  + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
   }
 
   @Test
@@ -1227,8 +1227,8 @@ public class MainVerticleTest {
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1249,8 +1249,8 @@ public class MainVerticleTest {
     try {
         ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-        assertEquals(expectedStatusCode, (long) msg.httpStatusCode);
+        assertEquals(MSG_ACCESS_DENIED, msg.message);
+        assertEquals(expectedStatusCode, (int) msg.httpStatusCode);
     }
     catch(IOException ex){
         Assert.fail("Exception threw: " + ex.getMessage());
@@ -1275,8 +1275,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1296,8 +1296,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1318,8 +1318,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1339,8 +1339,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.itemId_notFound + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1361,8 +1361,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(PatronMockOkapi.holdReqId_notFound + " not found", msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(PatronMockOkapi.holdReqId_notFound + " not found", msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1382,8 +1382,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1402,8 +1402,8 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals(MSG_ACCESS_DENIED, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_ACCESS_DENIED, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test
@@ -1424,8 +1424,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
-    assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
+    assertEquals(expectedStatusCode, (int)msg.httpStatusCode);
   }
 
   @Test

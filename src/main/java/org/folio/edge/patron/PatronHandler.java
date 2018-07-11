@@ -9,21 +9,21 @@ import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import com.amazonaws.Response;
+import org.folio.edge.patron.model.error.Error;
+import org.folio.edge.patron.model.error.Errors;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.vertx.core.Future;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
-import org.folio.edge.patron.model.ErrorMessage;
+import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
@@ -182,7 +182,7 @@ public class PatronHandler extends Handler {
     ctx.response()
       .setStatusCode(401)
       .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .end(getFinalErrorMessage(401, MSG_ACCESS_DENIED));
+      .end(getStructuredErrorMessage(401, MSG_ACCESS_DENIED));
   }
 
   @Override
@@ -190,7 +190,7 @@ public class PatronHandler extends Handler {
     ctx.response()
       .setStatusCode(400)
       .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .end(getFinalErrorMessage(400, msg));
+      .end(getStructuredErrorMessage(400, msg));
   }
 
   @Override
@@ -198,7 +198,7 @@ public class PatronHandler extends Handler {
     ctx.response()
       .setStatusCode(404)
       .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .end(getFinalErrorMessage(404, msg));
+      .end(getStructuredErrorMessage(404, msg));
   }
 
   @Override
@@ -206,7 +206,7 @@ public class PatronHandler extends Handler {
     ctx.response()
       .setStatusCode(408)
       .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .end(getFinalErrorMessage(408, MSG_REQUEST_TIMEOUT));
+      .end(getStructuredErrorMessage(408, MSG_REQUEST_TIMEOUT));
   }
 
   @Override
@@ -215,7 +215,7 @@ public class PatronHandler extends Handler {
       ctx.response()
         .setStatusCode(500)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getFinalErrorMessage(500, MSG_INTERNAL_SERVER_ERROR));
+        .end(getStructuredErrorMessage(500, MSG_INTERNAL_SERVER_ERROR));
     }
   }
 
@@ -243,13 +243,16 @@ public class PatronHandler extends Handler {
       }
 
       String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
-      setContentType(serverResponse, contentType);
+
 
       if (resp.statusCode() < 400){
-        serverResponse.end(respBody);  //pass on the response body as received
+        setContentType(serverResponse, contentType);
+        serverResponse.end(respBody);  //not an error case, pass on the response body as received
       }
       else {
-        handleAllErors(serverResponse, respBody, statusCode);
+        String errorMsg = getErrorMessage(statusCode, respBody);
+        setContentType(serverResponse, APPLICATION_JSON);
+        serverResponse.end(errorMsg);
       }
     });
   }
@@ -264,7 +267,7 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private String getFinalErrorMessage(int statusCode, String message){
+  private String getStructuredErrorMessage(int statusCode, String message){
     String finalMsg;
     try{
       ErrorMessage error = new ErrorMessage(statusCode, message);
@@ -276,35 +279,45 @@ public class PatronHandler extends Handler {
     return finalMsg;
   }
 
-  private String handle422Errors(HttpServerResponse response, String respBody){
 
-    final JsonObject responseJson = new JsonObject(respBody);
-    //final Errors errors = Json.decodeValue(responseJson.getString("errorMessage"), Errors.class);
+  private String get422ErrorMsg(int statusCode, String respBody){
 
-    return "";
-  }
+    logger.debug("422 message: " + respBody);
+    String errorMessage = "";
 
-  private void handleErrors(HttpServerResponse response, String respBody, int statusCode){
+    try {
+      Errors err  =  Json.decodeValue(respBody, Errors.class);
+      List<Error> errors = err.getErrors();
 
-    response.end(getFinalErrorMessage(statusCode, respBody));
-  }
+      if (errors != null && errors.size() > 0) {
+        Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
+        if (firstErrorInstance != null) {
+          errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
+        }
+      }
 
-  private void handleAllErors(HttpServerResponse response, String respBody, int statusCode){
+      if (errorMessage.equals(""))
+        errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
+      }
+      catch(Exception ex) {
+        logger.debug(ex.getMessage());
+        errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+      }
 
-    setContentType(response, APPLICATION_JSON);
-    response.setStatusCode(statusCode);
-
-    if (statusCode == 422){
-      handle422Errors(response, respBody);
+      return errorMessage;
     }
-    else{
-      handleErrors(response, respBody, statusCode);
-    }
+
+  private String getErrorMessage(int statusCode, String respBody){
+
+    if (statusCode == 422)
+        return get422ErrorMsg(statusCode, respBody);
+    else
+        return getStructuredErrorMessage(statusCode, respBody);
   }
 
   private void setContentType(HttpServerResponse response, String contentType){
-    if (contentType != null) {
-      response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+    if (contentType != null && !contentType.equals("")) {
+        response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
   }
 }

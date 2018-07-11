@@ -58,6 +58,10 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String extPatronId = UUID.randomUUID().toString();
   public static final String extPatronId_notFound = UUID.randomUUID().toString();
   public static final String feeFineId = UUID.randomUUID().toString();
+  public static final String itemId_reached_max_renewals = UUID.randomUUID().toString();
+  public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
+  public static final String itemId_reached_max_renewals_bad_json_msg = UUID.randomUUID().toString();
+
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -65,6 +69,36 @@ public class PatronMockOkapi extends MockOkapi {
 
   public static final long holdExpTs = System.currentTimeMillis() + (59 * DAY_IN_MILLIS);
   public static final long holdReqTs = System.currentTimeMillis() - DAY_IN_MILLIS;
+
+  public static final String Sample422ErrorMsg = "{" +
+          "\"errors\" : [ {" +
+          "\"message\" : \"loan has reached its maximum number of renewals\"," +
+          "\"parameters\" : [ {" +
+          "\"key\" : \"loanPolicyName\"," +
+          "\"value\" : \"Example Loan Policy\"" +
+          "}, {" +
+          "\"key\" : \"loanPolicyId\"," +
+          "\"value\" : \"d9cd0bed-1b49-4b5e-a7bd-064b8d177231\"" +
+          "} ]" +
+          "} ]" +
+          "}";
+
+  public static final String Sample422BadJsonErrorMsg = "{" +
+          "\"errors\" : [ {" +
+          "\"message\" : \"loan has reached its maximum number of renewals\"," +
+          "\"parameters\" : [ " +
+          "\"key\" : \"loanPolicyName\"," +
+          "\"value\" : \"Example Loan Policy\"" +
+          "}, {" +
+          "\"key\" : \"loanPolicyId\"," +
+          "\"value\" : \"d9cd0bed-1b49-4b5e-a7bd-064b8d177231\"" +
+          "} ]" +
+          "} ]" +
+          "}";
+
+  public static final String SampleEmpty422ErrorMsg = "{" +
+          "\"errors\" : []" +
+          "}";
 
   public PatronMockOkapi(int port, List<String> knownTenants) {
     super(port, knownTenants);
@@ -175,7 +209,22 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(itemId + " not found");
-    } else {
+    } else if (itemId.equals(itemId_reached_max_renewals)) {
+      ctx.response()
+              .setStatusCode(422)
+              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+              .end(Sample422ErrorMsg);
+    }else if (itemId.equals(itemId_reached_max_renewals_empty_error_msg)) {
+      ctx.response()
+              .setStatusCode(422)
+              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+              .end(SampleEmpty422ErrorMsg);
+    }else if (itemId.equals(itemId_reached_max_renewals_bad_json_msg)){
+      ctx.response()
+              .setStatusCode(422)
+              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+              .end(Sample422BadJsonErrorMsg);
+    }else {
       ctx.response()
         .setStatusCode(201)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

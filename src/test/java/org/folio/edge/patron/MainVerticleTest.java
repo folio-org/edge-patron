@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 import org.folio.edge.core.InstitutionalUserHelper;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.ErrorMessage;
+import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.utils.PatronMockOkapi;
@@ -455,6 +455,72 @@ public class MainVerticleTest {
     assertEquals(MSG_REQUEST_TIMEOUT, msg.errorMessage);
     assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
   }
+
+    @Test
+    public void testRenewRequesMaxRenewal(TestContext context) throws Exception {
+        logger.info("=== Test MAX Renewal ===");
+
+        int expectedStatusCode = 422;
+
+        final Response resp = RestAssured
+                .with()
+                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals,
+                        apiKey))
+                .then()
+                .contentType(APPLICATION_JSON)
+                .statusCode(expectedStatusCode)
+                .extract()
+                .response();
+
+        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+
+        assertEquals("loan has reached its maximum number of renewals", msg.errorMessage);
+        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    }
+
+    @Test
+    public void testRenewRequesMaxRenewalWithEmptyErrors(TestContext context) throws Exception {
+        logger.info("=== Test MAX Renewal With Empty Errors ===");
+
+        int expectedStatusCode = 422;
+
+        final Response resp = RestAssured
+                .with()
+                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_empty_error_msg,
+                        apiKey))
+                .then()
+                .contentType(APPLICATION_JSON)
+                .statusCode(expectedStatusCode)
+                .extract()
+                .response();
+
+        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+
+        assertEquals("No error message found", msg.errorMessage);
+        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    }
+
+    @Test
+    public void testRenewRequesMaxRenewalWithBadJson(TestContext context) throws Exception {
+        logger.info("=== Test MAX Renewal With Bad Json ===");
+
+        int expectedStatusCode = 422;
+
+        final Response resp = RestAssured
+                .with()
+                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_bad_json_msg,
+                        apiKey))
+                .then()
+                .contentType(APPLICATION_JSON)
+                .statusCode(expectedStatusCode)
+                .extract()
+                .response();
+
+        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+
+        assertEquals("A problem encountered when extracting error message", msg.errorMessage);
+        assertEquals(expectedStatusCode, (long)msg.httpStatusCode);
+    }
 
   @Test
   public void testPlaceInstanceHoldSuccess(TestContext context) throws Exception {

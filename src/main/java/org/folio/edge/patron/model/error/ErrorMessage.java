@@ -1,4 +1,4 @@
-package org.folio.edge.patron.model;
+package org.folio.edge.patron.model.error;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -16,14 +16,14 @@ import java.io.IOException;
 @JsonDeserialize(builder = ErrorMessage.Builder.class)
 @JsonPropertyOrder({
         "code",
-        "message"
+        "errorMessage"
 })
 public class ErrorMessage {
 
     @JsonProperty("code")
     public final int httpStatusCode;
 
-    @JsonProperty("message")
+    @JsonProperty("errorMessage")
     public final String message;
 
     public ErrorMessage(int statusCode, String errorMsg){
@@ -81,16 +81,16 @@ public class ErrorMessage {
 
     public static class Builder {
 
-        private Integer httpStatusCode;
+        private int httpStatusCode;
         private String message;
 
         @JsonProperty("code")
-        public Builder item(Integer httpStatusCode) {
+        public Builder item(int httpStatusCode) {
             this.httpStatusCode = httpStatusCode;
             return this;
         }
 
-        @JsonProperty("message")
+        @JsonProperty("errorMessage")
         public Builder chargeAmount(String errorMessage) {
             this.message = errorMessage;
             return this;

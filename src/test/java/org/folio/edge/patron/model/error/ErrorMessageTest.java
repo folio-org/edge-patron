@@ -18,7 +18,7 @@ public class ErrorMessageTest {
 
         ErrorMessage messageOne = new ErrorMessage(400, "text");
         assertNotEquals(messageOne, null);
-        assertNotEquals(messageOne, new Integer(5));
+        assertNotEquals(messageOne, "a string object");
 
 
         ErrorMessage messageTwo = new ErrorMessage(401, "text");
@@ -38,7 +38,7 @@ public class ErrorMessageTest {
         String expectedXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
                 "<error>\n" +
                 "  <code>400</code>\n" +
-                "  <message>hi</message>\n" +
+                "  <errorMessage>hi</errorMessage>\n" +
                 "</error>\n";
 
         try {
@@ -46,7 +46,7 @@ public class ErrorMessageTest {
             assertEquals(expectedXml, xmlMsg);
         }
         catch(Exception ex){
-            fail("can't convert to ErrorMessage to xml");
+            fail("can't convert from ErrorMessage to xml");
         }
     }
 
@@ -57,7 +57,7 @@ public class ErrorMessageTest {
         String inputXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
                 "<error>\n" +
                 "  <code>400</code>\n" +
-                "  <message>hi</message>\n" +
+                "  <errorMessage>hi</errorMessage>\n" +
                 "</error>\n";
 
         try {

@@ -7,12 +7,11 @@ import java.util.Map;
 import javax.annotation.Generated;
 
 import com.fasterxml.jackson.annotation.*;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({ "message", "type", "code", "parameters" })
-public class Error {  //NOSONAR
+public class Error {
 
     /**
      *
@@ -20,7 +19,7 @@ public class Error {  //NOSONAR
      *
      */
     @JsonProperty("message")
-    private String message;  //NOSONAR
+    private String message;
 
     @JsonProperty("type")
     private String type;

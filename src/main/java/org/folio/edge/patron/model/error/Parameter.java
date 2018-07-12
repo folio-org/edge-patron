@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({ "key", "value" })
-public class Parameter { //NOSONAR
+public class Parameter {
 
     @JsonProperty("key")
     private String key;

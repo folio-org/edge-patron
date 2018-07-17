@@ -23,7 +23,7 @@ import java.util.UUID;
 
 import org.apache.http.HttpHeaders;
 import org.apache.log4j.Logger;
-import org.folio.edge.core.InstitutionalUserHelper;
+import org.folio.edge.core.utils.ApiKeyUtils;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
 import org.folio.edge.patron.model.Hold;
@@ -67,7 +67,7 @@ public class MainVerticleTest {
     int serverPort = TestUtils.getPort();
 
     List<String> knownTenants = new ArrayList<>();
-    knownTenants.add(InstitutionalUserHelper.parseApiKey(apiKey).tenantId);
+    knownTenants.add(ApiKeyUtils.parseApiKey(apiKey).tenantId);
 
     mockOkapi = spy(new PatronMockOkapi(okapiPort, knownTenants));
     mockOkapi.start(context);

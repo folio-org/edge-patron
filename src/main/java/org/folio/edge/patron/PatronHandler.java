@@ -1,9 +1,6 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.core.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.core.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.core.Constants.TEXT_PLAIN;
+import static org.folio.edge.core.Constants.*;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -12,12 +9,21 @@ import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.folio.edge.patron.model.error.Error;
+import org.folio.edge.patron.model.error.Errors;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.Json;
+import org.apache.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
@@ -30,6 +36,7 @@ public class PatronHandler extends Handler {
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
+  private static final Logger logger = Logger.getLogger(Handler.class);
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -179,32 +186,32 @@ public class PatronHandler extends Handler {
   protected void accessDenied(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(401)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_ACCESS_DENIED);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getStructuredErrorMessage(401, MSG_ACCESS_DENIED));
   }
 
   @Override
-  protected void badRequest(RoutingContext ctx, String msg) {
+  protected void badRequest(RoutingContext ctx, String msg){
     ctx.response()
       .setStatusCode(400)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(msg);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getStructuredErrorMessage(400, msg));
   }
 
   @Override
   protected void notFound(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(404)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(msg);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getStructuredErrorMessage(404, msg));
   }
 
   @Override
   protected void requestTimeout(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(408)
-      .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-      .end(MSG_REQUEST_TIMEOUT);
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getStructuredErrorMessage(408, MSG_REQUEST_TIMEOUT));
   }
 
   @Override
@@ -212,8 +219,110 @@ public class PatronHandler extends Handler {
     if (!ctx.response().ended()) {
       ctx.response()
         .setStatusCode(500)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(MSG_INTERNAL_SERVER_ERROR);
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getStructuredErrorMessage(500, MSG_INTERNAL_SERVER_ERROR));
+    }
+  }
+
+  @Override
+  protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
+
+    HttpServerResponse serverResponse = ctx.response();
+
+    final StringBuilder body = new StringBuilder();
+    resp.handler(buf -> {
+
+      if (logger.isTraceEnabled()) {
+        logger.trace("read bytes: " + buf.toString());
+      }
+
+      body.append(buf);
+    }).endHandler(v -> {
+
+      int statusCode = resp.statusCode();
+      serverResponse.setStatusCode(statusCode);
+
+      String respBody = body.toString();
+      if (logger.isDebugEnabled()) {
+        logger.debug("response: " + respBody);
+      }
+
+      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
+
+
+      if (resp.statusCode() < 400){
+        setContentType(serverResponse, contentType);
+        serverResponse.end(respBody);  //not an error case, pass on the response body as received
+      }
+      else {
+        String errorMsg = getErrorMessage(statusCode, respBody);
+        setContentType(serverResponse, APPLICATION_JSON);
+        serverResponse.end(errorMsg);
+      }
+    });
+  }
+
+  @Override
+  protected void handleProxyException(RoutingContext ctx, Throwable t) {
+    logger.error("Exception calling OKAPI", t);
+    if (t instanceof TimeoutException) {
+      requestTimeout(ctx, t.getMessage());
+    } else {
+      internalServerError(ctx, t.getMessage());
+    }
+  }
+
+  private String getStructuredErrorMessage(int statusCode, String message){
+    String finalMsg;
+    try{
+      ErrorMessage error = new ErrorMessage(statusCode, message);
+      finalMsg = error.toJson();
+    }
+    catch(JsonProcessingException ex){
+      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
+    }
+    return finalMsg;
+  }
+
+
+  private String get422ErrorMsg(int statusCode, String respBody){
+
+    logger.debug("422 message: " + respBody);
+    String errorMessage = "";
+
+    try {
+      Errors err  =  Json.decodeValue(respBody, Errors.class);
+      List<Error> errors = err.getErrors();
+
+      if (errors != null && !errors.isEmpty()) {
+        Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
+        if (firstErrorInstance != null) {
+          errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
+        }
+      }
+
+      if (errorMessage.equals(""))
+        errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
+      }
+      catch(Exception ex) {
+        logger.debug(ex.getMessage());
+        errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+      }
+
+      return errorMessage;
+    }
+
+  private String getErrorMessage(int statusCode, String respBody){
+
+    if (statusCode == 422)
+        return get422ErrorMsg(statusCode, respBody);
+    else
+        return getStructuredErrorMessage(statusCode, respBody);
+  }
+
+  private void setContentType(HttpServerResponse response, String contentType){
+    if (contentType != null && !contentType.equals("")) {
+        response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
   }
 }

@@ -10,6 +10,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
+import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class PatronOkapiClient extends OkapiClient {
 
@@ -36,7 +37,7 @@ public class PatronOkapiClient extends OkapiClient {
   }
 
   public CompletableFuture<String> getPatron(String extPatronId) {
-    CompletableFuture<String> future = new CompletableFuture<>();
+    VertxCompletableFuture<String> future = new VertxCompletableFuture<>(vertx);
 
     getPatron(
         extPatronId,

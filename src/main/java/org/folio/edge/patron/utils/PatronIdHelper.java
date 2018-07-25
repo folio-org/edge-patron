@@ -6,6 +6,8 @@ import org.apache.log4j.Logger;
 import org.folio.edge.core.cache.TokenCache.NotInitializedException;
 import org.folio.edge.patron.cache.PatronIdCache;
 
+import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+
 public class PatronIdHelper {
 
   private static final Logger logger = Logger.getLogger(PatronIdHelper.class);
@@ -15,7 +17,7 @@ public class PatronIdHelper {
   }
 
   public static CompletableFuture<String> lookupPatron(PatronOkapiClient client, String tenant, String extPatronId) {
-    CompletableFuture<String> future = new CompletableFuture<>();
+    VertxCompletableFuture<String> future = new VertxCompletableFuture<>(client.vertx);
 
     String patronId = null;
     try {

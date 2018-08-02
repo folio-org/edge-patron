@@ -1,0 +1,19 @@
+{
+  "id": "${artifactId}-${version}",
+  "name": "Patron Services Edge API",
+  "provides": [],
+  "requires": [
+    {
+      "id": "patron",
+      "version": "1.0"
+    }
+  ],
+  "permissionSets": [],
+  "launchDescriptor": {
+    "dockerImage": "${artifactId}:${version}",
+    "dockerArgs": {
+      "HostConfig": { "PortBindings": { "8081/tcp":  [{ "HostPort": "%p" }] } }
+    },
+    "dockerPull" : false
+  }
+}

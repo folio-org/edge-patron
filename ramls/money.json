@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Money Schema",
+  "description": "Represents the amount of a charge in the expected currency",
   "type": "object",
   "additionalProperties": false,
   "properties": {

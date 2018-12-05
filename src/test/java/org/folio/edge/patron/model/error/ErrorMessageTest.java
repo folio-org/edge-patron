@@ -36,10 +36,14 @@ public class ErrorMessageTest {
 
         ErrorMessage msg  = new ErrorMessage(400, "hi");
         String expectedXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<error>\n" +
-                "  <code>400</code>\n" +
-                "  <errorMessage>hi</errorMessage>\n" +
-                "</error>\n";
+                "<error>" +
+                System.lineSeparator() +
+                "  <code>400</code>" +
+                System.lineSeparator() +
+                "  <errorMessage>hi</errorMessage>" +
+                System.lineSeparator() +
+                "</error>" +
+                System.lineSeparator();
 
         try {
             String xmlMsg = msg.toXml();
@@ -55,10 +59,14 @@ public class ErrorMessageTest {
 
         ErrorMessage expectedMsg  = new ErrorMessage(400, "hi");
         String inputXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                "<error>\n" +
-                "  <code>400</code>\n" +
-                "  <errorMessage>hi</errorMessage>\n" +
-                "</error>\n";
+                "<error>" +
+                System.lineSeparator() +
+                "  <code>400</code>" +
+                System.lineSeparator() +
+                "  <errorMessage>hi</errorMessage>" +
+                System.lineSeparator() +
+                "</error>" +
+                System.lineSeparator();
 
         try {
             ErrorMessage errorMessageFromXml = ErrorMessage.fromXml(inputXml);

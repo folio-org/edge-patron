@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Loan Schema",
+  "description": "A loan the patron has for an inventory item",
   "type": "object",
   "additionalProperties": false,
   "properties": {

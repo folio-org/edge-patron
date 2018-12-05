@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Account Schema",
+  "description": "The patron account consists of fees/fines, loans and holds",
   "type": "object",
   "additionalProperties": false,
   "properties": {

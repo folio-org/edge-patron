@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Hold Schema",
+  "description": "An inventory hold the patron requested",
   "type": "object",
   "additionalProperties": false,
   "properties": {

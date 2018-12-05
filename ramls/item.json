@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Item Schema",
   "type": "object",
+  "description": "An item for which the patron has a charge, hold or loan",
   "additionalProperties": false,
   "properties": {
     "instanceId": {

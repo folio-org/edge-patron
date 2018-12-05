@@ -42,6 +42,7 @@ import com.jayway.restassured.response.Response;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
@@ -94,6 +95,7 @@ public class MainVerticleTest {
   @AfterClass
   public static void tearDownOnce(TestContext context) {
     logger.info("Shutting down server");
+    final Async async = context.async();
     vertx.close(res -> {
       if (res.failed()) {
         logger.error("Failed to shut down edge-patron server", res.cause());
@@ -104,6 +106,7 @@ public class MainVerticleTest {
 
       logger.info("Shutting down mock Okapi");
       mockOkapi.close();
+      async.complete();
     });
   }
 
@@ -639,8 +642,6 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    String actual = resp.body().asString();
-
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
     assertEquals(MSG_ACCESS_DENIED, msg.message);
@@ -794,7 +795,6 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    String actual = resp.body().asString();
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
     assertEquals(MSG_ACCESS_DENIED, msg.message);
@@ -1245,7 +1245,6 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    String actual = resp.body().asString();
     try {
         ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 

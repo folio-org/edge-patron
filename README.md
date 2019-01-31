@@ -54,7 +54,7 @@ In order to map external patron IDs to those used within FOLIO, the `externalSys
 
 ### Issue tracker
 
-See project [FOLIO](https://issues.folio.org/browse/FOLIO)
+See project [EDGPATRON](https://issues.folio.org/browse/EDGPATRON)
 at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker).
 
 ### Other documentation

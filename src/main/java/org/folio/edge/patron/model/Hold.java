@@ -41,16 +41,15 @@ public final class Hold {
   public final int queueLength;
   public final int queuePosition;
 
-  private Hold(Item item, String requestId, Date requestDate, Date expirationDate,
-      FulfillmentPreference fulfillmentPreference, Status status, int queueLength, int queuePosition) {
-    this.item = item;
-    this.requestId = requestId;
-    this.requestDate = requestDate;
-    this.expirationDate = expirationDate;
-    this.fulfillmentPreference = fulfillmentPreference;
-    this.status = status;
-    this.queueLength = queueLength;
-    this.queuePosition = queuePosition;
+  private Hold(Builder builder) {
+    this.item = builder.item;
+    this.requestId = builder.requestId;
+    this.requestDate = builder.requestDate;
+    this.expirationDate = builder.expirationDate;
+    this.fulfillmentPreference = builder.fulfillmentPreference;
+    this.status = builder.status;
+    this.queueLength = builder.queueLength;
+    this.queuePosition = builder.queuePosition;
   }
 
   public static Builder builder() {
@@ -124,8 +123,7 @@ public final class Hold {
     }
 
     public Hold build() {
-      return new Hold(item, requestId, requestDate, expirationDate, fulfillmentPreference, status, queueLength,
-          queuePosition);
+      return new Hold(this);
     }
   }
 

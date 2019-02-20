@@ -6,6 +6,10 @@
     {
       "id": "patron",
       "version": "1.0"
+    },
+    {
+      "id": "login",
+      "version": "5.0"
     }
   ],
   "permissionSets": [],

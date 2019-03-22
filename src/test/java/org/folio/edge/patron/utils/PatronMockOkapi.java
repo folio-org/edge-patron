@@ -12,7 +12,6 @@ import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
@@ -211,20 +210,20 @@ public class PatronMockOkapi extends MockOkapi {
         .end(itemId + " not found");
     } else if (itemId.equals(itemId_reached_max_renewals)) {
       ctx.response()
-              .setStatusCode(422)
-              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-              .end(Sample422ErrorMsg);
-    }else if (itemId.equals(itemId_reached_max_renewals_empty_error_msg)) {
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(Sample422ErrorMsg);
+    } else if (itemId.equals(itemId_reached_max_renewals_empty_error_msg)) {
       ctx.response()
-              .setStatusCode(422)
-              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-              .end(SampleEmpty422ErrorMsg);
-    }else if (itemId.equals(itemId_reached_max_renewals_bad_json_msg)){
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(SampleEmpty422ErrorMsg);
+    } else if (itemId.equals(itemId_reached_max_renewals_bad_json_msg)) {
       ctx.response()
-              .setStatusCode(422)
-              .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-              .end(Sample422BadJsonErrorMsg);
-    }else {
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(Sample422BadJsonErrorMsg);
+    } else {
       ctx.response()
         .setStatusCode(201)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -408,7 +407,7 @@ public class PatronMockOkapi extends MockOkapi {
     return Hold.builder()
       .item(getItem(itemId))
       .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
-      .expirationDate(new SimpleDateFormat(Hold.DATE_FORMAT).format(new Date(holdExpTs)))
+      .expirationDate(new Date(holdExpTs))
       .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))

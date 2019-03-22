@@ -61,7 +61,7 @@ public class HoldTest {
     hold = Hold.builder()
       .item(item)
       .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
-      .expirationDate(new SimpleDateFormat(Hold.DATE_FORMAT).format(new Date(holdExpTs)))
+      .expirationDate(new Date(holdExpTs))
       .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))

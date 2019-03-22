@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
@@ -114,7 +113,7 @@ public class AccountTest {
     holds.add(Hold.builder()
       .item(holdItem)
       .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
-      .expirationDate(new SimpleDateFormat(Hold.DATE_FORMAT).format(new Date(holdExpTs)))
+      .expirationDate(new Date(holdExpTs))
       .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))

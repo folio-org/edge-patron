@@ -56,9 +56,9 @@ public class MainVerticleTest {
   private static final String itemId = UUID.randomUUID().toString();
   private static final String instanceId = UUID.randomUUID().toString();
   private static final String holdId = UUID.randomUUID().toString();
-  private static final String apiKey = "Z1luMHVGdjNMZl9kaWt1X2Rpa3U=";
-  private static final String badApiKey = "ZnMwMDAwMDAwMA==0000";
-  private static final String unknownTenantApiKey = "Z1luMHVGdjNMZl9ib2d1c19ib2d1cw==";
+  private static final String apiKey = ApiKeyUtils.generateApiKey(10, "diku", "diku");
+  private static final String badApiKey = apiKey + "0000";
+  private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");;
 
   private static final long requestTimeoutMs = 3000L;
 
@@ -105,7 +105,7 @@ public class MainVerticleTest {
       }
 
       logger.info("Shutting down mock Okapi");
-      mockOkapi.close();
+      mockOkapi.close(context);
       async.complete();
     });
   }

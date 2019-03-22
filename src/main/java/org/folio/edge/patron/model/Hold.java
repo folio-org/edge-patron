@@ -10,7 +10,6 @@ import javax.annotation.Generated;
 import org.folio.edge.core.utils.Mappers;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -33,29 +32,24 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "queuePosition"
 })
 public final class Hold {
-
-  @JsonIgnore
-  public static final String DATE_FORMAT = "yyyy-MM-dd";
-
   public final Item item;
   public final String requestId;
   public final Date requestDate;
-  public final String expirationDate;
+  public final Date expirationDate;
   public final FulfillmentPreference fulfillmentPreference;
   public final Status status;
   public final int queueLength;
   public final int queuePosition;
 
-  private Hold(Item item, String requestId, Date requestDate, String expirationDate,
-      FulfillmentPreference fulfillmentPreference, Status status, int queueLength, int queuePosition) {
-    this.item = item;
-    this.requestId = requestId;
-    this.requestDate = requestDate;
-    this.expirationDate = expirationDate;
-    this.fulfillmentPreference = fulfillmentPreference;
-    this.status = status;
-    this.queueLength = queueLength;
-    this.queuePosition = queuePosition;
+  private Hold(Builder builder) {
+    this.item = builder.item;
+    this.requestId = builder.requestId;
+    this.requestDate = builder.requestDate;
+    this.expirationDate = builder.expirationDate;
+    this.fulfillmentPreference = builder.fulfillmentPreference;
+    this.status = builder.status;
+    this.queueLength = builder.queueLength;
+    this.queuePosition = builder.queuePosition;
   }
 
   public static Builder builder() {
@@ -74,7 +68,7 @@ public final class Hold {
     private Date requestDate;
 
     @JsonProperty("expirationDate")
-    private String expirationDate;
+    private Date expirationDate;
 
     @JsonProperty("fulfillmentPreference")
     private FulfillmentPreference fulfillmentPreference;
@@ -103,7 +97,7 @@ public final class Hold {
       return this;
     }
 
-    public Builder expirationDate(String expirationDate) {
+    public Builder expirationDate(Date expirationDate) {
       this.expirationDate = expirationDate;
       return this;
     }
@@ -129,8 +123,7 @@ public final class Hold {
     }
 
     public Hold build() {
-      return new Hold(item, requestId, requestDate, expirationDate, fulfillmentPreference, status, queueLength,
-          queuePosition);
+      return new Hold(this);
     }
   }
 

@@ -17,6 +17,12 @@ The purpose of this edge API is to bridge the gap between 3rd party discovery se
 
 The edge-patron API is secured via the facilities provided by edge-common.  More specifically, via API Key.  See edge-common for additional details.
 
+## Required Permissions
+
+Institutional users should be granted the following permissions in order to use this edge API:
+- `patron.all`
+- `users.collection.get`
+
 ## Configuration
 
 Configuration information is specified in two forms:

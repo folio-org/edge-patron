@@ -23,7 +23,6 @@ import org.folio.edge.core.utils.test.MockOkapi;
 import org.folio.edge.patron.model.Account;
 import org.folio.edge.patron.model.Charge;
 import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.Hold.FulfillmentPreference;
 import org.folio.edge.patron.model.Hold.Status;
 import org.folio.edge.patron.model.Item;
 import org.folio.edge.patron.model.Loan;
@@ -49,6 +48,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String instanceId_notFound = UUID.randomUUID().toString();
   public static final String holdReqId = UUID.randomUUID().toString();
   public static final String holdReqId_notFound = UUID.randomUUID().toString();
+  public static final String pickupLocationId = UUID.randomUUID().toString();
   public static final String itemId_overdue = UUID.randomUUID().toString();
   public static final String itemId = UUID.randomUUID().toString();
   public static final String itemId_notFound = UUID.randomUUID().toString();
@@ -406,7 +406,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static Hold getHold(String itemId) {
     return Hold.builder()
       .item(getItem(itemId))
-      .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
+      .pickupLocationId(pickupLocationId)
       .expirationDate(new Date(holdExpTs))
       .queueLength(3)
       .queuePosition(2)

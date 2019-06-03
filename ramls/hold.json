@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Patron Hold Schema",
-  "description": "An inventory hold the patron requested",
   "type": "object",
+  "description": "Hold schema for patron portal integration",
   "additionalProperties": false,
   "properties": {
     "requestId": {
@@ -25,19 +25,21 @@
       "format": "date-time",
       "description": "The date when the request expires"
     },
-    "fulfillmentPreference": {
-      "type": "string",
-      "description": "The method of fulfillment",
-      "enum": ["Hold Shelf", "Delivery"]
-    },
     "status": {
       "type": "string",
       "description": "The status of the hold request",
       "enum": [
         "Open - Not yet filled",
         "Open - Awaiting pickup",
-        "Closed - Filled"
+        "Open - In transit",
+        "Closed - Filled",
+        "Closed - Cancelled"
       ]
+    },
+    "pickupLocationId": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+      "description": "The UUID of the pick up location"
     },
     "queueLength": {
       "type": "integer",
@@ -50,6 +52,6 @@
   },
   "required": [
     "requestDate",
-    "fulfillmentPreference"
+    "pickupLocationId"
   ]
 }

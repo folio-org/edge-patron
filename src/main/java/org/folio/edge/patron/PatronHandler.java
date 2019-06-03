@@ -152,31 +152,6 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
-  public void handleEditInstanceHold(RoutingContext ctx) {
-    handleCommon(ctx,
-        new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).editInstanceHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_INSTANCE_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
-  }
-
-  public void handleRemoveInstanceHold(RoutingContext ctx) {
-    handleCommon(ctx,
-        new String[] { PARAM_INSTANCE_ID, PARAM_HOLD_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).removeInstanceHold(params.get(PARAM_PATRON_ID),
-            params.get(PARAM_INSTANCE_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
-  }
-
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);

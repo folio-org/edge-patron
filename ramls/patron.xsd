@@ -31,24 +31,19 @@
 <xs:element name="hold">
   <xs:complexType>
     <xs:sequence>
-      <xs:element name="requestId" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="requestId" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
       <xs:element name="requestDate" type="requiredString" minOccurs="1" maxOccurs="1"/>
       <xs:element name="expirationDate" type="xs:string" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="fulfillmentPreference" minOccurs="1" maxOccurs="1">
-        <xs:simpleType final="restriction" >
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="Hold Shelf" />
-            <xs:enumeration value="Delivery" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:element>
+      <xs:element name="pickupLocationId" type="requiredString" minOccurs="1" maxOccurs="1"/>
       <xs:element name="status" minOccurs="0" maxOccurs="1">
         <xs:simpleType final="restriction" >
           <xs:restriction base="xs:string">
             <xs:enumeration value="Open - Not yet filled" />
             <xs:enumeration value="Open - Awaiting pickup" />
+            <xs:enumeration value="Open - In transit" />
             <xs:enumeration value="Closed - Filled" />
+            <xs:enumeration value="Closed - Cancelled" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>

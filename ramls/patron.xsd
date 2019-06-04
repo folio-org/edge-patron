@@ -47,7 +47,6 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
-      <xs:element name="queueLength" type="xs:integer" minOccurs="0" maxOccurs="1"/>
       <xs:element name="queuePosition" type="xs:integer" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>

@@ -61,7 +61,6 @@ public class HoldTest {
       .item(item)
       .pickupLocationId(UUID.randomUUID().toString())
       .expirationDate(new Date(holdExpTs))
-      .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))
       .requestId(UUID.randomUUID().toString())

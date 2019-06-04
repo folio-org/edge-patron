@@ -28,7 +28,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "expirationDate",
     "pickupLocationId",
     "status",
-    "queueLength",
     "queuePosition"
 })
 public final class Hold {
@@ -38,7 +37,6 @@ public final class Hold {
   public final Date expirationDate;
   public final String pickupLocationId;
   public final Status status;
-  public final int queueLength;
   public final int queuePosition;
 
   private Hold(Builder builder) {
@@ -48,7 +46,6 @@ public final class Hold {
     this.expirationDate = builder.expirationDate;
     this.pickupLocationId = builder.pickupLocationId;
     this.status = builder.status;
-    this.queueLength = builder.queueLength;
     this.queuePosition = builder.queuePosition;
   }
 
@@ -75,9 +72,6 @@ public final class Hold {
 
     @JsonProperty("status")
     private Status status;
-
-    @JsonProperty("queueLength")
-    private int queueLength;
 
     @JsonProperty("queuePosition")
     private int queuePosition;
@@ -109,11 +103,6 @@ public final class Hold {
 
     public Builder status(Status status) {
       this.status = status;
-      return this;
-    }
-
-    public Builder queueLength(int queueLength) {
-      this.queueLength = queueLength;
       return this;
     }
 
@@ -174,7 +163,6 @@ public final class Hold {
     result = prime * result + ((expirationDate == null) ? 0 : expirationDate.hashCode());
     result = prime * result + ((pickupLocationId == null) ? 0 : pickupLocationId.hashCode());
     result = prime * result + ((item == null) ? 0 : item.hashCode());
-    result = prime * result + queueLength;
     result = prime * result + queuePosition;
     result = prime * result + ((requestDate == null) ? 0 : requestDate.hashCode());
     result = prime * result + ((requestId == null) ? 0 : requestId.hashCode());
@@ -214,9 +202,6 @@ public final class Hold {
         return false;
       }
     } else if (!item.equals(other.item)) {
-      return false;
-    }
-    if (queueLength != other.queueLength) {
       return false;
     }
     if (queuePosition != other.queuePosition) {

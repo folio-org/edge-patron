@@ -408,7 +408,6 @@ public class PatronMockOkapi extends MockOkapi {
       .item(getItem(itemId))
       .pickupLocationId(pickupLocationId)
       .expirationDate(new Date(holdExpTs))
-      .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))
       .requestId(holdReqId)

@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 import org.everit.json.schema.FormatValidator;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.core.utils.Mappers;
-import org.folio.edge.patron.model.Hold.FulfillmentPreference;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -60,9 +59,8 @@ public class HoldTest {
 
     hold = Hold.builder()
       .item(item)
-      .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
+      .pickupLocationId(UUID.randomUUID().toString())
       .expirationDate(new Date(holdExpTs))
-      .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))
       .requestId(UUID.randomUUID().toString())

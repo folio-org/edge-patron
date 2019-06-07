@@ -24,7 +24,6 @@ import javax.xml.validation.Validator;
 
 import org.apache.log4j.Logger;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.folio.edge.patron.model.Hold.FulfillmentPreference;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -112,9 +111,8 @@ public class AccountTest {
 
     holds.add(Hold.builder()
       .item(holdItem)
-      .fulfillmentPreference(FulfillmentPreference.HOLD_SHELF)
+      .pickupLocationId(UUID.randomUUID().toString())
       .expirationDate(new Date(holdExpTs))
-      .queueLength(3)
       .queuePosition(2)
       .requestDate(new Date(holdReqTs))
       .requestId(UUID.randomUUID().toString())

@@ -26,9 +26,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "item",
     "requestDate",
     "expirationDate",
-    "fulfillmentPreference",
+    "pickupLocationId",
     "status",
-    "queueLength",
     "queuePosition"
 })
 public final class Hold {
@@ -36,9 +35,8 @@ public final class Hold {
   public final String requestId;
   public final Date requestDate;
   public final Date expirationDate;
-  public final FulfillmentPreference fulfillmentPreference;
+  public final String pickupLocationId;
   public final Status status;
-  public final int queueLength;
   public final int queuePosition;
 
   private Hold(Builder builder) {
@@ -46,9 +44,8 @@ public final class Hold {
     this.requestId = builder.requestId;
     this.requestDate = builder.requestDate;
     this.expirationDate = builder.expirationDate;
-    this.fulfillmentPreference = builder.fulfillmentPreference;
+    this.pickupLocationId = builder.pickupLocationId;
     this.status = builder.status;
-    this.queueLength = builder.queueLength;
     this.queuePosition = builder.queuePosition;
   }
 
@@ -70,14 +67,11 @@ public final class Hold {
     @JsonProperty("expirationDate")
     private Date expirationDate;
 
-    @JsonProperty("fulfillmentPreference")
-    private FulfillmentPreference fulfillmentPreference;
+    @JsonProperty("pickupLocationId")
+    private String pickupLocationId;
 
     @JsonProperty("status")
     private Status status;
-
-    @JsonProperty("queueLength")
-    private int queueLength;
 
     @JsonProperty("queuePosition")
     private int queuePosition;
@@ -102,18 +96,13 @@ public final class Hold {
       return this;
     }
 
-    public Builder fulfillmentPreference(FulfillmentPreference fulfillmentPreference) {
-      this.fulfillmentPreference = fulfillmentPreference;
+    public Builder pickupLocationId(String pickupLocationId) {
+      this.pickupLocationId = pickupLocationId;
       return this;
     }
 
     public Builder status(Status status) {
       this.status = status;
-      return this;
-    }
-
-    public Builder queueLength(int queueLength) {
-      this.queueLength = queueLength;
       return this;
     }
 
@@ -124,43 +113,6 @@ public final class Hold {
 
     public Hold build() {
       return new Hold(this);
-    }
-  }
-
-  public enum FulfillmentPreference {
-
-    HOLD_SHELF("Hold Shelf"), DELIVERY("Delivery");
-    private final String value;
-    private static final Map<String, FulfillmentPreference> CONSTANTS = new HashMap<>();
-
-    static {
-      for (FulfillmentPreference c : values()) {
-        CONSTANTS.put(c.value, c);
-      }
-    }
-
-    private FulfillmentPreference(String value) {
-      this.value = value;
-    }
-
-    @Override
-    public String toString() {
-      return this.value;
-    }
-
-    @JsonValue
-    public String value() {
-      return this.value;
-    }
-
-    @JsonCreator
-    public static FulfillmentPreference fromValue(String value) {
-      FulfillmentPreference constant = CONSTANTS.get(value);
-      if (constant == null) {
-        throw new IllegalArgumentException(value);
-      } else {
-        return constant;
-      }
     }
   }
 
@@ -209,9 +161,8 @@ public final class Hold {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((expirationDate == null) ? 0 : expirationDate.hashCode());
-    result = prime * result + ((fulfillmentPreference == null) ? 0 : fulfillmentPreference.hashCode());
+    result = prime * result + ((pickupLocationId == null) ? 0 : pickupLocationId.hashCode());
     result = prime * result + ((item == null) ? 0 : item.hashCode());
-    result = prime * result + queueLength;
     result = prime * result + queuePosition;
     result = prime * result + ((requestDate == null) ? 0 : requestDate.hashCode());
     result = prime * result + ((requestId == null) ? 0 : requestId.hashCode());
@@ -239,7 +190,11 @@ public final class Hold {
     } else if (!expirationDate.equals(other.expirationDate)) {
       return false;
     }
-    if (fulfillmentPreference != other.fulfillmentPreference) {
+    if (pickupLocationId == null) {
+      if (other.pickupLocationId != null) {
+        return false;
+      }
+    } else if (!pickupLocationId.equals(other.pickupLocationId)) {
       return false;
     }
     if (item == null) {
@@ -247,9 +202,6 @@ public final class Hold {
         return false;
       }
     } else if (!item.equals(other.item)) {
-      return false;
-    }
-    if (queueLength != other.queueLength) {
       return false;
     }
     if (queuePosition != other.queuePosition) {

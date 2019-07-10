@@ -1,3 +1,6 @@
+## 3.0.1 2019-07-10
+ * [EDGPATRON-17](https://issues.folio.org/browse/EDGPATRON-17): Update to `edge-common` v2.0.2
+
 ## 3.0.0 2019-06-10
  * [EDGPATRON-13](https://issues.folio.org/browse/EDGPATRON-13): Update to the `patron` 3.0 interface
  * [EDGPATRON-5](https://issues.folio.org/browse/EDGPATRON-5): Update to RAML 1.0

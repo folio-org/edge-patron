@@ -1,3 +1,6 @@
+## 3.0.2 2019-07-24
+ * [EDGPATRON-18](https://issues.folio.org/browse/EDGPATRON-18): Add `login` 6.0 interface
+
 ## 3.0.1 2019-07-10
  * [EDGPATRON-17](https://issues.folio.org/browse/EDGPATRON-17): Update to `edge-common` v2.0.2
 

@@ -415,6 +415,18 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
+  public static Hold getHold(String itemId, Date holdReqDate) {
+    return Hold.builder()
+      .item(getItem(itemId))
+      .pickupLocationId(pickupLocationId)
+      .expirationDate(new Date(holdExpTs))
+      .queuePosition(2)
+      .requestDate(holdReqDate)
+      .requestId(holdReqId)
+      .status(Status.OPEN_NOT_YET_FILLED)
+      .build();
+  }
+
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))

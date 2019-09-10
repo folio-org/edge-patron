@@ -4,3 +4,6 @@
 .settings
 .vertx
 /bin/
+#IntelliJ
+.idea/
+*.iml

@@ -33,7 +33,7 @@
     <xs:sequence>
       <xs:element name="requestId" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="requestDate" type="requiredString" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="requestDate" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="expirationDate" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="pickupLocationId" type="requiredString" minOccurs="1" maxOccurs="1"/>
       <xs:element name="status" minOccurs="0" maxOccurs="1">

@@ -9,10 +9,14 @@ import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.TimeoutException;
 
+import io.vertx.core.json.JsonObject;
 import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.Errors;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -100,14 +104,15 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceItemHold(RoutingContext ctx) {
+    final String body = updateRequestDateWithTimestamp(ctx.getBodyAsJson());
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID },
         new String[] {},
         (client, params) -> ((PatronOkapiClient) client).placeItemHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
-            ctx.getBodyAsString(),
-            ctx.request().headers(),
+            body,
+            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -140,14 +145,15 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
+    final String body = updateRequestDateWithTimestamp(ctx.getBodyAsJson());
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID },
         new String[] {},
         (client, params) -> ((PatronOkapiClient) client).placeInstanceHold(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
-            ctx.getBodyAsString(),
-            ctx.request().headers(),
+            body,
+            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -299,5 +305,15 @@ public class PatronHandler extends Handler {
     if (contentType != null && !contentType.equals("")) {
         response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
+  }
+
+  private static String updateRequestDateWithTimestamp(JsonObject requestMessage) {
+
+    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String timestamp = sdf.format(new Date());
+
+    requestMessage.put("requestDate", timestamp);
+    return requestMessage.encodePrettily();
   }
 }

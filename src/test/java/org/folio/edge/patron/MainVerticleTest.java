@@ -1,6 +1,7 @@
 package org.folio.edge.patron;
 
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
+import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.SYS_LOG_LEVEL;
 import static org.folio.edge.core.Constants.SYS_OKAPI_URL;
 import static org.folio.edge.core.Constants.SYS_PORT;
@@ -10,7 +11,9 @@ import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.utils.test.MockOkapi.X_DURATION;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -18,7 +21,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -678,7 +683,7 @@ public class MainVerticleTest {
   public void testPlaceItemHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test successful item hold ===");
 
-    Hold hold = PatronMockOkapi.getHold(itemId);
+    Hold hold = PatronMockOkapi.getHold(itemId, new Date(holdReqTs));
 
     final Response resp = RestAssured
       .with()
@@ -694,8 +699,30 @@ public class MainVerticleTest {
 
     Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
     Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
+  }
 
-    assertEquals(expected, actual);
+  @Test
+  public void testPlaceItemHoldWithoutRequestDateSuccess(TestContext context) throws Exception {
+    logger.info("=== Test successful item hold ===");
+
+    Hold hold = PatronMockOkapi.getHold(itemId, null);
+
+    final Response resp = RestAssured
+      .with()
+      .body(hold.toJson())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+      .then()
+      .statusCode(201)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
+    Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
   }
 
   @Test
@@ -1149,4 +1176,26 @@ public class MainVerticleTest {
     verify(mockOkapi).loginHandler(any());
     verify(mockOkapi, atLeast(iters)).getAccountHandler(any());
   }
+
+  private void validateHolds(Hold expectedHolds, Hold actualHolds) {
+    assertEquals(expectedHolds.requestId, actualHolds.requestId);
+    assertEquals(expectedHolds.pickupLocationId, actualHolds.pickupLocationId);
+    assertEquals(expectedHolds.queuePosition, actualHolds.queuePosition);
+    assertEquals(expectedHolds.expirationDate, actualHolds.expirationDate);
+    assertEquals(expectedHolds.status, actualHolds.status);
+    assertEquals(expectedHolds.item, actualHolds.item);
+
+    long expectedRequestDateTs = expectedHolds.requestDate != null
+      //have to add 1 day's milliseconds because the Request timestamp is 1 day in the past
+      ? expectedHolds.requestDate.getTime() + DAY_IN_MILLIS
+      : Instant.now().toEpochMilli();
+
+    long actualRequestDateTs = actualHolds.requestDate != null
+      ? actualHolds.requestDate.getTime()
+      : Instant.now().toEpochMilli();
+
+    //check that the actual timestamp is within a minute of the expected timestamp
+    assertTrue((actualRequestDateTs - expectedRequestDateTs)/1000 < 60);
+  }
 }
+

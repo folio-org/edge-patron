@@ -334,7 +334,7 @@ public class PatronHandler extends Handler {
       }
     } catch (Exception parseEx) {
       logger.debug("Exception parsing request expirationDate: " + requestExpirationDate);
-      requestMessage.putNull(FIELD_EXPIRATION_DATE);
+      requestMessage.remove(FIELD_EXPIRATION_DATE);
     }
     return requestMessage;
   }

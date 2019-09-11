@@ -15,16 +15,20 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 import org.apache.http.HttpHeaders;
@@ -726,6 +730,62 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPlaceItemHoldWithInvalidExpirationDateSuccess(TestContext context) throws Exception {
+    logger.info("=== Test successful item hold ===");
+
+    Hold hold = PatronMockOkapi.getHold(itemId);
+
+    //alter the hold's expiration date to make it invalid
+    String holdJson = swapExpirationDate(hold.toJson(), ": \"0001-01-01T00:00:00\"");
+
+    final Response resp = RestAssured
+      .with()
+      .body(holdJson)
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+      .then()
+      .statusCode(201)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
+    Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
+
+    assertNull(actual.expirationDate);
+  }
+
+  @Test
+  public void testPlaceItemHoldWithValidExpirationDateSuccess(TestContext context) throws Exception {
+    logger.info("=== Test successful item hold ===");
+
+    Hold hold = PatronMockOkapi.getHold(itemId);
+
+    //alter the hold's expiration date to a date that EDS would send
+    String holdJson = swapExpirationDate(hold.toJson(), ": \"2019-09-20T10:00:00.000+0000\"");
+
+    final Response resp = RestAssured
+      .with()
+      .body(holdJson)
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+      .then()
+      .statusCode(201)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
+    Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
+
+    assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse("2019-09-20T10:00:00.000+0000"), actual.expirationDate);
+  }
+
+  @Test
   public void testPlaceItemHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test place item hold w/ patron not found ===");
 
@@ -1181,7 +1241,6 @@ public class MainVerticleTest {
     assertEquals(expectedHolds.requestId, actualHolds.requestId);
     assertEquals(expectedHolds.pickupLocationId, actualHolds.pickupLocationId);
     assertEquals(expectedHolds.queuePosition, actualHolds.queuePosition);
-    assertEquals(expectedHolds.expirationDate, actualHolds.expirationDate);
     assertEquals(expectedHolds.status, actualHolds.status);
     assertEquals(expectedHolds.item, actualHolds.item);
 
@@ -1196,6 +1255,17 @@ public class MainVerticleTest {
 
     //check that the actual timestamp is within a minute of the expected timestamp
     assertTrue((actualRequestDateTs - expectedRequestDateTs)/1000 < 60);
+  }
+
+  private String swapExpirationDate(String jsonRequestMessage, String dateString) {
+    final String regex = "(?<=\"expirationDate\").*\".*\"";
+    final Pattern pattern = Pattern.compile(regex);
+    final Matcher matcher = pattern.matcher(jsonRequestMessage);
+
+    if (matcher.find()) {
+      jsonRequestMessage = jsonRequestMessage.replaceAll("(?<=\"expirationDate\").*\".*\"", dateString);
+    }
+    return jsonRequestMessage;
   }
 }
 

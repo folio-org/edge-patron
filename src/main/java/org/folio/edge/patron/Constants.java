@@ -26,6 +26,9 @@ public class Constants {
   public static final String MSG_REQUEST_TIMEOUT = "Request to FOLIO timed out";
   public static final String MSG_NOT_IMPLEMENTED = "Not Implemented";
 
+  public static final String FIELD_EXPIRATION_DATE = "expirationDate";
+  public static final String FIELD_REQUEST_DATE = "requestDate";
+
   private Constants() {
 
   }

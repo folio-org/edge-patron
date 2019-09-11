@@ -1,6 +1,11 @@
 package org.folio.edge.patron;
 
 import static org.folio.edge.core.Constants.*;
+import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
+import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
+import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
+import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -104,7 +109,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceItemHold(RoutingContext ctx) {
-    final String body = updateRequestDateWithTimestamp(ctx.getBodyAsJson());
+    final String body = checkDates(ctx.getBodyAsJson());
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID },
         new String[] {},
@@ -145,7 +150,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
-    final String body = updateRequestDateWithTimestamp(ctx.getBodyAsJson());
+    final String body = checkDates(ctx.getBodyAsJson());
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID },
         new String[] {},
@@ -307,13 +312,30 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private static String updateRequestDateWithTimestamp(JsonObject requestMessage) {
+  private static String checkDates(JsonObject requestMessage) {
+    requestMessage = validateHoldsExpirationDate(requestMessage);
+    return updateRequestDateWithTimestamp(requestMessage);
+  }
 
+  private static String updateRequestDateWithTimestamp(JsonObject requestMessage) {
     final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     String timestamp = sdf.format(new Date());
 
-    requestMessage.put("requestDate", timestamp);
+    requestMessage.put(FIELD_REQUEST_DATE, timestamp);
     return requestMessage.encodePrettily();
+  }
+
+  private static JsonObject validateHoldsExpirationDate(JsonObject requestMessage) {
+    String requestExpirationDate = requestMessage.getString(FIELD_EXPIRATION_DATE);
+    try {
+      if (requestExpirationDate != null && !requestExpirationDate.isEmpty()) {
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(requestExpirationDate);
+      }
+    } catch (Exception parseEx) {
+      logger.debug("Exception parsing request expirationDate: " + requestExpirationDate);
+      requestMessage.putNull(FIELD_EXPIRATION_DATE);
+    }
+    return requestMessage;
   }
 }

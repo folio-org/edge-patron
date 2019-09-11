@@ -1258,14 +1258,7 @@ public class MainVerticleTest {
   }
 
   private String swapExpirationDate(String jsonRequestMessage, String dateString) {
-    final String regex = "(?<=\"expirationDate\").*\".*\"";
-    final Pattern pattern = Pattern.compile(regex);
-    final Matcher matcher = pattern.matcher(jsonRequestMessage);
-
-    if (matcher.find()) {
-      jsonRequestMessage = jsonRequestMessage.replaceAll("(?<=\"expirationDate\").*\".*\"", dateString);
-    }
-    return jsonRequestMessage;
+    return jsonRequestMessage.replaceFirst("(?<=\"expirationDate\").*\".*\"", dateString);
   }
 }
 

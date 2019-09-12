@@ -1,3 +1,6 @@
+## 3.0.3 2019-09-11
+ * [EDGPATRON-19](https://issues.folio.org/browse/EDGPATRON-19): Set request creation date to timestamp and remove expiration date if it's invalid.  
+
 ## 3.0.2 2019-07-24
  * [EDGPATRON-18](https://issues.folio.org/browse/EDGPATRON-18): Add `login` 6.0 interface
 

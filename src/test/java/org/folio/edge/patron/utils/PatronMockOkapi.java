@@ -4,7 +4,13 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.*;
+import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
+import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
+import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +25,9 @@ import java.util.UUID;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.*;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Charge;
+import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Hold.Status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +38,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.folio.edge.patron.model.HoldCancellation;
+import org.folio.edge.patron.model.Item;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.Money;
 
 public class PatronMockOkapi extends MockOkapi {
 

@@ -1,14 +1,26 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.*;
-import static org.folio.edge.patron.Constants.*;
+import static org.folio.edge.core.Constants.APPLICATION_JSON;
+import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
+import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
+import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
+import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
+import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.TimeoutException;
 
 import io.vertx.core.json.JsonObject;
@@ -242,54 +254,6 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private String getStructuredErrorMessage(int statusCode, String message){
-    String finalMsg;
-    try{
-      ErrorMessage error = new ErrorMessage(statusCode, message);
-      finalMsg = error.toJson();
-    }
-    catch(JsonProcessingException ex){
-      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
-    }
-    return finalMsg;
-  }
-
-
-  private String get422ErrorMsg(int statusCode, String respBody){
-
-    logger.debug("422 message: " + respBody);
-    String errorMessage = "";
-
-    try {
-      Errors err  =  Json.decodeValue(respBody, Errors.class);
-      List<Error> errors = err.getErrors();
-
-      if (errors != null && !errors.isEmpty()) {
-        Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
-        if (firstErrorInstance != null) {
-          errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
-        }
-      }
-
-      if (errorMessage.equals(""))
-        errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
-      }
-      catch(Exception ex) {
-        logger.debug(ex.getMessage());
-        errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
-      }
-
-      return errorMessage;
-    }
-
-  private String getErrorMessage(int statusCode, String respBody){
-
-    if (statusCode == 422)
-        return get422ErrorMsg(statusCode, respBody);
-    else
-        return getStructuredErrorMessage(statusCode, respBody);
-  }
-
   private void setContentType(HttpServerResponse response, String contentType){
     if (contentType != null && !contentType.equals("")) {
         response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
@@ -323,7 +287,59 @@ public class PatronHandler extends Handler {
     return requestMessage;
   }
 
-  private String constructValidationErrorMessage(String coreMessage) {
+  private String getStructuredErrorMessage(int statusCode, String message){
+    String finalMsg;
+    try{
+      ErrorMessage error = new ErrorMessage(statusCode, message);
+      finalMsg = error.toJson();
+    }
+    catch(JsonProcessingException ex){
+      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
+    }
+    return finalMsg;
+  }
+
+  private String get422ErrorMsg(int statusCode, Errors err) {
+    String errorMessage = "";
+    List<Error> errors = err.getErrors();
+
+    if (errors != null && !errors.isEmpty()) {
+      Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
+      if (firstErrorInstance != null) {
+        errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
+      }
+    }
+
+    if (errorMessage.equals(""))
+      errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
+
+    return errorMessage;
+  }
+
+  private String get422ErrorMsg(int statusCode, String respBody){
+
+    logger.debug("422 message: " + respBody);
+    String errorMessage = "";
+
+    try {
+      Errors err = Json.decodeValue(respBody, Errors.class);
+      errorMessage = get422ErrorMsg(statusCode, err);
+    } catch(Exception ex) {
+      logger.debug(ex.getMessage());
+      errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+    }
+    return errorMessage;
+  }
+
+  private String getErrorMessage(int statusCode, String respBody){
+
+    if (statusCode == 422)
+      return get422ErrorMsg(statusCode, respBody);
+    else
+      return getStructuredErrorMessage(statusCode, respBody);
+  }
+
+  private Errors constructValidationErrorMessage(String coreMessage) {
     Error error = new Error();
     error.setCode("422");
     error.setMessage(coreMessage);
@@ -332,11 +348,6 @@ public class PatronHandler extends Handler {
     errors.setTotalRecords(1);
     errors.setErrors(Collections.singletonList(error));
 
-    try {
-      return errors.toJson();
-    } catch (JsonProcessingException e) {
-      logger.error(e);
-      return null;
-    }
+    return errors;
   }
 }

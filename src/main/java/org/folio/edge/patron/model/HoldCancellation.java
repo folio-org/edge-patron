@@ -1,6 +1,8 @@
 package org.folio.edge.patron.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -139,13 +141,8 @@ public final class HoldCancellation {
       return false;
     }
     if (canceledDate == null) {
-      if (other.canceledDate != null) {
-        return false;
-      }
-    } else if (!canceledDate.equals(other.canceledDate)) {
-      return false;
-    }
-    return true;
+      return other.canceledDate == null;
+    } else return canceledDate.equals(other.canceledDate);
   }
 
   public String toXml() throws JsonProcessingException {

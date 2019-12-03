@@ -17,7 +17,7 @@ types:
   charge: !include charge.json
   money: !include money.json
   item: !include item.json
-  hold-cancelation: !include hold-cancellation.json
+  hold-cancellation: !include hold-cancellation.json
 
 /patron:
   displayName: Patron Services
@@ -244,15 +244,15 @@ types:
               description: Removes the specified hold request
               body:
                 application/json:
-                schema: hold-cancelation
-                example: !include examples/hold-cancellation.json
+                  schema: hold-cancellation
+                  example: !include examples/hold-cancellation.json
               responses:
                 201:
                   description: The specified hold request was removed
                   body:
                     application/json:
-                    schema: hold
-                    example: !include examples/hold.json
+                      schema: hold
+                      example: !include examples/hold.json
                 400:
                   description: Bad request
                   body:

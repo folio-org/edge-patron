@@ -36,7 +36,7 @@ public class PatronHandler extends Handler {
     super(secureStore, ocf);
   }
   private static final Logger logger = Logger.getLogger(Handler.class);
-  private final String contentLength = "content-length";
+  private static final String contentLength = "content-length";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,

@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 import org.everit.json.schema.FormatValidator;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.core.utils.Mappers;
-import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Before;
@@ -27,7 +26,6 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -44,21 +42,14 @@ public class HoldCancellationTest {
 
   @Before
   public void setUp() throws Exception {
-    Item item = Item.builder()
-      .author("Priest, Christopher")
-      .title("The Inverted World")
-      .instanceId(UUID.randomUUID().toString())
-      .itemId(UUID.randomUUID().toString())
-      .isbn("0008675309")
-      .build();
 
     long holdCanceledTs = System.currentTimeMillis();
 
     holdCancellation = HoldCancellation.builder()
       .holdId(UUID.randomUUID().toString())
       .canceledByUserId(UUID.randomUUID().toString())
-      .cancellationReasonId(UUID.randomUUID().toString())
       .canceledDate(new Date(holdCanceledTs))
+      .cancellationReasonId(UUID.randomUUID().toString())
       .build();
 
     SchemaFactory schemaFactory = SchemaFactory
@@ -66,16 +57,12 @@ public class HoldCancellationTest {
     Schema schema = schemaFactory.newSchema(new File(XSD));
     xmlValidator = schema.newValidator();
 
-    FormatValidator formatValidator = new FormatValidator() {
-
-      @Override
-      public Optional<String> validate(String dateTime) {
-        try {
-          new SimpleDateFormat(Mappers.DATE_FORMAT).parse(dateTime);
-          return Optional.empty();
-        } catch (Exception e) {
-          return Optional.of(e.getMessage());
-        }
+    FormatValidator formatValidator = dateTime -> {
+      try {
+        new SimpleDateFormat(Mappers.DATE_FORMAT).parse(dateTime);
+        return Optional.empty();
+      } catch (Exception e) {
+        return Optional.of(e.getMessage());
       }
     };
 

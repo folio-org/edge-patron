@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.folio.edge.core.utils.Mappers;
 
-import javax.annotation.Generated;
 import java.io.IOException;
 import java.util.Date;
 
@@ -84,6 +83,18 @@ public final class HoldCancellation {
     public HoldCancellation build() {
       return new HoldCancellation(this);
     }
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((holdId == null) ? 0 : holdId.hashCode());
+    result = prime * result + ((cancellationReasonId == null) ? 0 : cancellationReasonId.hashCode());
+    result = prime * result + ((canceledByUserId == null) ? 0 : canceledByUserId.hashCode());
+    result = prime * result + ((cancellationAdditionalInformation == null) ? 0 : cancellationAdditionalInformation.hashCode());
+    result = prime * result + ((canceledDate == null) ? 0 : canceledDate.hashCode());
+    return result;
   }
 
   @Override

@@ -20,6 +20,7 @@ public class Constants {
   public static final String PARAM_ITEM_ID = "itemId";
   public static final String PARAM_INSTANCE_ID = "instanceId";
   public static final String PARAM_HOLD_ID = "holdId";
+  public static final String PARAM_REQUEST_ID = "requestId";
 
   public static final String MSG_ACCESS_DENIED = "Access Denied";
   public static final String MSG_INTERNAL_SERVER_ERROR = "Internal Server Error";

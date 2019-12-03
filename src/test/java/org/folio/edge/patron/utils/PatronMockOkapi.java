@@ -4,29 +4,23 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.Constants.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Charge;
-import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.*;
 import org.folio.edge.patron.model.Hold.Status;
-import org.folio.edge.patron.model.Item;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.Money;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -60,7 +54,10 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId_reached_max_renewals = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_bad_json_msg = UUID.randomUUID().toString();
-
+  public static final String holdCancelationReasonId = UUID.randomUUID().toString();
+  public static final String holdCanceledByUserId = UUID.randomUUID().toString();
+  public static final String holdCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7449c";
+  public static final String goodRequestId = holdCancellationHoldId ;
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -133,6 +130,12 @@ public class PatronMockOkapi extends MockOkapi {
 
     router.route(HttpMethod.DELETE, "/patron/account/:patronId/instance/:instanceId/hold/:holdId")
       .handler(this::removeInstanceHoldHandler);
+
+    router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
+      .handler(this::cancelHoldHandler);
+
+    router.route(HttpMethod.GET, "/circulation/requests/:requestId")
+      .handler(this::getRequestHandler);
 
     return router;
   }
@@ -328,6 +331,61 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
+  public void getRequestHandler(RoutingContext ctx) {
+    String requestId = ctx.request().getParam(PARAM_REQUEST_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: users.collection.get");
+    } else if (requestId.equals(holdReqId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("request record with ID \"" + requestId + "\" cannot be found");
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getRequest(requestId));
+    }
+  }
+
+  public void cancelHoldHandler(RoutingContext ctx) {
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    String body = ctx.getBodyAsString();
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.hold.cancel.item.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      // Magic patronId signifying we want to mock a "not found"
+      // response.
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(patronId + " not found");
+    } else if (holdId.equals(holdReqId_notFound)) {
+      // Magic holdId signifying we want to mock a "not found"
+      // response.
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("request record with ID \"" + holdId + "\" cannot be found");
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getRemovedHoldJson(holdId));
+    }
+  }
+
   public void placeInstanceHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
@@ -367,6 +425,14 @@ public class PatronMockOkapi extends MockOkapi {
     return json.encodePrettily();
   }
 
+  public static String getRequest(String requestId) {
+    if (requestId.equals(goodRequestId)) {
+      String request = readMockFile("/good-request.json");
+      return request;
+    }
+    return null;
+  }
+
   public static String getAccountJson(String patronId, boolean includeLoans, boolean includeCharges,
       boolean includeHolds) {
 
@@ -403,15 +469,46 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
-  public static Hold getHold(String itemId) {
+  public static Hold getHold(String holdReqId) {
+    Status holdStatus = Status.OPEN_NOT_YET_FILLED;
+    int queuePosition = 2;
+    String cancellationReasonId = null;
+
+    if (holdReqId.equals(holdCancellationHoldId)) {
+      holdStatus = Status.CLOSED_CANCELED;
+      queuePosition = 0;
+      cancellationReasonId = holdCancelationReasonId;
+    }
+
     return Hold.builder()
       .item(getItem(itemId))
       .pickupLocationId(pickupLocationId)
       .expirationDate(new Date(holdExpTs))
-      .queuePosition(2)
+      .queuePosition(queuePosition)
+      .requestDate(new Date(holdReqTs))
+      .requestId(holdReqId)
+      .status(holdStatus)
+      .cancellationReasonId(cancellationReasonId)
+      .build();
+  }
+
+  public static Hold getRemovedHold(String holdReqId) throws ParseException {
+
+    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    Date canceledDate = format.parse ( "2019-11-27" );
+
+    return Hold.builder()
+      .item(getItem(itemId))
+      .pickupLocationId(pickupLocationId)
+      .expirationDate(new Date(holdExpTs))
+      .queuePosition(0)
       .requestDate(new Date(holdReqTs))
       .requestId(holdReqId)
       .status(Status.OPEN_NOT_YET_FILLED)
+      .cancellationAdditionalInformation("I don't want it anymore")
+      .canceledDate(canceledDate)
+      .cancellationReasonId(holdCancelationReasonId)
+      .canceledByUserId(holdCanceledByUserId)
       .build();
   }
 
@@ -483,5 +580,53 @@ public class PatronMockOkapi extends MockOkapi {
       logger.warn("Failed to generate Hold JSON", e);
     }
     return ret;
+  }
+
+  public static String getCancedHoldJson(String holdId) {
+    String ret = null;
+    try {
+      Hold hold = getRemovedHold(holdId);
+      ret = hold.toJson();
+    } catch (JsonProcessingException | ParseException e) {
+      logger.warn("Failed to generate Hold JSON", e);
+    }
+    return ret;
+  }
+
+  public static String getHoldCancellation(String holdId) {
+    String ret = null;
+    try {
+
+      SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+      Date canceledDate = format.parse ( "2019-11-27" );
+
+      HoldCancellation cancellation =  HoldCancellation.builder()
+        .holdId(holdId)
+        .canceledDate(canceledDate)
+        .cancellationReasonId(holdCancelationReasonId)
+        .cancellationAdditionalInformation("I don't want it anymore")
+        .canceledByUserId(holdCanceledByUserId)
+        .build();
+      ret = cancellation.toJson();
+    } catch (JsonProcessingException | ParseException e) {
+      logger.warn("Failed to generate Hold JSON", e);
+    }
+    return ret;
+  }
+
+  public static String readMockFile(final String path) {
+    try {
+      final InputStream is = PatronMockOkapi.class.getResourceAsStream(path);
+
+      if (is != null) {
+        return IOUtils.toString(is, "UTF-8");
+      } else {
+        return "";
+      }
+    } catch (Throwable e) {
+      logger.error(String.format("Unable to read mock configuration in %s file", path));
+    }
+
+    return "";
   }
 }

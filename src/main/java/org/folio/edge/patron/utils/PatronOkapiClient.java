@@ -1,7 +1,10 @@
 package org.folio.edge.patron.utils;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
+import com.amazonaws.handlers.IRequestHandler2;
+import io.vertx.core.json.Json;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
 
@@ -11,6 +14,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.HoldCancellation;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 public class PatronOkapiClient extends OkapiClient {
 
@@ -153,6 +160,67 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
+  public void cancelHold(String patronId, String holdId, String requestBody,
+                         Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
+    cancelHold(patronId,
+        holdId,
+        requestBody,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
+  public void cancelHold(String patronId, String holdId, String requestBody, MultiMap headers,
+      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    getRequest(holdId,
+      headers,
+      resp -> {
+        if (resp.statusCode() == 200) {
+          resp.bodyHandler(body -> {
+            String bodyStr = body.toString();
+            try {
+              HoldCancellation holdCancellationRequest = HoldCancellation.fromJson(requestBody);
+              JsonObject requestToRemove = new JsonObject(bodyStr);
+              Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToRemove);
+              post(
+                String.format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
+                tenant,
+                holdEntity.toJson(),
+                combineHeadersWithDefaults(headers),
+                responseHandler,
+                exceptionHandler);
+            } catch (IOException ioE) {
+              exceptionHandler.handle(ioE);
+            }
+          });
+        } else {
+          responseHandler.handle(resp);
+        }
+      },
+      exceptionHandler
+    );
+  }
+
+  public void getRequest(String holdId, Handler<HttpClientResponse> responseHandler,
+                      Handler<Throwable> exceptionHandler) {
+
+    getRequest(holdId, null, responseHandler, exceptionHandler);
+  }
+
+  public void getRequest(String holdId, MultiMap headers,
+                      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    String url = String.format("%s/circulation/requests/%s", okapiURL, holdId);
+
+    get(
+      url,
+      tenant,
+      combineHeadersWithDefaults(headers),
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void placeInstanceHold(String patronId, String instanceId, String requestBody,
       Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
     placeInstanceHold(patronId,
@@ -202,6 +270,20 @@ public class PatronOkapiClient extends OkapiClient {
         combineHeadersWithDefaults(headers),
         responseHandler,
         exceptionHandler);
+  }
+
+  private Hold createCancellationHoldRequest(HoldCancellation cancellationRequest, JsonObject baseRequest) {
+    Hold holdEntity = Hold.builder()
+      .cancellationReasonId(cancellationRequest.cancellationReasonId)
+      .canceledByUserId(cancellationRequest.canceledByUserId)
+      .cancellationAdditionalInformation(cancellationRequest.cancellationAdditionalInformation)
+      .canceledDate(cancellationRequest.canceledDate)
+      .requestId(baseRequest.getString("id"))
+      .pickupLocationId(baseRequest.getString("pickupServicePointId"))
+      .requestDate(new DateTime(baseRequest.getString("requestDate"), DateTimeZone.UTC).toDate())
+      .build();
+
+    return  holdEntity;
   }
 
   public static class PatronLookupException extends Exception {

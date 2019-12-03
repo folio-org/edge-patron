@@ -138,15 +138,32 @@ public class PatronHandler extends Handler {
 
   public void handleRemoveItemHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
+      new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).removeItemHold(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_ITEM_ID),
+        params.get(PARAM_HOLD_ID),
+        ctx.request().headers(),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleCancelHold(RoutingContext ctx) {
+    handleCommon(ctx,
+        new String[] { PARAM_PATRON_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).removeItemHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+        (client, params) -> {
+          ((PatronOkapiClient) client).cancelHold(
+              params.get(PARAM_PATRON_ID),
+              params.get(PARAM_HOLD_ID),
+              ctx.getBodyAsString(),
+              ctx.request().headers().remove("content-length"),
+              resp -> {
+                handleProxyResponse(ctx, resp);
+              },
+              t -> handleProxyException(ctx, t));
+        });
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
@@ -216,6 +233,7 @@ public class PatronHandler extends Handler {
     HttpServerResponse serverResponse = ctx.response();
 
     final StringBuilder body = new StringBuilder();
+    try{
     resp.handler(buf -> {
 
       if (logger.isTraceEnabled()) {
@@ -235,7 +253,6 @@ public class PatronHandler extends Handler {
 
       String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
 
-
       if (resp.statusCode() < 400){
         setContentType(serverResponse, contentType);
         serverResponse.end(respBody);  //not an error case, pass on the response body as received
@@ -246,6 +263,10 @@ public class PatronHandler extends Handler {
         serverResponse.end(errorMsg);
       }
     });
+    }
+    catch (Exception ex){
+      logger.error(ex);
+    };
   }
 
   @Override

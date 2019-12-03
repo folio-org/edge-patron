@@ -1,27 +1,19 @@
 package org.folio.edge.patron;
 
 import static org.folio.edge.core.Constants.*;
-import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
-import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
+import static org.folio.edge.patron.Constants.*;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.Errors;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -150,6 +142,17 @@ public class PatronHandler extends Handler {
   }
 
   public void handleCancelHold(RoutingContext ctx) {
+    String validationResult = validateCancelHoldRequest(ctx.getBodyAsString());
+    if ( validationResult != null) {
+      final int errorStatusCode = 422;
+      String errorMessage = get422ErrorMsg(errorStatusCode, constructValidationErrorMessage(validationResult));
+      ctx.response()
+        .setStatusCode(errorStatusCode)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(errorMessage);
+      return;
+    }
+
     handleCommon(ctx,
         new String[] { PARAM_PATRON_ID, PARAM_HOLD_ID },
         new String[] {},
@@ -229,42 +232,36 @@ public class PatronHandler extends Handler {
 
   @Override
   protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
-
     HttpServerResponse serverResponse = ctx.response();
-
     final StringBuilder body = new StringBuilder();
     try{
-    resp.handler(buf -> {
+      resp.handler(buf -> {
+        if (logger.isTraceEnabled()) {
+          logger.trace("read bytes: " + buf.toString());
+        }
+        body.append(buf);
+      }).endHandler(v -> {
+        int statusCode = resp.statusCode();
+        serverResponse.setStatusCode(statusCode);
 
-      if (logger.isTraceEnabled()) {
-        logger.trace("read bytes: " + buf.toString());
-      }
+        String respBody = body.toString();
+        if (logger.isDebugEnabled()) {
+          logger.debug("response: " + respBody);
+        }
 
-      body.append(buf);
-    }).endHandler(v -> {
+        String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
 
-      int statusCode = resp.statusCode();
-      serverResponse.setStatusCode(statusCode);
-
-      String respBody = body.toString();
-      if (logger.isDebugEnabled()) {
-        logger.debug("response: " + respBody);
-      }
-
-      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
-
-      if (resp.statusCode() < 400){
-        setContentType(serverResponse, contentType);
-        serverResponse.end(respBody);  //not an error case, pass on the response body as received
-      }
-      else {
-        String errorMsg = getErrorMessage(statusCode, respBody);
-        setContentType(serverResponse, APPLICATION_JSON);
-        serverResponse.end(errorMsg);
-      }
-    });
-    }
-    catch (Exception ex){
+        if (resp.statusCode() < 400){
+          setContentType(serverResponse, contentType);
+          serverResponse.end(respBody);  //not an error case, pass on the response body as received
+        }
+        else {
+          String errorMsg = getErrorMessage(statusCode, respBody);
+          setContentType(serverResponse, APPLICATION_JSON);
+          serverResponse.end(errorMsg);
+        }
+      });
+    } catch (Exception ex){
       logger.error(ex);
     };
   }
@@ -358,5 +355,22 @@ public class PatronHandler extends Handler {
       requestMessage.remove(FIELD_EXPIRATION_DATE);
     }
     return requestMessage;
+  }
+
+  private String constructValidationErrorMessage(String coreMessage) {
+    Error error = new Error();
+    error.setCode("422");
+    error.setMessage(coreMessage);
+
+    Errors errors = new Errors();
+    errors.setTotalRecords(1);
+    errors.setErrors(Collections.singletonList(error));
+
+    try {
+      return errors.toJson();
+    } catch (JsonProcessingException e) {
+      logger.error(e);
+      return null;
+    }
   }
 }

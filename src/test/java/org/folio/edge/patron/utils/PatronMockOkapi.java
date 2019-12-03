@@ -57,6 +57,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String holdCancelationReasonId = UUID.randomUUID().toString();
   public static final String holdCanceledByUserId = UUID.randomUUID().toString();
   public static final String holdCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7449c";
+  public static final String invalidHoldCancellationdHoldId = UUID.randomUUID().toString();
   public static final String goodRequestId = holdCancellationHoldId ;
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
@@ -606,6 +607,27 @@ public class PatronMockOkapi extends MockOkapi {
         .cancellationReasonId(holdCancelationReasonId)
         .cancellationAdditionalInformation("I don't want it anymore")
         .canceledByUserId(holdCanceledByUserId)
+        .build();
+      ret = cancellation.toJson();
+    } catch (JsonProcessingException | ParseException e) {
+      logger.warn("Failed to generate Hold JSON", e);
+    }
+    return ret;
+  }
+
+  public static String getInvalidHoldCancellation(String holdId) {
+    String ret = null;
+    try {
+
+      SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+      Date canceledDate = format.parse ( "2019-11-27" );
+
+      HoldCancellation cancellation =  HoldCancellation.builder()
+        .holdId(holdId)
+        .canceledDate(canceledDate)
+        .cancellationReasonId(null)
+        .cancellationAdditionalInformation("I don't want it anymore")
+        .canceledByUserId("")
         .build();
       ret = cancellation.toJson();
     } catch (JsonProcessingException | ParseException e) {

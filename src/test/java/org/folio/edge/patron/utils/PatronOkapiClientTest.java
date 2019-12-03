@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Hold;
@@ -452,96 +451,6 @@ public class PatronOkapiClientTest {
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(404, resp.statusCode());
-            async.complete();
-          }),
-          t -> {
-            context.fail(t);
-          });
-    });
-  }
-
-  @Test
-  public void testEditItemHoldExistent(TestContext context) throws Exception {
-    logger.info("=== Test editItemHold exists ===");
-
-    Hold hold = PatronMockOkapi.getHold(itemId);
-
-    Async async = context.async();
-    client.login("admin", "password").thenAcceptAsync(v -> {
-      assertEquals(MOCK_TOKEN, client.getToken());
-      client.editItemHold(patronId,
-          itemId,
-          hold.requestId,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(501, resp.statusCode());
-            async.complete();
-          }),
-          t -> {
-            context.fail(t);
-          });
-    });
-  }
-
-  @Test
-  public void testEditItemHoldNonExistentItem(TestContext context) throws Exception {
-    logger.info("=== Test editItemHold item doesn't exist ===");
-
-    Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.itemId_notFound);
-
-    Async async = context.async();
-    client.login("admin", "password").thenAcceptAsync(v -> {
-      assertEquals(MOCK_TOKEN, client.getToken());
-      client.editItemHold(patronId,
-          PatronMockOkapi.itemId_notFound,
-          hold.requestId,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(501, resp.statusCode());
-            async.complete();
-          }),
-          t -> {
-            context.fail(t);
-          });
-    });
-  }
-
-  @Test
-  public void testEditItemIHoldNonExistentPatron(TestContext context) throws Exception {
-    logger.info("=== Test editItemHold patron doesn't exist ===");
-
-    Hold hold = PatronMockOkapi.getHold(itemId);
-
-    Async async = context.async();
-    client.login("admin", "password").thenAcceptAsync(v -> {
-      assertEquals(MOCK_TOKEN, client.getToken());
-      client.editItemHold(PatronMockOkapi.patronId_notFound,
-          itemId,
-          hold.requestId,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(501, resp.statusCode());
-            async.complete();
-          }),
-          t -> {
-            context.fail(t);
-          });
-    });
-  }
-
-  @Test
-  public void testEditItemHoldNonExistentHold(TestContext context) throws Exception {
-    logger.info("=== Test editItemHold hold doesn't exist ===");
-
-    Async async = context.async();
-    client.login("admin", "password").thenAcceptAsync(v -> {
-      assertEquals(MOCK_TOKEN, client.getToken());
-      client.editItemHold(patronId,
-          itemId,
-          PatronMockOkapi.holdReqId_notFound,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(501, resp.statusCode());
             async.complete();
           }),
           t -> {

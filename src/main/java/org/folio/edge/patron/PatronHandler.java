@@ -112,33 +112,6 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
-  public void handleEditItemHold(RoutingContext ctx) {
-    handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).editItemHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
-
-  }
-
-  public void handleRemoveItemHold(RoutingContext ctx) {
-    handleCommon(ctx,
-      new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).removeItemHold(
-        params.get(PARAM_PATRON_ID),
-        params.get(PARAM_ITEM_ID),
-        params.get(PARAM_HOLD_ID),
-        ctx.request().headers(),
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
-  }
-
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.getBodyAsString());
     if ( validationResult != null) {

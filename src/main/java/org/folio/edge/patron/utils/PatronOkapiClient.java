@@ -128,36 +128,6 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public void editItemHold(String patronId, String itemId, String holdId,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    editItemHold(patronId, itemId, holdId, null, responseHandler, exceptionHandler);
-  }
-
-  public void editItemHold(String patronId, String itemId, String holdId, MultiMap headers,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    put(
-        String.format("%s/patron/account/%s/item/%s/hold/%s", okapiURL, patronId, itemId, holdId),
-        tenant,
-        combineHeadersWithDefaults(headers),
-        responseHandler,
-        exceptionHandler);
-  }
-
-  public void removeItemHold(String patronId, String itemId, String holdId,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    removeItemHold(patronId, itemId, holdId, null, responseHandler, exceptionHandler);
-  }
-
-  public void removeItemHold(String patronId, String itemId, String holdId, MultiMap headers,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    delete(
-        String.format("%s/patron/account/%s/item/%s/hold/%s", okapiURL, patronId, itemId, holdId),
-        tenant,
-        combineHeadersWithDefaults(headers),
-        responseHandler,
-        exceptionHandler);
-  }
-
   public void cancelHold(String patronId, String holdId, String requestBody,
                          Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
     cancelHold(patronId,

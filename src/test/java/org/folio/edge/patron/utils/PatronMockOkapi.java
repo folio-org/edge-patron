@@ -117,20 +117,8 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(this::placeItemHoldHandler);
 
-    router.route(HttpMethod.PUT, "/patron/account/:patronId/item/:itemId/hold/:holdId")
-      .handler(this::editItemHoldHandler);
-
-    router.route(HttpMethod.DELETE, "/patron/account/:patronId/item/:itemId/hold/:holdId")
-      .handler(this::removeItemHoldHandler);
-
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
-
-    router.route(HttpMethod.PUT, "/patron/account/:patronId/instance/:instanceId/hold/:holdId")
-      .handler(this::editInstanceHoldHandler);
-
-    router.route(HttpMethod.DELETE, "/patron/account/:patronId/instance/:instanceId/hold/:holdId")
-      .handler(this::removeInstanceHoldHandler);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(this::cancelHoldHandler);
@@ -286,52 +274,6 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
-  public void editItemHoldHandler(RoutingContext ctx) {
-    ctx.response()
-      .setStatusCode(501)
-      .end();
-  }
-
-  public void removeItemHoldHandler(RoutingContext ctx) {
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
-    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
-    String holdId = ctx.request().getParam(PARAM_HOLD_ID);
-    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
-    if (token == null || !token.equals(MOCK_TOKEN)) {
-      ctx.response()
-        .setStatusCode(403)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Access requires permission: patron.item.hold.delete");
-    } else if (patronId.equals(patronId_notFound)) {
-      // Magic patronId signifying we want to mock a "not found"
-      // response.
-      ctx.response()
-        .setStatusCode(404)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(patronId + " not found");
-    } else if (itemId.equals(itemId_notFound)) {
-      // Magic itemId signifying we want to mock a "not found"
-      // response.
-      ctx.response()
-        .setStatusCode(404)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(itemId + " not found");
-    } else if (holdId.equals(holdReqId_notFound)) {
-      // Magic holdId signifying we want to mock a "not found"
-      // response.
-      ctx.response()
-        .setStatusCode(404)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(holdId + " not found");
-    } else {
-      ctx.response()
-        .setStatusCode(201)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getRemovedHoldJson(itemId));
-    }
-  }
-
   public void getRequestHandler(RoutingContext ctx) {
     String requestId = ctx.request().getParam(PARAM_REQUEST_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
@@ -388,18 +330,6 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public void placeInstanceHoldHandler(RoutingContext ctx) {
-    ctx.response()
-      .setStatusCode(501)
-      .end();
-  }
-
-  public void editInstanceHoldHandler(RoutingContext ctx) {
-    ctx.response()
-      .setStatusCode(501)
-      .end();
-  }
-
-  public void removeInstanceHoldHandler(RoutingContext ctx) {
     ctx.response()
       .setStatusCode(501)
       .end();

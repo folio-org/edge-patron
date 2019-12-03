@@ -62,12 +62,6 @@ public class MainVerticle extends EdgeVerticle {
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(patronHandler::handlePlaceItemHold);
 
-    router.route(HttpMethod.PUT, "/patron/account/:patronId/item/:itemId/hold/:holdId")
-      .handler(patronHandler::handleEditItemHold);
-
-    router.route(HttpMethod.DELETE, "/patron/account/:patronId/item/:itemId/hold/:holdId")
-      .handler(patronHandler::handleRemoveItemHold);
-
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(patronHandler::handlePlaceInstanceHold);
 

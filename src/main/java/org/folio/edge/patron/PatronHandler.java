@@ -36,6 +36,7 @@ public class PatronHandler extends Handler {
     super(secureStore, ocf);
   }
   private static final Logger logger = Logger.getLogger(Handler.class);
+  private final String contentLength = "content-length";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -107,7 +108,7 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             body,
-            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(contentLength), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -127,17 +128,15 @@ public class PatronHandler extends Handler {
     handleCommon(ctx,
         new String[] { PARAM_PATRON_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> {
+        (client, params) ->
           ((PatronOkapiClient) client).cancelHold(
               params.get(PARAM_PATRON_ID),
               params.get(PARAM_HOLD_ID),
               ctx.getBodyAsString(),
-              ctx.request().headers().remove("content-length"),
-              resp -> {
-                handleProxyResponse(ctx, resp);
-              },
-              t -> handleProxyException(ctx, t));
-        });
+              ctx.request().headers().remove(contentLength),
+              resp -> handleProxyResponse(ctx, resp),
+              t -> handleProxyException(ctx, t))
+        );
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
@@ -149,7 +148,7 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             body,
-            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(contentLength), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -205,36 +204,32 @@ public class PatronHandler extends Handler {
   protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
     HttpServerResponse serverResponse = ctx.response();
     final StringBuilder body = new StringBuilder();
-    try{
-      resp.handler(buf -> {
-        if (logger.isTraceEnabled()) {
-          logger.trace("read bytes: " + buf.toString());
-        }
-        body.append(buf);
-      }).endHandler(v -> {
-        int statusCode = resp.statusCode();
-        serverResponse.setStatusCode(statusCode);
+    resp.handler(buf -> {
+      if (logger.isTraceEnabled()) {
+        logger.trace("read bytes: " + buf.toString());
+      }
+      body.append(buf);
+    }).endHandler(v -> {
+      int statusCode = resp.statusCode();
+      serverResponse.setStatusCode(statusCode);
 
-        String respBody = body.toString();
-        if (logger.isDebugEnabled()) {
-          logger.debug("response: " + respBody);
-        }
+      String respBody = body.toString();
+      if (logger.isDebugEnabled()) {
+        logger.debug("response: " + respBody);
+      }
 
-        String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
+      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
 
-        if (resp.statusCode() < 400){
-          setContentType(serverResponse, contentType);
-          serverResponse.end(respBody);  //not an error case, pass on the response body as received
-        }
-        else {
-          String errorMsg = getErrorMessage(statusCode, respBody);
-          setContentType(serverResponse, APPLICATION_JSON);
-          serverResponse.end(errorMsg);
-        }
-      });
-    } catch (Exception ex){
-      logger.error(ex);
-    };
+      if (resp.statusCode() < 400){
+        setContentType(serverResponse, contentType);
+        serverResponse.end(respBody);  //not an error case, pass on the response body as received
+      }
+      else {
+        String errorMsg = getErrorMessage(statusCode, respBody);
+        setContentType(serverResponse, APPLICATION_JSON);
+        serverResponse.end(errorMsg);
+      }
+    });
   }
 
   @Override

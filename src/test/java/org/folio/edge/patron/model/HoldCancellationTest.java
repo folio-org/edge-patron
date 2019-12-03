@@ -58,7 +58,6 @@ public class HoldCancellationTest {
       .holdId(UUID.randomUUID().toString())
       .canceledByUserId(UUID.randomUUID().toString())
       .cancellationReasonId(UUID.randomUUID().toString())
-      .cancellationAdditionalInformation("I don't want it anymore")
       .canceledDate(new Date(holdCanceledTs))
       .build();
 
@@ -142,5 +141,4 @@ public class HoldCancellationTest {
     Source source = new StreamSource(new StringReader(xml));
     xmlValidator.validate(source);
   }
-
 }

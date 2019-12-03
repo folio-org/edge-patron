@@ -1,9 +1,11 @@
 package org.folio.edge.patron.model;
 
-import java.io.IOException;
 import java.util.UUID;
 
 public class HoldCancellationValidator {
+
+  private HoldCancellationValidator() {}
+
   public static String validateCancelHoldRequest(String holdCancellationRequest) {
     String errorMessage = null;
     try {

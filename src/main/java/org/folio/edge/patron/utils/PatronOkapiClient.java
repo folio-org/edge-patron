@@ -241,7 +241,7 @@ public class PatronOkapiClient extends OkapiClient {
   }
 
   private Hold createCancellationHoldRequest(HoldCancellation cancellationRequest, JsonObject baseRequest) {
-    Hold holdEntity = Hold.builder()
+    return Hold.builder()
       .cancellationReasonId(cancellationRequest.cancellationReasonId)
       .canceledByUserId(cancellationRequest.canceledByUserId)
       .cancellationAdditionalInformation(cancellationRequest.cancellationAdditionalInformation)
@@ -250,8 +250,6 @@ public class PatronOkapiClient extends OkapiClient {
       .pickupLocationId(baseRequest.getString("pickupServicePointId"))
       .requestDate(new DateTime(baseRequest.getString("requestDate"), DateTimeZone.UTC).toDate())
       .build();
-
-    return  holdEntity;
   }
 
   public static class PatronLookupException extends Exception {

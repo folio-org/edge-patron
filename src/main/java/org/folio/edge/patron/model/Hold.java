@@ -42,10 +42,10 @@ public final class Hold {
   public final String pickupLocationId;
   public final Status status;
   public final int queuePosition;
-  public String cancellationReasonId;
-  public String canceledByUserId;
-  public String cancellationAdditionalInformation;
-  public Date canceledDate;
+  public final String cancellationReasonId;
+  public final String canceledByUserId;
+  public final String cancellationAdditionalInformation;
+  public final Date canceledDate;
 
   private Hold(Builder builder) {
     this.item = builder.item;

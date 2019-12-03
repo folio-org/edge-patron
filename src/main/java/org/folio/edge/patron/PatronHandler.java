@@ -7,13 +7,11 @@ import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import io.vertx.core.json.JsonObject;
-import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.Errors;
 import com.fasterxml.jackson.core.JsonProcessingException;

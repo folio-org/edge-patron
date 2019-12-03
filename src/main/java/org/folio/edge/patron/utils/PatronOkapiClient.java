@@ -3,8 +3,6 @@ package org.folio.edge.patron.utils;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
-import com.amazonaws.handlers.IRequestHandler2;
-import io.vertx.core.json.Json;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
 

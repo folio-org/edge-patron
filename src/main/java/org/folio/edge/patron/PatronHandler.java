@@ -36,7 +36,7 @@ public class PatronHandler extends Handler {
     super(secureStore, ocf);
   }
   private static final Logger logger = Logger.getLogger(Handler.class);
-  private static final String contentLength = "content-length";
+  private static final String CONTENT_LENGTH = "content-length";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -108,7 +108,7 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             body,
-            ctx.request().headers().remove(contentLength), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -133,7 +133,7 @@ public class PatronHandler extends Handler {
               params.get(PARAM_PATRON_ID),
               params.get(PARAM_HOLD_ID),
               ctx.getBodyAsString(),
-              ctx.request().headers().remove(contentLength),
+              ctx.request().headers().remove(CONTENT_LENGTH),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))
         );
@@ -148,7 +148,7 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             body,
-            ctx.request().headers().remove(contentLength), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }

@@ -435,26 +435,6 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
-  public static Hold getRemovedHold(String holdReqId) throws ParseException {
-
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-    Date canceledDate = format.parse ( "2019-11-27" );
-
-    return Hold.builder()
-      .item(getItem(itemId))
-      .pickupLocationId(pickupLocationId)
-      .expirationDate(new Date(holdExpTs))
-      .queuePosition(0)
-      .requestDate(new Date(holdReqTs))
-      .requestId(holdReqId)
-      .status(Status.OPEN_NOT_YET_FILLED)
-      .cancellationAdditionalInformation("I don't want it anymore")
-      .canceledDate(canceledDate)
-      .cancellationReasonId(holdCancelationReasonId)
-      .canceledByUserId(holdCanceledByUserId)
-      .build();
-  }
-
   public static Hold getHold(String itemId, Date holdReqDate) {
     return Hold.builder()
       .item(getItem(itemId))
@@ -520,17 +500,6 @@ public class PatronMockOkapi extends MockOkapi {
       Hold hold = getHold(itemId);
       ret = hold.toJson();
     } catch (JsonProcessingException e) {
-      logger.warn("Failed to generate Hold JSON", e);
-    }
-    return ret;
-  }
-
-  public static String getCancedHoldJson(String holdId) {
-    String ret = null;
-    try {
-      Hold hold = getRemovedHold(holdId);
-      ret = hold.toJson();
-    } catch (JsonProcessingException | ParseException e) {
       logger.warn("Failed to generate Hold JSON", e);
     }
     return ret;

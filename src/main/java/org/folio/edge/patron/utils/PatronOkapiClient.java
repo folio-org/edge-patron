@@ -210,36 +210,6 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public void editInstanceHold(String patronId, String instanceId, String holdId,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    editInstanceHold(patronId, instanceId, holdId, null, responseHandler, exceptionHandler);
-  }
-
-  public void editInstanceHold(String patronId, String instanceId, String holdId, MultiMap headers,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    put(
-        String.format("%s/patron/account/%s/instance/%s/hold/%s", okapiURL, patronId, instanceId, holdId),
-        tenant,
-        combineHeadersWithDefaults(headers),
-        responseHandler,
-        exceptionHandler);
-  }
-
-  public void removeInstanceHold(String patronId, String instanceId, String holdId,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    removeInstanceHold(patronId, instanceId, holdId, null, responseHandler, exceptionHandler);
-  }
-
-  public void removeInstanceHold(String patronId, String instanceId, String holdId, MultiMap headers,
-      Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-    delete(
-        String.format("%s/patron/account/%s/instance/%s/hold/%s", okapiURL, patronId, instanceId, holdId),
-        tenant,
-        combineHeadersWithDefaults(headers),
-        responseHandler,
-        exceptionHandler);
-  }
-
   private Hold createCancellationHoldRequest(HoldCancellation cancellationRequest, JsonObject baseRequest) {
     return Hold.builder()
       .cancellationReasonId(cancellationRequest.cancellationReasonId)

@@ -158,8 +158,8 @@ public class PatronOkapiClient extends OkapiClient {
                 combineHeadersWithDefaults(headers),
                 responseHandler,
                 exceptionHandler);
-            } catch (IOException ioE) {
-              exceptionHandler.handle(ioE);
+            } catch (Exception ex) {
+              exceptionHandler.handle(ex);
             }
           });
         } else {

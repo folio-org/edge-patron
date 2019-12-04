@@ -56,7 +56,6 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + validUUID + "\"," +
     "\"cancellationAdditionalInformation\" : \"blablabla\"" +
     "}";
-
     String result = HoldCancellationValidator.validateCancelHoldRequest(invalidHoldId);
     assertEquals(expectedErrorMsg, result);
 
@@ -66,7 +65,6 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + validUUID + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-
     result = HoldCancellationValidator.validateCancelHoldRequest(invalidCanceledByUserId);
     assertEquals(expectedErrorMsg, result);
 
@@ -76,7 +74,6 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + invalidUUID + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-
     result = HoldCancellationValidator.validateCancelHoldRequest(invalidCancellationReasonId);
     assertEquals(expectedErrorMsg, result);
   }

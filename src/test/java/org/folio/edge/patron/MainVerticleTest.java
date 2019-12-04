@@ -15,6 +15,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -469,71 +470,71 @@ public class MainVerticleTest {
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
-    @Test
-    public void testRenewRequesMaxRenewal(TestContext context) throws Exception {
-        logger.info("=== Test MAX Renewal ===");
+  @Test
+  public void testRenewRequesMaxRenewal(TestContext context) throws Exception {
+      logger.info("=== Test MAX Renewal ===");
 
-        int expectedStatusCode = 422;
+      int expectedStatusCode = 422;
 
-        final Response resp = RestAssured
-                .with()
-                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals,
-                        apiKey))
-                .then()
-                .contentType(APPLICATION_JSON)
-                .statusCode(expectedStatusCode)
-                .extract()
-                .response();
+      final Response resp = RestAssured
+              .with()
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals,
+                      apiKey))
+              .then()
+              .contentType(APPLICATION_JSON)
+              .statusCode(expectedStatusCode)
+              .extract()
+              .response();
 
-        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+      ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("loan has reached its maximum number of renewals", msg.message);
-        assertEquals(expectedStatusCode, msg.httpStatusCode);
-    }
+      assertEquals("loan has reached its maximum number of renewals", msg.message);
+      assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
 
-    @Test
-    public void testRenewRequesMaxRenewalWithEmptyErrors(TestContext context) throws Exception {
-        logger.info("=== Test MAX Renewal With Empty Errors ===");
+  @Test
+  public void testRenewRequesMaxRenewalWithEmptyErrors(TestContext context) throws Exception {
+      logger.info("=== Test MAX Renewal With Empty Errors ===");
 
-        int expectedStatusCode = 422;
+      int expectedStatusCode = 422;
 
-        final Response resp = RestAssured
-                .with()
-                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_empty_error_msg,
-                        apiKey))
-                .then()
-                .contentType(APPLICATION_JSON)
-                .statusCode(expectedStatusCode)
-                .extract()
-                .response();
+      final Response resp = RestAssured
+              .with()
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_empty_error_msg,
+                      apiKey))
+              .then()
+              .contentType(APPLICATION_JSON)
+              .statusCode(expectedStatusCode)
+              .extract()
+              .response();
 
-        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+      ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("No error message found", msg.message);
-        assertEquals(expectedStatusCode, msg.httpStatusCode);
-    }
+      assertEquals("No error message found", msg.message);
+      assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
 
-    @Test
-    public void testRenewRequesMaxRenewalWithBadJson(TestContext context) throws Exception {
-        logger.info("=== Test MAX Renewal With Bad Json ===");
+  @Test
+  public void testRenewRequesMaxRenewalWithBadJson(TestContext context) throws Exception {
+      logger.info("=== Test MAX Renewal With Bad Json ===");
 
-        int expectedStatusCode = 422;
+      int expectedStatusCode = 422;
 
-        final Response resp = RestAssured
-                .with()
-                .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_bad_json_msg,
-                        apiKey))
-                .then()
-                .contentType(APPLICATION_JSON)
-                .statusCode(expectedStatusCode)
-                .extract()
-                .response();
+      final Response resp = RestAssured
+              .with()
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_bad_json_msg,
+                      apiKey))
+              .then()
+              .contentType(APPLICATION_JSON)
+              .statusCode(expectedStatusCode)
+              .extract()
+              .response();
 
-        ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+      ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-        assertEquals("A problem encountered when extracting error message", msg.message);
-        assertEquals(expectedStatusCode, msg.httpStatusCode);
-    }
+      assertEquals("A problem encountered when extracting error message", msg.message);
+      assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
 
   @Test
   public void testPlaceInstanceHoldSuccess(TestContext context) throws Exception {
@@ -1097,6 +1098,27 @@ public class MainVerticleTest {
 
     assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testCancelHoldWithMalformedJsonRequest(TestContext context) throws Exception {
+    logger.info("=== Test cancel hold with malformed JSON Request (from mod-circ) ===");
+
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId);
+
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(cancedHoldJson)
+      .post(
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, malformedHoldCancellationHoldId, apiKey))
+      .then()
+      .statusCode(500)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    assertTrue(resp.body().asString().contains("Internal Server Error"));
   }
 
   @Test

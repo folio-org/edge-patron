@@ -41,7 +41,8 @@ public class HoldCancellationValidator {
 
   private static boolean isUUID(String uuidString) {
     try {
-      return UUID.fromString(uuidString) != null;
+      UUID.fromString(uuidString);
+      return true;
     } catch (Exception ex) {
       return false;
     }

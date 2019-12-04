@@ -70,6 +70,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String holdCanceledByUserId = UUID.randomUUID().toString();
   public static final String holdCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7449c";
   public static final String invalidHoldCancellationdHoldId = UUID.randomUUID().toString();
+  public static final String malformedHoldCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7448d";
   public static final String goodRequestId = holdCancellationHoldId ;
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
@@ -300,6 +301,11 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("request record with ID \"" + requestId + "\" cannot be found");
+    } else if (requestId.equals(malformedHoldCancellationHoldId)) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getRequest(requestId));
     } else {
       ctx.response()
         .setStatusCode(200)
@@ -369,11 +375,13 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public static String getRequest(String requestId) {
+    String request = null;
     if (requestId.equals(goodRequestId)) {
-      String request = readMockFile("/good-request.json");
-      return request;
+      request = readMockFile("/good-request.json");
+    } else if (requestId.equals(malformedHoldCancellationHoldId)) {
+      request = readMockFile("/malformed-request.json");
     }
-    return null;
+    return request;
   }
 
   public static String getAccountJson(String patronId, boolean includeLoans, boolean includeCharges,

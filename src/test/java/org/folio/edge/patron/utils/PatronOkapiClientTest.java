@@ -387,8 +387,8 @@ public class PatronOkapiClientTest {
   }
 
   @Test
-  public void testCancelHoldExistent(TestContext context) throws Exception {
-    logger.info("=== Test removeItemHold exists ===");
+  public void testCancelHoldSuccessfully(TestContext context) throws Exception {
+    logger.info("=== Test cancel hold successfully ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.holdCancellationHoldId);
     String holdCancellation = PatronMockOkapi.getHoldCancellation(hold.requestId);
@@ -500,8 +500,5 @@ public class PatronOkapiClientTest {
           context.fail(t);
         });
     });
-
-    ;
   }
-
 }

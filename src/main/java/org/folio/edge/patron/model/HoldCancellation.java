@@ -57,8 +57,8 @@ public final class HoldCancellation {
     @JsonProperty("canceledDate")
     private Date canceledDate;
 
-    public Builder holdId(String holdId) {
-      this.holdId = holdId;
+    public Builder canceledByUserId(String canceledByUserId) {
+      this.canceledByUserId = canceledByUserId;
       return this;
     }
 
@@ -67,8 +67,8 @@ public final class HoldCancellation {
       return this;
     }
 
-    public Builder cancellationReasonId(String cancellationReasonId) {
-      this.cancellationReasonId = cancellationReasonId;
+    public Builder holdId(String holdId) {
+      this.holdId = holdId;
       return this;
     }
 
@@ -77,8 +77,8 @@ public final class HoldCancellation {
       return this;
     }
 
-    public Builder canceledByUserId(String canceledByUserId) {
-      this.canceledByUserId = canceledByUserId;
+    public Builder cancellationReasonId(String cancellationReasonId) {
+      this.cancellationReasonId = cancellationReasonId;
       return this;
     }
 
@@ -112,20 +112,6 @@ public final class HoldCancellation {
     }
     HoldCancellation other = (HoldCancellation) obj;
 
-    if (holdId == null) {
-      if (other.holdId != null) {
-        return false;
-      }
-    } else if (!holdId.equals(other.holdId)) {
-      return false;
-    }
-    if (cancellationReasonId == null) {
-      if (other.cancellationReasonId != null) {
-        return false;
-      }
-    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
-      return false;
-    }
     if (canceledByUserId == null) {
       if (other.canceledByUserId != null) {
         return false;
@@ -133,6 +119,23 @@ public final class HoldCancellation {
     } else if (!canceledByUserId.equals(other.canceledByUserId)) {
       return false;
     }
+
+    if (holdId == null) {
+      if (other.holdId != null) {
+        return false;
+      }
+    } else if (!holdId.equals(other.holdId)) {
+      return false;
+    }
+
+    if (cancellationReasonId == null) {
+      if (other.cancellationReasonId != null) {
+        return false;
+      }
+    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
+      return false;
+    }
+
     if (cancellationAdditionalInformation == null) {
       if (other.cancellationAdditionalInformation != null) {
         return false;
@@ -140,6 +143,7 @@ public final class HoldCancellation {
     } else if (!cancellationAdditionalInformation.equals(other.cancellationAdditionalInformation)) {
       return false;
     }
+
     if (canceledDate == null) {
       return other.canceledDate == null;
     } else return canceledDate.equals(other.canceledDate);

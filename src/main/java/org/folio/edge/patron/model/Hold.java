@@ -115,6 +115,11 @@ public final class Hold {
       return this;
     }
 
+    public Builder canceledDate(Date canceledDate) {
+      this.canceledDate = canceledDate;
+      return this;
+    }
+
     public Builder expirationDate(Date expirationDate) {
       this.expirationDate = expirationDate;
       return this;
@@ -122,6 +127,16 @@ public final class Hold {
 
     public Builder pickupLocationId(String pickupLocationId) {
       this.pickupLocationId = pickupLocationId;
+      return this;
+    }
+
+    public Builder cancellationReasonId(String cancellationReasonId) {
+      this.cancellationReasonId = cancellationReasonId;
+      return this;
+    }
+
+    public Builder canceledByUserId(String canceledByUserId) {
+      this.canceledByUserId = canceledByUserId;
       return this;
     }
 
@@ -135,23 +150,8 @@ public final class Hold {
       return this;
     }
 
-    public Builder canceledDate(Date canceledDate) {
-      this.canceledDate = canceledDate;
-      return this;
-    }
-
-    public Builder cancellationReasonId(String cancellationReasonId) {
-      this.cancellationReasonId = cancellationReasonId;
-      return this;
-    }
-
     public Builder cancellationAdditionalInformation(String cancellationAdditionalInformation) {
       this.cancellationAdditionalInformation = cancellationAdditionalInformation;
-      return this;
-    }
-
-    public Builder canceledByUserId(String canceledByUserId) {
-      this.canceledByUserId = canceledByUserId;
       return this;
     }
 

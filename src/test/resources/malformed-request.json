@@ -1,0 +1,60 @@
+{
+  "id": "6b6b715e-8038-49ba-ab91-faa8fdf7448d",
+  "requestType": "Page"
+  "requestDate": "2019-09-19T19:47:11.732+0000
+  "requesterId": "4aa64032-fb51-4c55-a432-c59093751bbd",
+  "itemId": "814bbeba-50eb-4a35-a1f3-17028d530d2d",
+  "status": "Open - Not yet filled",
+  "position": 1,
+  "item": {
+    "title": "Berlin",
+    "barcode": "7586223585",
+    "holdingsRecordId": "a13768d3-bffe-45ff-844a-abf86de0cfb3",
+    "instanceId": "2b73c307-94ce-4fc9-9737-5c46d786ea03",
+    "location": {
+      "name": "Annex",
+      "libraryName": "Datalogisk Institut",
+      "code": "KU/CC/DI/A"
+    },
+    "contributorNames": [
+      {
+        "name": "Scheunemann, Jürgen"
+      },
+      {
+        "name": "Gale Group"
+      }
+    ],
+    "status": "Paged",
+    "callNumber": "914.3155 BER",
+    "copyNumbers": [
+      null
+    ]
+  },
+  "requester": {
+    "lastName": "Chang",
+    "firstName": "Cecilia",
+    "barcode": "3289772652",
+    "patronGroup": {
+      "id": "6e50e769-3e07-45f5-a7e2-d83f13d7402b",
+      "group": "undergrad",
+      "desc": "Undergraduate Student"
+    },
+    "patronGroupId": "6e50e769-3e07-45f5-a7e2-d83f13d7402b"
+  },
+  "fulfilmentPreference": "Hold Shelf",
+  "pickupServicePointId": "3a40852d-49fd-4df2-a1f9-6e2641a6e91f",
+  "metadata": {
+    "createdDate": "2019-09-19T19:47:12.508+0000",
+    "createdByUserId": "5aebee66-76b2-4128-bac4-d22e02f99a8f",
+    "updatedDate": "2019-09-19T19:47:12.530+0000",
+    "updatedByUserId": "5aebee66-76b2-4128-bac4-d22e02f99a8f"
+  },
+  "pickupServicePoint": {
+    "name": "Circ Desk 1",
+    "code": "cd1",
+    "discoveryDisplayName": "Circulation Desk -- Hallway",
+    "description": null,
+    "shelvingLagTime": null,
+    "pickupLocation": true
+  }
+}

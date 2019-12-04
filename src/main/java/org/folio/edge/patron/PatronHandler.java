@@ -1,6 +1,6 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.*;
+import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
 import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
@@ -13,8 +13,10 @@ import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
 import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ public class PatronHandler extends Handler {
     super(secureStore, ocf);
   }
   private static final Logger logger = Logger.getLogger(Handler.class);
+  private static final String CONTENT_LENGTH = "content-length";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -117,36 +120,35 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             body,
-            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
 
-  public void handleEditItemHold(RoutingContext ctx) {
-    handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).editItemHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+  public void handleCancelHold(RoutingContext ctx) {
+    String validationResult = validateCancelHoldRequest(ctx.getBodyAsString());
+    if ( validationResult != null) {
+      final int errorStatusCode = 422;
+      String errorMessage = get422ErrorMsg(errorStatusCode, constructValidationErrorMessage(validationResult));
+      ctx.response()
+        .setStatusCode(errorStatusCode)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(errorMessage);
+      return;
+    }
 
-  }
-
-  public void handleRemoveItemHold(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID, PARAM_HOLD_ID },
+        new String[] { PARAM_PATRON_ID, PARAM_HOLD_ID },
         new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).removeItemHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            params.get(PARAM_HOLD_ID),
-            ctx.request().headers(),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+        (client, params) ->
+          ((PatronOkapiClient) client).cancelHold(
+              params.get(PARAM_PATRON_ID),
+              params.get(PARAM_HOLD_ID),
+              ctx.getBodyAsString(),
+              ctx.request().headers().remove(CONTENT_LENGTH),
+              resp -> handleProxyResponse(ctx, resp),
+              t -> handleProxyException(ctx, t))
+        );
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
@@ -158,7 +160,7 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             body,
-            ctx.request().headers().remove("content-length"), //removing content-length header here as the new message's size isn't the same it was originally
+            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -212,19 +214,14 @@ public class PatronHandler extends Handler {
 
   @Override
   protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
-
     HttpServerResponse serverResponse = ctx.response();
-
     final StringBuilder body = new StringBuilder();
     resp.handler(buf -> {
-
       if (logger.isTraceEnabled()) {
         logger.trace("read bytes: " + buf.toString());
       }
-
       body.append(buf);
     }).endHandler(v -> {
-
       int statusCode = resp.statusCode();
       serverResponse.setStatusCode(statusCode);
 
@@ -234,7 +231,6 @@ public class PatronHandler extends Handler {
       }
 
       String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
-
 
       if (resp.statusCode() < 400){
         setContentType(serverResponse, contentType);
@@ -256,54 +252,6 @@ public class PatronHandler extends Handler {
     } else {
       internalServerError(ctx, t.getMessage());
     }
-  }
-
-  private String getStructuredErrorMessage(int statusCode, String message){
-    String finalMsg;
-    try{
-      ErrorMessage error = new ErrorMessage(statusCode, message);
-      finalMsg = error.toJson();
-    }
-    catch(JsonProcessingException ex){
-      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
-    }
-    return finalMsg;
-  }
-
-
-  private String get422ErrorMsg(int statusCode, String respBody){
-
-    logger.debug("422 message: " + respBody);
-    String errorMessage = "";
-
-    try {
-      Errors err  =  Json.decodeValue(respBody, Errors.class);
-      List<Error> errors = err.getErrors();
-
-      if (errors != null && !errors.isEmpty()) {
-        Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
-        if (firstErrorInstance != null) {
-          errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
-        }
-      }
-
-      if (errorMessage.equals(""))
-        errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
-      }
-      catch(Exception ex) {
-        logger.debug(ex.getMessage());
-        errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
-      }
-
-      return errorMessage;
-    }
-
-  private String getErrorMessage(int statusCode, String respBody){
-
-    if (statusCode == 422)
-        return get422ErrorMsg(statusCode, respBody);
-    else
-        return getStructuredErrorMessage(statusCode, respBody);
   }
 
   private void setContentType(HttpServerResponse response, String contentType){
@@ -337,5 +285,69 @@ public class PatronHandler extends Handler {
       requestMessage.remove(FIELD_EXPIRATION_DATE);
     }
     return requestMessage;
+  }
+
+  private String getStructuredErrorMessage(int statusCode, String message){
+    String finalMsg;
+    try{
+      ErrorMessage error = new ErrorMessage(statusCode, message);
+      finalMsg = error.toJson();
+    }
+    catch(JsonProcessingException ex){
+      finalMsg = "{ code : \"\", message : \"" + message + "\" }";
+    }
+    return finalMsg;
+  }
+
+  private String get422ErrorMsg(int statusCode, Errors err) {
+    String errorMessage = "";
+    List<Error> errors = err.getErrors();
+
+    if (errors != null && !errors.isEmpty()) {
+      Error firstErrorInstance = errors.get(0);  //get the first error message and return it.
+      if (firstErrorInstance != null) {
+        errorMessage = getStructuredErrorMessage(statusCode, firstErrorInstance.getMessage());
+      }
+    }
+
+    if (errorMessage.equals(""))
+      errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
+
+    return errorMessage;
+  }
+
+  private String get422ErrorMsg(int statusCode, String respBody){
+
+    logger.debug("422 message: " + respBody);
+    String errorMessage = "";
+
+    try {
+      Errors err = Json.decodeValue(respBody, Errors.class);
+      errorMessage = get422ErrorMsg(statusCode, err);
+    } catch(Exception ex) {
+      logger.debug(ex.getMessage());
+      errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+    }
+    return errorMessage;
+  }
+
+  private String getErrorMessage(int statusCode, String respBody){
+
+    if (statusCode == 422)
+      return get422ErrorMsg(statusCode, respBody);
+    else
+      return getStructuredErrorMessage(statusCode, respBody);
+  }
+
+  private Errors constructValidationErrorMessage(String coreMessage) {
+    Error error = new Error();
+    error.setCode("422");
+    error.setMessage(coreMessage);
+
+    Errors errors = new Errors();
+    errors.setTotalRecords(1);
+    errors.setErrors(Collections.singletonList(error));
+
+    return errors;
   }
 }

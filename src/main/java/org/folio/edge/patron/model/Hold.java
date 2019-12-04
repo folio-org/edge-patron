@@ -28,7 +28,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "expirationDate",
     "pickupLocationId",
     "status",
-    "queuePosition"
+    "queuePosition",
+    "cancelationReasonId",
+    "canceledByUserId",
+    "cancelationAdditionalInformation",
+    "cancelationDate"
 })
 public final class Hold {
   public final Item item;
@@ -38,6 +42,10 @@ public final class Hold {
   public final String pickupLocationId;
   public final Status status;
   public final int queuePosition;
+  public final String cancellationReasonId;
+  public final String canceledByUserId;
+  public final String cancellationAdditionalInformation;
+  public final Date canceledDate;
 
   private Hold(Builder builder) {
     this.item = builder.item;
@@ -47,6 +55,10 @@ public final class Hold {
     this.pickupLocationId = builder.pickupLocationId;
     this.status = builder.status;
     this.queuePosition = builder.queuePosition;
+    this.canceledDate = builder.canceledDate;
+    this.canceledByUserId = builder.canceledByUserId;
+    this.cancellationReasonId = builder.cancellationReasonId;
+    this.cancellationAdditionalInformation = builder.cancellationAdditionalInformation;
   }
 
   public static Builder builder() {
@@ -76,6 +88,18 @@ public final class Hold {
     @JsonProperty("queuePosition")
     private int queuePosition;
 
+    @JsonProperty("cancellationReasonId")
+    private String cancellationReasonId;
+
+    @JsonProperty("canceledByUserId")
+    private String canceledByUserId;
+
+    @JsonProperty("cancellationAdditionalInformation")
+    private String cancellationAdditionalInformation;
+
+    @JsonProperty("canceledDate")
+    private Date canceledDate;
+
     public Builder item(Item item) {
       this.item = item;
       return this;
@@ -91,6 +115,11 @@ public final class Hold {
       return this;
     }
 
+    public Builder canceledDate(Date canceledDate) {
+      this.canceledDate = canceledDate;
+      return this;
+    }
+
     public Builder expirationDate(Date expirationDate) {
       this.expirationDate = expirationDate;
       return this;
@@ -98,6 +127,16 @@ public final class Hold {
 
     public Builder pickupLocationId(String pickupLocationId) {
       this.pickupLocationId = pickupLocationId;
+      return this;
+    }
+
+    public Builder cancellationReasonId(String cancellationReasonId) {
+      this.cancellationReasonId = cancellationReasonId;
+      return this;
+    }
+
+    public Builder canceledByUserId(String canceledByUserId) {
+      this.canceledByUserId = canceledByUserId;
       return this;
     }
 
@@ -111,6 +150,11 @@ public final class Hold {
       return this;
     }
 
+    public Builder cancellationAdditionalInformation(String cancellationAdditionalInformation) {
+      this.cancellationAdditionalInformation = cancellationAdditionalInformation;
+      return this;
+    }
+
     public Hold build() {
       return new Hold(this);
     }
@@ -118,8 +162,10 @@ public final class Hold {
 
   public enum Status {
 
-    OPEN_NOT_YET_FILLED("Open - Not yet filled"), OPEN_AWAITING_PICKUP("Open - Awaiting pickup"), CLOSED_FILLED(
-        "Closed - Filled");
+    OPEN_NOT_YET_FILLED("Open - Not yet filled"),
+    OPEN_AWAITING_PICKUP("Open - Awaiting pickup"),
+    CLOSED_FILLED("Closed - Filled"),
+    CLOSED_CANCELED( "Closed - Cancelled");
 
     private final String value;
     private static final Map<String, Status> CONSTANTS = new HashMap<>();
@@ -167,6 +213,10 @@ public final class Hold {
     result = prime * result + ((requestDate == null) ? 0 : requestDate.hashCode());
     result = prime * result + ((requestId == null) ? 0 : requestId.hashCode());
     result = prime * result + ((status == null) ? 0 : status.hashCode());
+    result = prime * result + ((cancellationReasonId == null) ? 0 : cancellationReasonId.hashCode());
+    result = prime * result + ((canceledByUserId == null) ? 0 : canceledByUserId.hashCode());
+    result = prime * result + ((cancellationAdditionalInformation == null) ? 0 : cancellationAdditionalInformation.hashCode());
+    result = prime * result + ((canceledDate == null) ? 0 : canceledDate.hashCode());
     return result;
   }
 
@@ -190,11 +240,32 @@ public final class Hold {
     } else if (!expirationDate.equals(other.expirationDate)) {
       return false;
     }
+    if (canceledDate == null) {
+      if (other.canceledDate != null) {
+        return false;
+      }
+    } else if (!canceledDate.equals(other.canceledDate)) {
+      return false;
+    }
     if (pickupLocationId == null) {
       if (other.pickupLocationId != null) {
         return false;
       }
     } else if (!pickupLocationId.equals(other.pickupLocationId)) {
+      return false;
+    }
+    if (cancellationReasonId == null) {
+      if (other.cancellationReasonId != null) {
+        return false;
+      }
+    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
+      return false;
+    }
+    if (canceledByUserId == null) {
+      if (other.canceledByUserId != null) {
+        return false;
+      }
+    } else if (!canceledByUserId.equals(other.canceledByUserId)) {
       return false;
     }
     if (item == null) {
@@ -219,6 +290,13 @@ public final class Hold {
         return false;
       }
     } else if (!requestId.equals(other.requestId)) {
+      return false;
+    }
+    if (cancellationAdditionalInformation == null) {
+      if (other.cancellationAdditionalInformation != null) {
+        return false;
+      }
+    } else if (!cancellationAdditionalInformation.equals(other.cancellationAdditionalInformation)) {
       return false;
     }
     if (status != other.status) {

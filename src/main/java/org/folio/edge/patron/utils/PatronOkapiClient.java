@@ -1,6 +1,5 @@
 package org.folio.edge.patron.utils;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.log4j.Logger;

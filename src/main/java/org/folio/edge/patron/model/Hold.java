@@ -240,11 +240,32 @@ public final class Hold {
     } else if (!expirationDate.equals(other.expirationDate)) {
       return false;
     }
+    if (canceledDate == null) {
+      if (other.canceledDate != null) {
+        return false;
+      }
+    } else if (!canceledDate.equals(other.canceledDate)) {
+      return false;
+    }
     if (pickupLocationId == null) {
       if (other.pickupLocationId != null) {
         return false;
       }
     } else if (!pickupLocationId.equals(other.pickupLocationId)) {
+      return false;
+    }
+    if (cancellationReasonId == null) {
+      if (other.cancellationReasonId != null) {
+        return false;
+      }
+    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
+      return false;
+    }
+    if (canceledByUserId == null) {
+      if (other.canceledByUserId != null) {
+        return false;
+      }
+    } else if (!canceledByUserId.equals(other.canceledByUserId)) {
       return false;
     }
     if (item == null) {
@@ -271,23 +292,6 @@ public final class Hold {
     } else if (!requestId.equals(other.requestId)) {
       return false;
     }
-    if (status != other.status) {
-      return false;
-    }
-    if (cancellationReasonId == null) {
-      if (other.cancellationReasonId != null) {
-        return false;
-      }
-    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
-      return false;
-    }
-    if (canceledByUserId == null) {
-      if (other.canceledByUserId != null) {
-        return false;
-      }
-    } else if (!canceledByUserId.equals(other.canceledByUserId)) {
-      return false;
-    }
     if (cancellationAdditionalInformation == null) {
       if (other.cancellationAdditionalInformation != null) {
         return false;
@@ -295,11 +299,7 @@ public final class Hold {
     } else if (!cancellationAdditionalInformation.equals(other.cancellationAdditionalInformation)) {
       return false;
     }
-    if (canceledDate == null) {
-      if (other.canceledDate != null) {
-        return false;
-      }
-    } else if (!canceledDate.equals(other.canceledDate)) {
+    if (status != other.status) {
       return false;
     }
     return true;

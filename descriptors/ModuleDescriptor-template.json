@@ -1,7 +1,21 @@
 {
   "id": "${artifactId}-${version}",
   "name": "Patron Services Edge API",
-  "provides": [],
+  "provides": [
+    {
+      "id": "patron",
+      "version": "4.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/patron/account/{accountId}/hold/{holdId}/cancel",
+          "permissionsRequired": ["patron.hold.cancel.item.post"],
+          "modulePermissions": [
+            "circulation.requests.item.get"
+          ]
+        }
+    ]
+  }],
   "requires": [
     {
       "id": "patron",
@@ -10,9 +24,19 @@
     {
       "id": "login",
       "version": "5.0 6.0"
+    },
+    ,{
+      "id": "circulation",
+      "version": "8.0"
     }
   ],
-  "permissionSets": [],
+  "permissionSets": [
+    {
+      "permissionName": "patron.hold.cancel.item.post",
+      "displayName": "patron - remove a hold",
+      "description": "Removes the specified hold"
+    }
+  ],
   "launchDescriptor": {
     "dockerImage": "${artifactId}:${version}",
     "dockerPull": false,

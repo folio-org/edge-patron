@@ -126,7 +126,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handleCancelHold(RoutingContext ctx) {
-    String validationResult = validateCancelHoldRequest(ctx.getBodyAsString());
+    String validationResult = validateCancelHoldRequest(ctx.getBodyAsJson());
     if ( validationResult != null) {
       final int errorStatusCode = 422;
       String errorMessage = get422ErrorMsg(errorStatusCode, constructValidationErrorMessage(validationResult));
@@ -144,7 +144,7 @@ public class PatronHandler extends Handler {
           ((PatronOkapiClient) client).cancelHold(
               params.get(PARAM_PATRON_ID),
               params.get(PARAM_HOLD_ID),
-              ctx.getBodyAsString(),
+              ctx.getBodyAsJson(),
               ctx.request().headers().remove(CONTENT_LENGTH),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))

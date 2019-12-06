@@ -1,5 +1,6 @@
 package org.folio.edge.patron.model;
 
+import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -12,7 +13,7 @@ public class HoldCancellationValidatorTest {
   @Test
   public void validateCancelHoldRequestNullObject() {
     String result = HoldCancellationValidator.validateCancelHoldRequest(null);
-    assertEquals("invalid holdCancellationRequest", result);
+    assertEquals("invalid holdCancellationRequest. null", result);
   }
 
   @Test
@@ -23,7 +24,7 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-    String result = HoldCancellationValidator.validateCancelHoldRequest(cancellationJsonMissingHoldId);
+    String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingHoldId));
     assertEquals(expectedErrorMsg, result);
 
     String cancellationJsonMissingCanceledByUserId= "{" +
@@ -32,7 +33,7 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(cancellationJsonMissingCanceledByUserId);
+    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingCanceledByUserId));
     assertEquals(expectedErrorMsg, result);
 
     String cancellationJsonMissingcancellationReasonId= "{" +
@@ -40,7 +41,7 @@ public class HoldCancellationValidatorTest {
       "\"canceledByUserId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(cancellationJsonMissingcancellationReasonId);
+    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingcancellationReasonId));
     assertEquals(expectedErrorMsg, result);
   }
 
@@ -56,7 +57,7 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + validUUID + "\"," +
     "\"cancellationAdditionalInformation\" : \"blablabla\"" +
     "}";
-    String result = HoldCancellationValidator.validateCancelHoldRequest(invalidHoldId);
+    String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(invalidHoldId));
     assertEquals(expectedErrorMsg, result);
 
     String invalidCanceledByUserId = "{" +
@@ -65,7 +66,7 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + validUUID + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(invalidCanceledByUserId);
+    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(invalidCanceledByUserId));
     assertEquals(expectedErrorMsg, result);
 
     String invalidCancellationReasonId = "{" +
@@ -74,7 +75,7 @@ public class HoldCancellationValidatorTest {
       "\"cancellationReasonId\" : \"" + invalidUUID + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(invalidCancellationReasonId);
+    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(invalidCancellationReasonId));
     assertEquals(expectedErrorMsg, result);
   }
 
@@ -85,9 +86,9 @@ public class HoldCancellationValidatorTest {
       "\"canceledByUserId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"," +
-      "\"canceledDate\" : \"2019-09-19T19:47:12.508+0000\"" +
+      "\"canceledDate\" : \"2019-12-06T16:05:16.2165Z\"" +
       "}";
-    String result = HoldCancellationValidator.validateCancelHoldRequest(cancellationJson);
+    String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJson));
     assertNull(result);
   }
 }

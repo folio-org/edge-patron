@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.core.json.JsonObject;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Hold;
@@ -398,7 +399,7 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.cancelHold(patronId,
           hold.requestId,
-          holdCancellation,
+          new JsonObject(holdCancellation),
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(200, resp.statusCode());
@@ -426,7 +427,7 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.cancelHold(PatronMockOkapi.patronId_notFound,
           hold.requestId,
-          PatronMockOkapi.getHoldCancellation(hold.requestId),
+          new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId)),
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(404, resp.statusCode());
@@ -447,7 +448,7 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.cancelHold(patronId,
           PatronMockOkapi.holdReqId_notFound,
-          PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound),
+          new JsonObject(PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound)),
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(404, resp.statusCode());

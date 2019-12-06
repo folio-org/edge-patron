@@ -25,7 +25,7 @@
       "id": "login",
       "version": "5.0 6.0"
     },
-    ,{
+    {
       "id": "circulation",
       "version": "8.0"
     }

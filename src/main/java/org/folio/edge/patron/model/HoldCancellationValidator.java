@@ -1,37 +1,42 @@
 package org.folio.edge.patron.model;
 
+import io.vertx.core.json.JsonObject;
+
 import java.util.UUID;
+
+import static org.folio.edge.patron.Constants.FIELD_CANCELED_BY_USER_ID;
+import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
+import static org.folio.edge.patron.Constants.FIELD_HOLD_ID;
 
 public class HoldCancellationValidator {
 
   private HoldCancellationValidator() {}
 
-  public static String validateCancelHoldRequest(String holdCancellationRequest) {
+  public static String validateCancelHoldRequest(JsonObject holdCancellationRequest) {
     String errorMessage = null;
     try {
-      final HoldCancellation holdCancellation = HoldCancellation.fromJson(holdCancellationRequest);
-      if (validateRequiredHoldCancellationFields(holdCancellation)) {
+      if (validateRequiredHoldCancellationFields(holdCancellationRequest)) {
         errorMessage = "required fields for cancelling holds are missing (holdId, cancellationReasonId, canceledByUserId)";
-      } else if (areRequiredHoldCancellationFieldsUUIDs(holdCancellation)) {
+      } else if (areRequiredHoldCancellationFieldsUUIDs(holdCancellationRequest)) {
         errorMessage = "invalid values for one of the required fields (holdId, cancellationReasonId, canceledByUserId)";
       }
     } catch (Exception e) {
-      errorMessage = "invalid holdCancellationRequest";
+      errorMessage = "invalid holdCancellationRequest. " + e.getMessage();
     }
     return errorMessage;
   }
 
-  private static boolean validateRequiredHoldCancellationFields(HoldCancellation holdCancellation) {
-    return (isNullOrEmpty(holdCancellation.holdId) ||
-      isNullOrEmpty(holdCancellation.cancellationReasonId)||
-      isNullOrEmpty(holdCancellation.canceledByUserId)
+  private static boolean validateRequiredHoldCancellationFields(JsonObject holdCancellation) {
+    return (isNullOrEmpty(holdCancellation.getString(FIELD_HOLD_ID)) ||
+      isNullOrEmpty(holdCancellation.getString(FIELD_CANCELLATION_REASON_ID))||
+      isNullOrEmpty(holdCancellation.getString(FIELD_CANCELED_BY_USER_ID))
     );
   }
 
-  private static boolean areRequiredHoldCancellationFieldsUUIDs(HoldCancellation holdCancellation) {
-    return (!isUUID (holdCancellation.holdId) ||
-      !isUUID (holdCancellation.cancellationReasonId) ||
-      !isUUID (holdCancellation.canceledByUserId)
+  private static boolean areRequiredHoldCancellationFieldsUUIDs(JsonObject holdCancellation) {
+    return (!isUUID (holdCancellation.getString(FIELD_HOLD_ID)) ||
+      !isUUID (holdCancellation.getString(FIELD_CANCELLATION_REASON_ID)) ||
+      !isUUID (holdCancellation.getString(FIELD_CANCELED_BY_USER_ID))
     );
   }
 

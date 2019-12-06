@@ -12,9 +12,13 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.HoldCancellation;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+
+import static org.folio.edge.patron.Constants.FIELD_CANCELED_BY_USER_ID;
+import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
+import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
+import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
 
 public class PatronOkapiClient extends OkapiClient {
 
@@ -127,7 +131,7 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public void cancelHold(String patronId, String holdId, String requestBody,
+  public void cancelHold(String patronId, String holdId, JsonObject requestBody,
                          Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
     cancelHold(patronId,
         holdId,
@@ -137,7 +141,7 @@ public class PatronOkapiClient extends OkapiClient {
       exceptionHandler);
   }
 
-  public void cancelHold(String patronId, String holdId, String requestBody, MultiMap headers,
+  public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest, MultiMap headers,
       Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
 
     getRequest(holdId,
@@ -147,9 +151,8 @@ public class PatronOkapiClient extends OkapiClient {
           resp.bodyHandler(body -> {
             String bodyStr = body.toString();
             try {
-              HoldCancellation holdCancellationRequest = HoldCancellation.fromJson(requestBody);
-              JsonObject requestToRemove = new JsonObject(bodyStr);
-              Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToRemove);
+              JsonObject requestToCancel = new JsonObject(bodyStr);
+              Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToCancel);
               post(
                 String.format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
                 tenant,
@@ -209,12 +212,12 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  private Hold createCancellationHoldRequest(HoldCancellation cancellationRequest, JsonObject baseRequest) {
+  private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest) {
     return Hold.builder()
-      .cancellationReasonId(cancellationRequest.cancellationReasonId)
-      .canceledByUserId(cancellationRequest.canceledByUserId)
-      .cancellationAdditionalInformation(cancellationRequest.cancellationAdditionalInformation)
-      .canceledDate(cancellationRequest.canceledDate)
+      .cancellationReasonId(cancellationRequest.getString(FIELD_CANCELLATION_REASON_ID))
+      .canceledByUserId(cancellationRequest.getString(FIELD_CANCELED_BY_USER_ID))
+      .cancellationAdditionalInformation(cancellationRequest.getString(FIELD_CANCELLATION_ADDITIONAL_INFO))
+      .canceledDate(new DateTime(cancellationRequest.getString(FIELD_CANCELED_DATE), DateTimeZone.UTC).toDate())
       .requestId(baseRequest.getString("id"))
       .pickupLocationId(baseRequest.getString("pickupServicePointId"))
       .requestDate(new DateTime(baseRequest.getString("requestDate"), DateTimeZone.UTC).toDate())

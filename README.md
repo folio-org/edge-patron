@@ -22,6 +22,7 @@ The edge-patron API is secured via the facilities provided by edge-common.  More
 Institutional users should be granted the following permissions in order to use this edge API:
 - `patron.all`
 - `users.collection.get`
+- `circulation.requests.item.get`
 
 ## Configuration
 

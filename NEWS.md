@@ -1,3 +1,8 @@
+## 4.0.0 2019-12-08
+ * [EDGPATRON-20](https://issues.folio.org/browse/EDGPATRON-20): Process request cancellation comming from patron portal in discovery layer
+ * [FOLIO-2235](https://issues.folio.org/browse/FOLIO-2235): Add LaunchDescriptor settings to each backend non-core module repository  
+ * [FOLIO-2358](https://issues.folio.org/browse/FOLIO-2358): Use JVM features (UseContainerSupport, MaxRAMPercentage) to manage container memory 
+ 
 ## 3.0.3 2019-09-11
  * [EDGPATRON-19](https://issues.folio.org/browse/EDGPATRON-19): Set request creation date to timestamp and remove expiration date if it's invalid.  
 

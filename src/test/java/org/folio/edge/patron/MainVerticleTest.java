@@ -946,7 +946,7 @@ public class MainVerticleTest {
     int statusCode = 422;
 
     String cancedHoldJson = PatronMockOkapi.getInvalidHoldCancellation(invalidHoldCancellationdHoldId);
-    String coreMessage = "required fields for cancelling holds are missing (holdId, cancellationReasonId, canceledByUserId)";
+    String coreMessage = "required fields for cancelling holds are missing (holdId, cancellationReasonId)";
 
     final Response resp = RestAssured
       .with()

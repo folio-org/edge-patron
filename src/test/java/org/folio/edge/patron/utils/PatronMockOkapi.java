@@ -67,7 +67,6 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_bad_json_msg = UUID.randomUUID().toString();
   public static final String holdCancelationReasonId = UUID.randomUUID().toString();
-  public static final String holdCanceledByUserId = UUID.randomUUID().toString();
   public static final String holdCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7449c";
   public static final String invalidHoldCancellationdHoldId = UUID.randomUUID().toString();
   public static final String malformedHoldCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7448d";
@@ -525,7 +524,6 @@ public class PatronMockOkapi extends MockOkapi {
         .canceledDate(canceledDate)
         .cancellationReasonId(holdCancelationReasonId)
         .cancellationAdditionalInformation("I don't want it anymore")
-        .canceledByUserId(holdCanceledByUserId)
         .build();
       ret = cancellation.toJson();
     } catch (JsonProcessingException | ParseException e) {
@@ -546,7 +544,6 @@ public class PatronMockOkapi extends MockOkapi {
         .canceledDate(canceledDate)
         .cancellationReasonId(null)
         .cancellationAdditionalInformation("I don't want it anymore")
-        .canceledByUserId("")
         .build();
       ret = cancellation.toJson();
     } catch (JsonProcessingException | ParseException e) {

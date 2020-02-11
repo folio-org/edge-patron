@@ -38,7 +38,7 @@ public class HoldCancellationValidatorTest {
   public void validateCancelHoldInvalidUUIDs() {
     String validUUID = "3a40852d-49fd-4df2-a1f9-6e2641a6e91f";
     String invalidUUID = "3a40852d-g9fd-fdf2-a1f9-6e2641a6e91p";
-    String expectedErrorMsg = "invalid values for one of the required fields (holdId, cancellationReasonId, canceledByUserId)";
+    String expectedErrorMsg = "invalid values for one of the required fields (holdId, cancellationReasonId)";
 
     String invalidHoldId = "{" +
     "\"holdId\" : \"" + invalidUUID + "\"," +

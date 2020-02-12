@@ -392,7 +392,7 @@ public class PatronOkapiClientTest {
     logger.info("=== Test cancel hold successfully ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.holdCancellationHoldId);
-    String holdCancellation = PatronMockOkapi.getHoldCancellation(hold.requestId);
+    String holdCancellation = PatronMockOkapi.getHoldCancellation(hold.requestId, patronId);
 
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {
@@ -427,7 +427,7 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.cancelHold(PatronMockOkapi.patronId_notFound,
           hold.requestId,
-          new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId)),
+          new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId, PatronMockOkapi.patronId_notFound)),
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(404, resp.statusCode());
@@ -448,7 +448,7 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.cancelHold(patronId,
           PatronMockOkapi.holdReqId_notFound,
-          new JsonObject(PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound)),
+          new JsonObject(PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound, patronId)),
           resp -> resp.bodyHandler(body -> {
             logger.info("mod-patron response body: " + body);
             context.assertEquals(404, resp.statusCode());

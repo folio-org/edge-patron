@@ -1,3 +1,6 @@
+## 4.1.0 2019-12-08
+ * [EDGPATRON-27](https://issues.folio.org/browse/EDGPATRON-27): Cancelling Requests failed by non-UUID patronID
+  
 ## 4.0.0 2019-12-08
  * [EDGPATRON-20](https://issues.folio.org/browse/EDGPATRON-20): Process request cancellation comming from patron portal in discovery layer
  * [FOLIO-2235](https://issues.folio.org/browse/FOLIO-2235): Add LaunchDescriptor settings to each backend non-core module repository  

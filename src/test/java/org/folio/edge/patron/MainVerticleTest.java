@@ -16,6 +16,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -916,7 +917,7 @@ public class MainVerticleTest {
   public void testCancelHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test cancel hold success ===");
 
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
 
     final Response resp = RestAssured
       .with()
@@ -935,9 +936,40 @@ public class MainVerticleTest {
 
     assertEquals(expected, actual);
     assertEquals(holdCancellationHoldId, expected.requestId);
-    assertEquals(PatronMockOkapi.holdCancelationReasonId, actual.cancellationReasonId);
+    assertEquals(PatronMockOkapi.holdCancellationReasonId, actual.cancellationReasonId);
     assertEquals(Hold.Status.CLOSED_CANCELED, actual.status);
     assertEquals(0, actual.queuePosition);
+    assertEquals(expected.canceledByUserId, actual.canceledByUserId);
+  }
+
+  @Test
+  public void testCancelHoldSuccessWithNonUUIDCanceledById(TestContext context) throws Exception {
+    logger.info("=== Test cancel hold success ===");
+
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(
+                                holdCancellationHoldId,
+                                nonUUIDHoldCanceledByPatronId);
+
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(cancedHoldJson)
+      .post(
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, holdCancellationHoldId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getRemovedHoldJson(holdCancellationHoldId));
+    Hold actual = Hold.fromJson(resp.body().asString());
+
+    assertEquals(expected.requestId, actual.requestId);
+    assertEquals(PatronMockOkapi.holdCancellationReasonId, actual.cancellationReasonId);
+    assertEquals(Hold.Status.CLOSED_CANCELED, actual.status);
+    assertEquals(0, actual.queuePosition);
+    assertEquals(expected.canceledByUserId, actual.canceledByUserId);
   }
 
   @Test
@@ -946,7 +978,7 @@ public class MainVerticleTest {
     int statusCode = 422;
 
     String cancedHoldJson = PatronMockOkapi.getInvalidHoldCancellation(invalidHoldCancellationdHoldId);
-    String coreMessage = "required fields for cancelling holds are missing (holdId, cancellationReasonId, canceledByUserId)";
+    String coreMessage = "required fields for cancelling holds are missing (holdId, cancellationReasonId)";
 
     final Response resp = RestAssured
       .with()
@@ -970,7 +1002,7 @@ public class MainVerticleTest {
   public void testCancelHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test cancel hold w/ patron not found ===");
     int statusCode = 404;
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PatronMockOkapi.extPatronId_notFound);
 
     final Response resp = RestAssured
       .with()
@@ -996,7 +1028,7 @@ public class MainVerticleTest {
 
     int expectedStatusCode = 404;
     String expectedErrorMessage = "request record with ID \"" + PatronMockOkapi.holdReqId_notFound  + "\" cannot be found";
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdReqId_notFound);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdReqId_notFound,extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1022,7 +1054,7 @@ public class MainVerticleTest {
     logger.info("=== Test cancel hold with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1050,7 +1082,7 @@ public class MainVerticleTest {
     logger.info("=== Test cancel hold with malformed apiKey ===");
 
     int expectedStatusCode = 401;
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1079,7 +1111,7 @@ public class MainVerticleTest {
     logger.info("=== Test cancel hold request timeout ===");
     int expectedStatusCode = 408;
 
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1104,7 +1136,7 @@ public class MainVerticleTest {
   public void testCancelHoldWithMalformedJsonRequest(TestContext context) throws Exception {
     logger.info("=== Test cancel hold with malformed JSON Request (from mod-circ) ===");
 
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId, patronId);
 
     final Response resp = RestAssured
       .with()
@@ -1126,7 +1158,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit hold w/ patron not found ===");
 
     int expectedStatusCode = 404;
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PatronMockOkapi.extPatronId_notFound);
 
     final Response resp = RestAssured
       .with()
@@ -1152,7 +1184,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit hold w/hold not found ===");
     int expectedStatusCode = 404;
     String expectedErrorMsg = "request record with ID \"" + holdReqId_notFound + "\" cannot be found";
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1177,7 +1209,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit hold with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1202,7 +1234,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit hold with malformed apiKey ===");
 
     int expectedStatusCode = 401;
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
 
     final Response resp = RestAssured
       .with()
@@ -1226,7 +1258,7 @@ public class MainVerticleTest {
     logger.info("=== Test edit hold request timeout ===");
 
     int expectedStatusCode = 408;
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
 
     final Response resp = RestAssured
       .with()

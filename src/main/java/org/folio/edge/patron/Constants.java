@@ -32,12 +32,9 @@ public class Constants {
 
   public static final String FIELD_HOLD_ID = "holdId";
   public static final String FIELD_CANCELLATION_REASON_ID = "cancellationReasonId";
-  public static final String FIELD_CANCELED_BY_USER_ID = "canceledByUserId";
   public static final String FIELD_CANCELLATION_ADDITIONAL_INFO = "cancellationAdditionalInformation";
   public static final String FIELD_CANCELED_DATE = "canceledDate";
 
   private Constants() {
-
   }
-
 }

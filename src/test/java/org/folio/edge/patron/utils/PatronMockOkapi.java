@@ -66,12 +66,12 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId_reached_max_renewals = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_bad_json_msg = UUID.randomUUID().toString();
-  public static final String holdCancelationReasonId = UUID.randomUUID().toString();
-  public static final String holdCanceledByUserId = UUID.randomUUID().toString();
+  public static final String holdCancellationReasonId = UUID.randomUUID().toString();
   public static final String holdCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7449c";
   public static final String invalidHoldCancellationdHoldId = UUID.randomUUID().toString();
   public static final String malformedHoldCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7448d";
   public static final String goodRequestId = holdCancellationHoldId ;
+  public static final String nonUUIDHoldCanceledByPatronId = "patron@folio.org";
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -424,11 +424,13 @@ public class PatronMockOkapi extends MockOkapi {
     Status holdStatus = Status.OPEN_NOT_YET_FILLED;
     int queuePosition = 2;
     String cancellationReasonId = null;
+    String canceledByUserId = null;
 
     if (holdReqId.equals(holdCancellationHoldId)) {
       holdStatus = Status.CLOSED_CANCELED;
       queuePosition = 0;
-      cancellationReasonId = holdCancelationReasonId;
+      cancellationReasonId = holdCancellationReasonId;
+      canceledByUserId = patronId;
     }
 
     return Hold.builder()
@@ -440,6 +442,7 @@ public class PatronMockOkapi extends MockOkapi {
       .requestId(holdReqId)
       .status(holdStatus)
       .cancellationReasonId(cancellationReasonId)
+      .canceledByUserId(canceledByUserId)
       .build();
   }
 
@@ -501,11 +504,10 @@ public class PatronMockOkapi extends MockOkapi {
     return ret;
   }
 
-  public static String getRemovedHoldJson(String itemId) {
-
+  public static String getRemovedHoldJson(String holdReqId) {
     String ret = null;
     try {
-      Hold hold = getHold(itemId);
+      Hold hold = getHold(holdReqId);
       ret = hold.toJson();
     } catch (JsonProcessingException e) {
       logger.warn("Failed to generate Hold JSON", e);
@@ -513,7 +515,7 @@ public class PatronMockOkapi extends MockOkapi {
     return ret;
   }
 
-  public static String getHoldCancellation(String holdId) {
+  public static String getHoldCancellation(String holdId, String canceledByUserId) {
     String ret = null;
     try {
 
@@ -523,9 +525,9 @@ public class PatronMockOkapi extends MockOkapi {
       HoldCancellation cancellation =  HoldCancellation.builder()
         .holdId(holdId)
         .canceledDate(canceledDate)
-        .cancellationReasonId(holdCancelationReasonId)
+        .cancellationReasonId(holdCancellationReasonId)
         .cancellationAdditionalInformation("I don't want it anymore")
-        .canceledByUserId(holdCanceledByUserId)
+        .canceledByUserId(canceledByUserId)
         .build();
       ret = cancellation.toJson();
     } catch (JsonProcessingException | ParseException e) {
@@ -546,7 +548,6 @@ public class PatronMockOkapi extends MockOkapi {
         .canceledDate(canceledDate)
         .cancellationReasonId(null)
         .cancellationAdditionalInformation("I don't want it anymore")
-        .canceledByUserId("")
         .build();
       ret = cancellation.toJson();
     } catch (JsonProcessingException | ParseException e) {

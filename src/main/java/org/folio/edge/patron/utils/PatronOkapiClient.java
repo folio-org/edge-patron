@@ -15,7 +15,6 @@ import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import static org.folio.edge.patron.Constants.FIELD_CANCELED_BY_USER_ID;
 import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
@@ -143,7 +142,6 @@ public class PatronOkapiClient extends OkapiClient {
 
   public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest, MultiMap headers,
       Handler<HttpClientResponse> responseHandler, Handler<Throwable> exceptionHandler) {
-
     getRequest(holdId,
       headers,
       resp -> {
@@ -152,7 +150,7 @@ public class PatronOkapiClient extends OkapiClient {
             String bodyStr = body.toString();
             try {
               JsonObject requestToCancel = new JsonObject(bodyStr);
-              Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToCancel);
+              Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToCancel, patronId);
               post(
                 String.format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
                 tenant,
@@ -212,10 +210,10 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest) {
+  private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest, String patronId) {
     return Hold.builder()
       .cancellationReasonId(cancellationRequest.getString(FIELD_CANCELLATION_REASON_ID))
-      .canceledByUserId(cancellationRequest.getString(FIELD_CANCELED_BY_USER_ID))
+      .canceledByUserId(patronId)
       .cancellationAdditionalInformation(cancellationRequest.getString(FIELD_CANCELLATION_ADDITIONAL_INFO))
       .canceledDate(new DateTime(cancellationRequest.getString(FIELD_CANCELED_DATE), DateTimeZone.UTC).toDate())
       .requestId(baseRequest.getString("id"))

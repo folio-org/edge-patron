@@ -18,27 +18,16 @@ public class HoldCancellationValidatorTest {
 
   @Test
   public void validateRequiredHoldMissingCancellationFields() {
-    String expectedErrorMsg = "required fields for cancelling holds are missing (holdId, cancellationReasonId, canceledByUserId)";
+    String expectedErrorMsg = "required fields for cancelling holds are missing (holdId, cancellationReasonId)";
     String cancellationJsonMissingHoldId = "{" +
-      "\"canceledByUserId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
     String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingHoldId));
     assertEquals(expectedErrorMsg, result);
 
-    String cancellationJsonMissingCanceledByUserId= "{" +
-      "\"holdId\" :  \"" + UUID.randomUUID().toString() + "\"," +
-      "\"canceledByUserId\" : \"\"," +
-      "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
-      "\"cancellationAdditionalInformation\" : \"blablabla\"" +
-      "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingCanceledByUserId));
-    assertEquals(expectedErrorMsg, result);
-
     String cancellationJsonMissingcancellationReasonId= "{" +
       "\"holdId\" :  \"" + UUID.randomUUID().toString() + "\"," +
-      "\"canceledByUserId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
     result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingcancellationReasonId));
@@ -49,29 +38,18 @@ public class HoldCancellationValidatorTest {
   public void validateCancelHoldInvalidUUIDs() {
     String validUUID = "3a40852d-49fd-4df2-a1f9-6e2641a6e91f";
     String invalidUUID = "3a40852d-g9fd-fdf2-a1f9-6e2641a6e91p";
-    String expectedErrorMsg = "invalid values for one of the required fields (holdId, cancellationReasonId, canceledByUserId)";
+    String expectedErrorMsg = "invalid values for one of the required fields (holdId, cancellationReasonId)";
 
     String invalidHoldId = "{" +
     "\"holdId\" : \"" + invalidUUID + "\"," +
-    "\"canceledByUserId\" : \"" + validUUID + "\"," +
       "\"cancellationReasonId\" : \"" + validUUID + "\"," +
     "\"cancellationAdditionalInformation\" : \"blablabla\"" +
     "}";
     String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(invalidHoldId));
     assertEquals(expectedErrorMsg, result);
 
-    String invalidCanceledByUserId = "{" +
-      "\"holdId\" : \"" + validUUID + "\"," +
-      "\"canceledByUserId\" : \"" + invalidUUID + "\"," +
-      "\"cancellationReasonId\" : \"" + validUUID + "\"," +
-      "\"cancellationAdditionalInformation\" : \"blablabla\"" +
-      "}";
-    result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(invalidCanceledByUserId));
-    assertEquals(expectedErrorMsg, result);
-
     String invalidCancellationReasonId = "{" +
       "\"holdId\" : \"" + validUUID + "\"," +
-      "\"canceledByUserId\" : \"" + validUUID + "\"," +
       "\"cancellationReasonId\" : \"" + invalidUUID + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
@@ -83,7 +61,6 @@ public class HoldCancellationValidatorTest {
   public void validateCancelHoldRequestValidParams() {
     String cancellationJson = "{" +
       "\"holdId\" : \"" + UUID.randomUUID().toString() + "\"," +
-      "\"canceledByUserId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"," +
       "\"canceledDate\" : \"2019-12-06T16:05:16.2165Z\"" +

@@ -1,3 +1,7 @@
+## 4.2.0 2020-06-12
+ * [EDGPATRON-30](https://issues.folio.org/browse/EDGPATRON-30): EDGEPATRON (edge-patron) release
+ * [EDGPATRON-31](https://issues.folio.org/browse/EDGPATRON-31): Add 7.0 as acceptable login interface version
+ 
 ## 4.1.0 2019-12-08
  * [EDGPATRON-27](https://issues.folio.org/browse/EDGPATRON-27): Cancelling Requests failed by non-UUID patronID
   

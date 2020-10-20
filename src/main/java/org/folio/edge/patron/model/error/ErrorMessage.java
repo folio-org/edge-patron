@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.folio.edge.core.utils.Mappers;
 
-import javax.annotation.Generated;
 import java.io.IOException;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,7 +31,6 @@ public class ErrorMessage {
     }
 
     @Override
-    @Generated("Eclipse")
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;

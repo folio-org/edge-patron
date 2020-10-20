@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Generated;
-
 import org.folio.edge.core.utils.Mappers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -153,7 +151,6 @@ public final class Account {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -169,7 +166,6 @@ public final class Account {
   }
 
   @Override
-  @Generated("Eclipse")
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;

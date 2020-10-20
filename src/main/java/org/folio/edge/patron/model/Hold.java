@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Generated;
-
 import org.folio.edge.core.utils.Mappers;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -202,7 +200,6 @@ public final class Hold {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -221,7 +218,6 @@ public final class Hold {
   }
 
   @Override
-  @Generated("Eclipse")
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;

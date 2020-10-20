@@ -1,3 +1,6 @@
+## 4.3.0 2020-10-20
+ * [EDGPATRON-35](https://issues.folio.org/browse/EDGPATRON-35): Upgrade to JDK11
+
 ## 4.2.0 2020-06-12
  * [EDGPATRON-30](https://issues.folio.org/browse/EDGPATRON-30): EDGEPATRON (edge-patron) release
  * [EDGPATRON-31](https://issues.folio.org/browse/EDGPATRON-31): Add 7.0 as acceptable login interface version

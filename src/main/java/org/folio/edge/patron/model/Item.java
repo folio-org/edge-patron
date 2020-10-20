@@ -2,8 +2,6 @@ package org.folio.edge.patron.model;
 
 import java.io.IOException;
 
-import javax.annotation.Generated;
-
 import org.folio.edge.core.utils.Mappers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -91,7 +89,6 @@ public final class Item {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -104,7 +101,6 @@ public final class Item {
   }
 
   @Override
-  @Generated("Eclipse")
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;

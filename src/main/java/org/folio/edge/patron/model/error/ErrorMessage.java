@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.folio.edge.core.utils.Mappers;
 
-import javax.annotation.Generated;
 import java.io.IOException;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "error")
@@ -32,7 +32,6 @@ public class ErrorMessage {
     }
 
     @Override
-    @Generated("Eclipse")
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -59,7 +58,12 @@ public class ErrorMessage {
         return true;
     }
 
-    public String toXml() throws JsonProcessingException {
+  @Override
+  public int hashCode() {
+    return Objects.hash(httpStatusCode, message);
+  }
+
+  public String toXml() throws JsonProcessingException {
         return Mappers.XML_PROLOG + Mappers.xmlMapper.writeValueAsString(this);
     }
 

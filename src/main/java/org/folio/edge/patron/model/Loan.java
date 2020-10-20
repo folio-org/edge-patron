@@ -2,8 +2,7 @@ package org.folio.edge.patron.model;
 
 import java.io.IOException;
 import java.util.Date;
-
-import javax.annotation.Generated;
+import java.util.Objects;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -74,7 +73,6 @@ public final class Loan {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -86,43 +84,14 @@ public final class Loan {
   }
 
   @Override
-  @Generated("Eclipse")
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof Loan)) {
-      return false;
-    }
-    Loan other = (Loan) obj;
-    if (loanDate == null) {
-      if (other.loanDate != null) {
-        return false;
-      }
-    } else if (!loanDate.equals(other.loanDate)) {
-      return false;
-    }
-    if (dueDate == null) {
-      if (other.dueDate != null) {
-        return false;
-      }
-    } else if (!dueDate.equals(other.dueDate)) {
-      return false;
-    }
-    if (item == null) {
-      if (other.item != null) {
-        return false;
-      }
-    } else if (!item.equals(other.item)) {
-      return false;
-    }
-    if (overdue != other.overdue) {
-      return false;
-    }
-    return true;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Loan loan = (Loan) o;
+    return overdue == loan.overdue &&
+      Objects.equals(item, loan.item) &&
+      Objects.equals(loanDate, loan.loanDate) &&
+      Objects.equals(dueDate, loan.dueDate);
   }
 
   public String toXml() throws JsonProcessingException {

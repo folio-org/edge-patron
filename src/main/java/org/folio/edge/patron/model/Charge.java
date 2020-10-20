@@ -2,8 +2,7 @@ package org.folio.edge.patron.model;
 
 import java.io.IOException;
 import java.util.Date;
-
-import javax.annotation.Generated;
+import java.util.Objects;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -98,7 +97,6 @@ public final class Charge {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -113,68 +111,17 @@ public final class Charge {
   }
 
   @Override
-  @Generated("Eclipse")
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof Charge)) {
-      return false;
-    }
-    Charge other = (Charge) obj;
-    if (accrualDate == null) {
-      if (other.accrualDate != null) {
-        return false;
-      }
-    } else if (!accrualDate.equals(other.accrualDate)) {
-      return false;
-    }
-    if (chargeAmount == null) {
-      if (other.chargeAmount != null) {
-        return false;
-      }
-    } else if (!chargeAmount.equals(other.chargeAmount)) {
-      return false;
-    }
-    if (description == null) {
-      if (other.description != null) {
-        return false;
-      }
-    } else if (!description.equals(other.description)) {
-      return false;
-    }
-    if (item == null) {
-      if (other.item != null) {
-        return false;
-      }
-    } else if (!item.equals(other.item)) {
-      return false;
-    }
-    if (reason == null) {
-      if (other.reason != null) {
-        return false;
-      }
-    } else if (!reason.equals(other.reason)) {
-      return false;
-    }
-    if (feeFineId == null) {
-      if (other.feeFineId != null) {
-        return false;
-      }
-    } else if (!feeFineId.equals(other.feeFineId)) {
-      return false;
-    }
-    if (state == null) {
-      if (other.state != null) {
-        return false;
-      }
-    } else if (!state.equals(other.state)) {
-      return false;
-    }
-    return true;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Charge charge = (Charge) o;
+    return Objects.equals(item, charge.item) &&
+      Objects.equals(chargeAmount, charge.chargeAmount) &&
+      Objects.equals(accrualDate, charge.accrualDate) &&
+      Objects.equals(description, charge.description) &&
+      Objects.equals(state, charge.state) &&
+      Objects.equals(reason, charge.reason) &&
+      Objects.equals(feeFineId, charge.feeFineId);
   }
 
   public String toXml() throws JsonProcessingException {

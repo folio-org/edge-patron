@@ -5,8 +5,7 @@ import static org.folio.edge.patron.Constants.DEFAULT_CURRENCY_CODE;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.Generated;
+import java.util.Objects;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -153,7 +152,6 @@ public final class Account {
   }
 
   @Override
-  @Generated("Eclipse")
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -169,63 +167,18 @@ public final class Account {
   }
 
   @Override
-  @Generated("Eclipse")
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof Account)) {
-      return false;
-    }
-    Account other = (Account) obj;
-    if (charges == null) {
-      if (other.charges != null) {
-        return false;
-      }
-    } else if (!charges.equals(other.charges)) {
-      return false;
-    }
-    if (loans == null) {
-      if (other.loans != null) {
-        return false;
-      }
-    } else if (!loans.equals(other.loans)) {
-      return false;
-    }
-    if (holds == null) {
-      if (other.holds != null) {
-        return false;
-      }
-    } else if (!holds.equals(other.holds)) {
-      return false;
-    }
-    if (id == null) {
-      if (other.id != null) {
-        return false;
-      }
-    } else if (!id.equals(other.id)) {
-      return false;
-    }
-    if (totalCharges == null) {
-      if (other.totalCharges != null) {
-        return false;
-      }
-    } else if (!totalCharges.equals(other.totalCharges)) {
-      return false;
-    }
-    if (totalChargesCount != other.totalChargesCount) {
-      return false;
-    }
-    if (totalLoans != other.totalLoans) {
-      return false;
-    }
-    if (totalHolds != other.totalHolds) {
-      return false;
-    }
-    return true;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Account account = (Account) o;
+    return totalChargesCount == account.totalChargesCount &&
+      totalLoans == account.totalLoans &&
+      totalHolds == account.totalHolds &&
+      Objects.equals(id, account.id) &&
+      Objects.equals(totalCharges, account.totalCharges) &&
+      Objects.equals(charges, account.charges) &&
+      Objects.equals(holds, account.holds) &&
+      Objects.equals(loans, account.loans);
   }
 
   public String toXml(boolean includeLoans, boolean includeCharges, boolean includeHolds)

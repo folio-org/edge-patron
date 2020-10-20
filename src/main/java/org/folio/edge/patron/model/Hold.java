@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -218,87 +219,21 @@ public final class Hold {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof Hold)) {
-      return false;
-    }
-    Hold other = (Hold) obj;
-    if (expirationDate == null) {
-      if (other.expirationDate != null) {
-        return false;
-      }
-    } else if (!expirationDate.equals(other.expirationDate)) {
-      return false;
-    }
-    if (canceledDate == null) {
-      if (other.canceledDate != null) {
-        return false;
-      }
-    } else if (!canceledDate.equals(other.canceledDate)) {
-      return false;
-    }
-    if (pickupLocationId == null) {
-      if (other.pickupLocationId != null) {
-        return false;
-      }
-    } else if (!pickupLocationId.equals(other.pickupLocationId)) {
-      return false;
-    }
-    if (cancellationReasonId == null) {
-      if (other.cancellationReasonId != null) {
-        return false;
-      }
-    } else if (!cancellationReasonId.equals(other.cancellationReasonId)) {
-      return false;
-    }
-    if (canceledByUserId == null) {
-      if (other.canceledByUserId != null) {
-        return false;
-      }
-    } else if (!canceledByUserId.equals(other.canceledByUserId)) {
-      return false;
-    }
-    if (item == null) {
-      if (other.item != null) {
-        return false;
-      }
-    } else if (!item.equals(other.item)) {
-      return false;
-    }
-    if (queuePosition != other.queuePosition) {
-      return false;
-    }
-    if (requestDate == null) {
-      if (other.requestDate != null) {
-        return false;
-      }
-    } else if (!requestDate.equals(other.requestDate)) {
-      return false;
-    }
-    if (requestId == null) {
-      if (other.requestId != null) {
-        return false;
-      }
-    } else if (!requestId.equals(other.requestId)) {
-      return false;
-    }
-    if (cancellationAdditionalInformation == null) {
-      if (other.cancellationAdditionalInformation != null) {
-        return false;
-      }
-    } else if (!cancellationAdditionalInformation.equals(other.cancellationAdditionalInformation)) {
-      return false;
-    }
-    if (status != other.status) {
-      return false;
-    }
-    return true;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Hold hold = (Hold) o;
+    return queuePosition == hold.queuePosition &&
+      Objects.equals(item, hold.item) &&
+      Objects.equals(requestId, hold.requestId) &&
+      Objects.equals(requestDate, hold.requestDate) &&
+      Objects.equals(expirationDate, hold.expirationDate) &&
+      Objects.equals(pickupLocationId, hold.pickupLocationId) &&
+      status == hold.status &&
+      Objects.equals(cancellationReasonId, hold.cancellationReasonId) &&
+      Objects.equals(canceledByUserId, hold.canceledByUserId) &&
+      Objects.equals(cancellationAdditionalInformation, hold.cancellationAdditionalInformation) &&
+      Objects.equals(canceledDate, hold.canceledDate);
   }
 
   public String toXml() throws JsonProcessingException {

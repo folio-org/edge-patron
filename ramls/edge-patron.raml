@@ -18,6 +18,7 @@ types:
   money: !include money.json
   item: !include item.json
   hold-cancellation: !include hold-cancellation.json
+  errors: !include raml-util/schemas/errors.schema
 
 /patron:
   displayName: Patron Services
@@ -222,6 +223,11 @@ types:
                   body:
                     text/plain:
                       example: Access Denied
+                422:
+                  description: Validation error
+                  body:
+                    application/json:
+                      schema : errors
                 500:
                   description: |
                     Internal server error, e.g. due to misconfiguration

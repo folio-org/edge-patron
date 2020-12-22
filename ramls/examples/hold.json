@@ -14,5 +14,6 @@
   "canceledByUserId" : "dd238b5b-01fc-4205-83b8-ce27a650d829",
   "canceledDate" : "2018-06-03T08:16:30Z",
   "cancellationAdditionalInformation" : "I don't need it anymore",
-  "queuePosition" : 0
+  "queuePosition" : 0,
+  "patronComments": "Can you deliver this to the History building for Professor Grant?"
 }

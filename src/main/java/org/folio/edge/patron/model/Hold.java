@@ -31,7 +31,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "cancelationReasonId",
     "canceledByUserId",
     "cancelationAdditionalInformation",
-    "cancelationDate"
+    "cancelationDate",
+    "patronComments"
 })
 public final class Hold {
   public final Item item;
@@ -45,6 +46,7 @@ public final class Hold {
   public final String canceledByUserId;
   public final String cancellationAdditionalInformation;
   public final Date canceledDate;
+  public final String patronComments;
 
   private Hold(Builder builder) {
     this.item = builder.item;
@@ -58,6 +60,7 @@ public final class Hold {
     this.canceledByUserId = builder.canceledByUserId;
     this.cancellationReasonId = builder.cancellationReasonId;
     this.cancellationAdditionalInformation = builder.cancellationAdditionalInformation;
+    this.patronComments = builder.patronComments;
   }
 
   public static Builder builder() {
@@ -98,6 +101,9 @@ public final class Hold {
 
     @JsonProperty("canceledDate")
     private Date canceledDate;
+
+    @JsonProperty("patronComments")
+    private String patronComments;
 
     public Builder item(Item item) {
       this.item = item;
@@ -151,6 +157,11 @@ public final class Hold {
 
     public Builder cancellationAdditionalInformation(String cancellationAdditionalInformation) {
       this.cancellationAdditionalInformation = cancellationAdditionalInformation;
+      return this;
+    }
+
+    public Builder patronComments(String patronComments) {
+      this.patronComments = patronComments;
       return this;
     }
 
@@ -215,6 +226,7 @@ public final class Hold {
     result = prime * result + ((canceledByUserId == null) ? 0 : canceledByUserId.hashCode());
     result = prime * result + ((cancellationAdditionalInformation == null) ? 0 : cancellationAdditionalInformation.hashCode());
     result = prime * result + ((canceledDate == null) ? 0 : canceledDate.hashCode());
+    result = prime * result + ((patronComments == null) ? 0 : patronComments.hashCode());
     return result;
   }
 
@@ -233,7 +245,8 @@ public final class Hold {
       Objects.equals(cancellationReasonId, hold.cancellationReasonId) &&
       Objects.equals(canceledByUserId, hold.canceledByUserId) &&
       Objects.equals(cancellationAdditionalInformation, hold.cancellationAdditionalInformation) &&
-      Objects.equals(canceledDate, hold.canceledDate);
+      Objects.equals(canceledDate, hold.canceledDate) &&
+      Objects.equals(patronComments, hold.patronComments);
   }
 
   public String toXml() throws JsonProcessingException {

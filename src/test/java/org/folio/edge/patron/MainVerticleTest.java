@@ -542,8 +542,6 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold success ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
-    int expectedStatusCode = 501;
-
 
     final Response resp = RestAssured
       .with()
@@ -552,13 +550,13 @@ public class MainVerticleTest {
       .post(
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, apiKey))
       .then()
-      .statusCode(expectedStatusCode)
+      .statusCode(201)
       .extract()
       .response();
 
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
+    Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
+    Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
   }
 
   @Test

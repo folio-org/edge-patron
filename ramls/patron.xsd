@@ -52,6 +52,7 @@
       <xs:element name="canceledByUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="cancellationReasonId" type="requiredString" minOccurs="0" maxOccurs="1"/>
       <xs:element name="cancellationAdditionalInformation" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="patronComments" type="xs:string" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 </xs:element>

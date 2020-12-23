@@ -8,6 +8,7 @@ import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
+import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
@@ -72,6 +73,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String malformedHoldCancellationHoldId = "6b6b715e-8038-49ba-ab91-faa8fdf7448d";
   public static final String goodRequestId = holdCancellationHoldId ;
   public static final String nonUUIDHoldCanceledByPatronId = "patron@folio.org";
+  public static final String patronComments = "Can you deliver this to the History building for Professor Grant?";
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -348,9 +350,58 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public void placeInstanceHoldHandler(RoutingContext ctx) {
-    ctx.response()
-      .setStatusCode(501)
-      .end();
+//    ctx.response()
+//      .setStatusCode(501)
+//      .end();
+
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    String body = ctx.getBodyAsString();
+
+    Hold hold;
+    try {
+      hold = Hold.fromJson(body);
+    } catch (IOException e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+          .setStatusCode(400)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Bad Request");
+      return;
+    }
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+          .setStatusCode(403)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Access requires permission: patron.instance.hold.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      // Magic patronId signifying we want to mock a "not found"
+      // response.
+      ctx.response()
+          .setStatusCode(404)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end(patronId + " not found");
+    } else if (instanceId.equals(instanceId_notFound)) {
+      // Magic itemId signifying we want to mock a "not found"
+      // response.
+      ctx.response()
+          .setStatusCode(404)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end(instanceId + " not found");
+    } else if (hold == null) {
+      ctx.response()
+          .setStatusCode(400)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Bad Request");
+    } else {
+      ctx.response()
+          .setStatusCode(201)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(getPlacedHoldJson(hold));
+    }
   }
 
   public static String getPatronJson(String extPatronId) {
@@ -443,6 +494,7 @@ public class PatronMockOkapi extends MockOkapi {
       .status(holdStatus)
       .cancellationReasonId(cancellationReasonId)
       .canceledByUserId(canceledByUserId)
+      .patronComments(patronComments)
       .build();
   }
 
@@ -455,6 +507,7 @@ public class PatronMockOkapi extends MockOkapi {
       .requestDate(holdReqDate)
       .requestId(holdReqId)
       .status(Status.OPEN_NOT_YET_FILLED)
+      .patronComments(patronComments)
       .build();
   }
 

@@ -350,10 +350,6 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public void placeInstanceHoldHandler(RoutingContext ctx) {
-//    ctx.response()
-//      .setStatusCode(501)
-//      .end();
-
     String patronId = ctx.request().getParam(PARAM_PATRON_ID);
     String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);

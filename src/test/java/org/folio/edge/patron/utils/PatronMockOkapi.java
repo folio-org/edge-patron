@@ -379,14 +379,14 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
           .setStatusCode(404)
           .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-          .end(patronId + " not found");
+          .end(String.format("Patron '%s' isn't found", patronId));
     } else if (instanceId.equals(instanceId_notFound)) {
       // Magic itemId signifying we want to mock a "not found"
       // response.
       ctx.response()
           .setStatusCode(404)
           .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-          .end(instanceId + " not found");
+          .end(String.format("Instance '%s' isn't found", instanceId));
     } else if (hold == null) {
       ctx.response()
           .setStatusCode(400)

@@ -32,8 +32,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.log4j.Logger;
 import org.folio.edge.core.utils.ApiKeyUtils;
@@ -590,7 +592,7 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold w/ instance not found ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.instanceId_notFound);
-    int expectedStatusCode = 501;
+    int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .with()
@@ -605,8 +607,8 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("", msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
+    assertTrue(Optional.ofNullable(msg.message).orElse(StringUtils.EMPTY).contains(PatronMockOkapi.instanceId_notFound));
   }
 
   @Test

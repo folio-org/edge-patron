@@ -35,8 +35,6 @@ public class Constants {
   public static final String FIELD_CANCELLATION_ADDITIONAL_INFO = "cancellationAdditionalInformation";
   public static final String FIELD_CANCELED_DATE = "canceledDate";
 
-  public static final String FIELD_PATRON_COMMENTS = "patronComments";
-
   private Constants() {
   }
 }

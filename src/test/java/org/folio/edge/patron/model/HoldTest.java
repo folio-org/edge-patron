@@ -65,6 +65,7 @@ public class HoldTest {
       .requestDate(new Date(holdReqTs))
       .requestId(UUID.randomUUID().toString())
       .status(Status.OPEN_NOT_YET_FILLED)
+      .patronComments("Can you deliver this to the History building for Professor Grant?")
       .build();
 
     SchemaFactory schemaFactory = SchemaFactory

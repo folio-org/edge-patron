@@ -1,3 +1,9 @@
+## 4.4.0 2021-03-18
+
+* Introduces patron comments on requests (EDGPATRON-33)
+* Requires `patron 4.2`
+* Required `circulation 9.5`
+
 ## 4.3.0 2020-10-20
  * [EDGPATRON-35](https://issues.folio.org/browse/EDGPATRON-35): Upgrade to JDK11
 

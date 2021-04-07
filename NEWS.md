@@ -1,3 +1,7 @@
+## 4.5.0 (IN PROGRESS)
+
+* [EDGPATRON-44](https://issues.folio.org/browse/EDGPATRON-44) Support both `circulation` `9.5` and `10.0`
+
 ## 4.4.0 2021-03-18
 
 * Introduces patron comments on requests (EDGPATRON-33)
@@ -10,17 +14,17 @@
 ## 4.2.0 2020-06-12
  * [EDGPATRON-30](https://issues.folio.org/browse/EDGPATRON-30): EDGEPATRON (edge-patron) release
  * [EDGPATRON-31](https://issues.folio.org/browse/EDGPATRON-31): Add 7.0 as acceptable login interface version
- 
+
 ## 4.1.0 2019-12-08
  * [EDGPATRON-27](https://issues.folio.org/browse/EDGPATRON-27): Cancelling Requests failed by non-UUID patronID
-  
+
 ## 4.0.0 2019-12-08
  * [EDGPATRON-20](https://issues.folio.org/browse/EDGPATRON-20): Process request cancellation comming from patron portal in discovery layer
- * [FOLIO-2235](https://issues.folio.org/browse/FOLIO-2235): Add LaunchDescriptor settings to each backend non-core module repository  
- * [FOLIO-2358](https://issues.folio.org/browse/FOLIO-2358): Use JVM features (UseContainerSupport, MaxRAMPercentage) to manage container memory 
- 
+ * [FOLIO-2235](https://issues.folio.org/browse/FOLIO-2235): Add LaunchDescriptor settings to each backend non-core module repository
+ * [FOLIO-2358](https://issues.folio.org/browse/FOLIO-2358): Use JVM features (UseContainerSupport, MaxRAMPercentage) to manage container memory
+
 ## 3.0.3 2019-09-11
- * [EDGPATRON-19](https://issues.folio.org/browse/EDGPATRON-19): Set request creation date to timestamp and remove expiration date if it's invalid.  
+ * [EDGPATRON-19](https://issues.folio.org/browse/EDGPATRON-19): Set request creation date to timestamp and remove expiration date if it's invalid.
 
 ## 3.0.2 2019-07-24
  * [EDGPATRON-18](https://issues.folio.org/browse/EDGPATRON-18): Add `login` 6.0 interface

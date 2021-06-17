@@ -1,6 +1,6 @@
-## 4.5.0 (IN PROGRESS)
+## 4.5.0 2021-06-17
 
-* [EDGPATRON-44](https://issues.folio.org/browse/EDGPATRON-44) Support both `circulation` `9.5` and `10.0`
+* Requires `circulation 9.5 10.0 or 11.0` ([EDGPATRON-44](https://issues.folio.org/browse/EDGPATRON-44), [EDGPATRON-46](https://issues.folio.org/browse/EDGPATRON-46))
 
 ## 4.4.0 2021-03-18
 

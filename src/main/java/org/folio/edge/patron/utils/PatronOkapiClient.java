@@ -2,7 +2,8 @@ package org.folio.edge.patron.utils;
 
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
 
 import io.vertx.core.Handler;
@@ -21,7 +22,7 @@ import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
 
 public class PatronOkapiClient extends OkapiClient {
 
-  private static final Logger logger = Logger.getLogger(PatronOkapiClient.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClient.class);
 
   public PatronOkapiClient(OkapiClient client) {
     super(client);

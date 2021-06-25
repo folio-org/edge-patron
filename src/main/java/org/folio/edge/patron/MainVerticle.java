@@ -7,7 +7,8 @@ import static org.folio.edge.patron.Constants.SYS_NULL_PATRON_ID_CACHE_TTL_MS;
 import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_CAPACITY;
 import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_TTL_MS;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.EdgeVerticle;
 import org.folio.edge.patron.cache.PatronIdCache;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
@@ -18,7 +19,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends EdgeVerticle {
 
-  private static final Logger logger = Logger.getLogger(MainVerticle.class);
+  private static final Logger logger = LogManager.getLogger(MainVerticle.class);
 
   public MainVerticle() {
     super();

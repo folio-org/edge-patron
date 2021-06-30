@@ -2,7 +2,8 @@ package org.folio.edge.patron.utils;
 
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.cache.TokenCache.NotInitializedException;
 import org.folio.edge.patron.cache.PatronIdCache;
 
@@ -10,7 +11,7 @@ import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class PatronIdHelper {
 
-  private static final Logger logger = Logger.getLogger(PatronIdHelper.class);
+  private static final Logger logger = LogManager.getLogger(PatronIdHelper.class);
 
   private PatronIdHelper() {
 

@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
 import org.folio.edge.patron.model.Account;
 import org.folio.edge.patron.model.Charge;
@@ -46,7 +47,7 @@ import org.folio.edge.patron.model.Money;
 
 public class PatronMockOkapi extends MockOkapi {
 
-  private static final Logger logger = Logger.getLogger(PatronMockOkapi.class);
+  private static final Logger logger = LogManager.getLogger(PatronMockOkapi.class);
 
   public static final String PARAM_QUERY = "query";
 

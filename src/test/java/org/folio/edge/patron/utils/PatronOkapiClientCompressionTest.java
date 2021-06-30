@@ -2,7 +2,8 @@ package org.folio.edge.patron.utils;
 
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -19,13 +20,13 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class PatronOkapiClientCompressionTest {
-  private static final Logger logger = Logger.getLogger(PatronOkapiClientCompressionTest.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClientCompressionTest.class);
 
   private final Vertx vertx = Vertx.vertx();
 
   private final String patronId = UUID.randomUUID().toString();
   private static final String tenant = "diku";
-  private static final long reqTimeout = 3000L;
+  private static final int reqTimeout = 3000;
 
   private PatronOkapiClient client;
 
@@ -70,11 +71,11 @@ public class PatronOkapiClientCompressionTest {
         true,
         true,
         headers,
-        resp -> resp.bodyHandler(body -> {
-          logger.info("mod-patron response body: " + body);
-          context.assertEquals("{\"test\":\"1234\"}", body.toString());
+        resp -> {
+          logger.info("mod-patron response body: " + resp.body());
+          context.assertEquals("{\"test\":\"1234\"}", resp.bodyAsString());
           async.complete();
-        }),
+        },
         t -> {
           context.fail(t);
         });

@@ -7,14 +7,15 @@ import static org.junit.Assert.assertNull;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.cache.Cache.CacheValue;
 import org.junit.Before;
 import org.junit.Test;
 
 public class PatronIdCacheTest {
 
-  private static final Logger logger = Logger.getLogger(PatronIdCacheTest.class);
+  private static final Logger logger = LogManager.getLogger(PatronIdCacheTest.class);
 
   private static final int cap = 50;
   private static final long ttl = 3000;

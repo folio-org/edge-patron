@@ -37,7 +37,8 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.ApiKeyUtils;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
@@ -63,7 +64,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
 
-  private static final Logger logger = Logger.getLogger(MainVerticleTest.class);
+  private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
 
   private static final String extPatronId = PatronMockOkapi.extPatronId;
   private static final String patronId = PatronMockOkapi.patronId;
@@ -95,7 +96,7 @@ public class MainVerticleTest {
     System.setProperty(SYS_PORT, String.valueOf(serverPort));
     System.setProperty(SYS_OKAPI_URL, "http://localhost:" + okapiPort);
     System.setProperty(SYS_SECURE_STORE_PROP_FILE, "src/main/resources/ephemeral.properties");
-    System.setProperty(SYS_LOG_LEVEL, "DEBUG");
+    System.setProperty(SYS_LOG_LEVEL, "INFO");
     System.setProperty(SYS_REQUEST_TIMEOUT_MS, String.valueOf(requestTimeoutMs));
 
     final DeploymentOptions opt = new DeploymentOptions();
@@ -334,7 +335,6 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount request timeout ===");
 
     int expectedStatusCode = 408;
-
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
@@ -346,7 +346,6 @@ public class MainVerticleTest {
       .response();
 
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-
       assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
       assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
@@ -468,7 +467,6 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-
     assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }

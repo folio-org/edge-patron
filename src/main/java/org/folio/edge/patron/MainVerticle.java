@@ -9,7 +9,7 @@ import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_TTL_MS;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.EdgeVerticle;
+import org.folio.edge.core.EdgeVerticleHttp;
 import org.folio.edge.patron.cache.PatronIdCache;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
@@ -17,7 +17,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
-public class MainVerticle extends EdgeVerticle {
+public class MainVerticle extends EdgeVerticleHttp {
 
   private static final Logger logger = LogManager.getLogger(MainVerticle.class);
 
@@ -45,7 +45,8 @@ public class MainVerticle extends EdgeVerticle {
 
   @Override
   public Router defineRoutes() {
-    PatronOkapiClientFactory ocf = new PatronOkapiClientFactory(vertx, okapiURL, reqTimeoutMs);
+    PatronOkapiClientFactory ocf = new PatronOkapiClientFactory(vertx, config().getString(org.folio.edge.core.Constants.SYS_OKAPI_URL),
+      config().getInteger(org.folio.edge.core.Constants.SYS_REQUEST_TIMEOUT_MS));
     PatronHandler patronHandler = new PatronHandler(secureStore, ocf);
 
     Router router = Router.router(vertx);

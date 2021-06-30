@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 import io.vertx.core.json.JsonObject;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.utils.PatronOkapiClient.PatronLookupException;
@@ -27,12 +28,12 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class PatronOkapiClientTest {
 
-  private static final Logger logger = Logger.getLogger(PatronOkapiClientTest.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClientTest.class);
 
   private final String patronId = UUID.randomUUID().toString();
   private final String itemId = UUID.randomUUID().toString();
   private static final String tenant = "diku";
-  private static final long reqTimeout = 3000L;
+  private static final int reqTimeout = 3000;
 
   private PatronOkapiClient client;
   private PatronMockOkapi mockOkapi;
@@ -110,11 +111,11 @@ public class PatronOkapiClientTest {
           true,
           true,
           true,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, true), body.toString());
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, true), resp.bodyAsString());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -133,11 +134,11 @@ public class PatronOkapiClientTest {
           true,
           true,
           true,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -156,11 +157,11 @@ public class PatronOkapiClientTest {
           true,
           true,
           false,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, false), body.toString());
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, false), resp.bodyAsString());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -179,11 +180,11 @@ public class PatronOkapiClientTest {
           true,
           false,
           true,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, false, true), body.toString());
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, false, true), resp.bodyAsString());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -202,11 +203,11 @@ public class PatronOkapiClientTest {
           false,
           true,
           true,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, true, true), body.toString());
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, true, true), resp.bodyAsString());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -225,11 +226,11 @@ public class PatronOkapiClientTest {
           false,
           false,
           false,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, false, false), body.toString());
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, false, false), resp.bodyAsString());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -245,11 +246,11 @@ public class PatronOkapiClientTest {
         false,
         false,
         false,
-        resp -> resp.bodyHandler(body -> {
-          logger.info("mod-patron response body: " + body);
+        resp -> {
+          logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(403, resp.statusCode());
           async.complete();
-        }),
+        },
         t -> {
           context.fail(t);
         });
@@ -264,11 +265,11 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.renewItem(patronId,
           itemId,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(201, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -284,11 +285,11 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.renewItem(patronId,
           PatronMockOkapi.itemId_notFound,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -304,11 +305,11 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
       client.renewItem(PatronMockOkapi.patronId_notFound,
           itemId,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -328,11 +329,11 @@ public class PatronOkapiClientTest {
       client.placeItemHold(patronId,
           itemId,
           holdJSON,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(201, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -352,11 +353,11 @@ public class PatronOkapiClientTest {
       client.placeItemHold(patronId,
           PatronMockOkapi.itemId_notFound,
           holdJSON,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -376,11 +377,11 @@ public class PatronOkapiClientTest {
       client.placeItemHold(PatronMockOkapi.patronId_notFound,
           itemId,
           holdJSON,
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -400,16 +401,16 @@ public class PatronOkapiClientTest {
       client.cancelHold(patronId,
           hold.requestId,
           new JsonObject(holdCancellation),
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(200, resp.statusCode());
             try {
-              context.assertEquals(hold, Hold.fromJson(body.toString()));
+              context.assertEquals(hold, Hold.fromJson(resp.bodyAsString()));
             }  catch (IOException e) {
               e.printStackTrace();
             }
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -428,11 +429,11 @@ public class PatronOkapiClientTest {
       client.cancelHold(PatronMockOkapi.patronId_notFound,
           hold.requestId,
           new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId, PatronMockOkapi.patronId_notFound)),
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -449,11 +450,11 @@ public class PatronOkapiClientTest {
       client.cancelHold(patronId,
           PatronMockOkapi.holdReqId_notFound,
           new JsonObject(PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound, patronId)),
-          resp -> resp.bodyHandler(body -> {
-            logger.info("mod-patron response body: " + body);
+          resp -> {
+            logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
             async.complete();
-          }),
+          },
           t -> {
             context.fail(t);
           });
@@ -469,11 +470,11 @@ public class PatronOkapiClientTest {
       assertEquals(MOCK_TOKEN, client.getToken());
 
       client.getRequest(PatronMockOkapi.holdCancellationHoldId,
-        resp -> resp.bodyHandler(body -> {
-          logger.info("mod-patron response body: " + body);
-          context.assertEquals(PatronMockOkapi.getRequest(PatronMockOkapi.holdCancellationHoldId), body.toString());
+        resp -> {
+          logger.info("mod-patron response body: " + resp.body());
+          context.assertEquals(PatronMockOkapi.getRequest(PatronMockOkapi.holdCancellationHoldId), resp.bodyAsString());
           async.complete();
-        }),
+        },
         t -> {
           context.fail(t);
         });
@@ -491,12 +492,12 @@ public class PatronOkapiClientTest {
       String expectedResponse = "request record with ID \"" + PatronMockOkapi.holdReqId_notFound + "\" cannot be found";
 
       client.getRequest(PatronMockOkapi.holdReqId_notFound,
-        resp -> resp.bodyHandler(body -> {
-          logger.info("mod-patron response body: " + body);
+        resp -> {
+          logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(404, resp.statusCode());
-          context.assertEquals(expectedResponse, body.toString());
+          context.assertEquals(expectedResponse, resp.bodyAsString());
           async.complete();
-        }),
+        },
         t -> {
           context.fail(t);
         });

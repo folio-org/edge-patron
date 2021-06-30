@@ -33,7 +33,7 @@
 
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
-    <vertx.version>4.0.2</vertx.version>
+    <vertx.version>4.1.0</vertx.version>
   </properties>
 
   <dependencyManagement>
@@ -91,7 +91,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>2.0.2</version>
+      <version>4.2.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->
@@ -135,7 +135,6 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
@@ -182,12 +181,6 @@
       <artifactId>rest-assured</artifactId>
       <version>4.3.0</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>

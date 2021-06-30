@@ -457,7 +457,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .with()
-      .header(X_DURATION, requestTimeoutMs * 3)
+      .header(X_DURATION, requestTimeoutMs * 2)
       .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId,
           apiKey))
       .then()
@@ -467,7 +467,6 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    logger.info("=== Test renew request timeout ==="+msg.message+"  ,code:"+msg.httpStatusCode);
     assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
@@ -669,7 +668,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .body(hold.toJson())
-      .header(X_DURATION, requestTimeoutMs * 4)
+      .header(X_DURATION, requestTimeoutMs * 2)
       .contentType(APPLICATION_JSON)
       .post(
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
@@ -896,7 +895,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .body(hold.toJson())
-      .header(X_DURATION, requestTimeoutMs * 5)
+      .header(X_DURATION, requestTimeoutMs * 2)
       .contentType(APPLICATION_JSON)
       .post(
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
@@ -1114,7 +1113,7 @@ public class MainVerticleTest {
 
     final Response resp = RestAssured
       .with()
-      .header(X_DURATION, requestTimeoutMs * 6)
+      .header(X_DURATION, requestTimeoutMs * 2)
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId, holdCancellationHoldId,
@@ -1262,7 +1261,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .contentType(APPLICATION_JSON)
-      .header(X_DURATION, requestTimeoutMs * 7)
+      .header(X_DURATION, requestTimeoutMs * 2)
       .body(canceledHold)
       .post(String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId, holdId, apiKey))
       .then()

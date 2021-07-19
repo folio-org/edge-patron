@@ -15,9 +15,9 @@ public class PatronIdCache {
   private Cache<String> cache;
 
   private PatronIdCache(long ttl, long nullTokenTtl, int capacity) {
-    logger.info("Using TTL: " + ttl);
-    logger.info("Using null token TTL: " + nullTokenTtl);
-    logger.info("Using capcity: " + capacity);
+    logger.info("Using TTL: {0}", ttl);
+    logger.info("Using null token TTL: {0}", nullTokenTtl);
+    logger.info("Using capcity: {0}", capacity);
     cache = new Builder<String>()
       .withTTL(ttl)
       .withNullValueTTL(nullTokenTtl)

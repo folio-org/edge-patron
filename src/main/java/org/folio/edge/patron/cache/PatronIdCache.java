@@ -1,22 +1,23 @@
 package org.folio.edge.patron.cache;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.cache.Cache;
 import org.folio.edge.core.cache.Cache.Builder;
 import org.folio.edge.core.cache.Cache.CacheValue;
 
 public class PatronIdCache {
 
-  private static final Logger logger = Logger.getLogger(PatronIdCache.class);
+  private static final Logger logger = LogManager.getLogger(PatronIdCache.class);
 
   private static PatronIdCache instance = null;
 
   private Cache<String> cache;
 
   private PatronIdCache(long ttl, long nullTokenTtl, int capacity) {
-    logger.info("Using TTL: " + ttl);
-    logger.info("Using null token TTL: " + nullTokenTtl);
-    logger.info("Using capcity: " + capacity);
+    logger.info("Using TTL: {0}", ttl);
+    logger.info("Using null token TTL: {0}", nullTokenTtl);
+    logger.info("Using capcity: {0}", capacity);
     cache = new Builder<String>()
       .withTTL(ttl)
       .withNullValueTTL(nullTokenTtl)

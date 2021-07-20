@@ -27,10 +27,10 @@ import io.vertx.core.json.JsonObject;
 import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.Errors;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
@@ -38,6 +38,8 @@ import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpResponse;
 
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
@@ -47,7 +49,7 @@ public class PatronHandler extends Handler {
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
-  private static final Logger logger = Logger.getLogger(Handler.class);
+  private static final Logger logger = LogManager.getLogger(Handler.class);
   private static final String CONTENT_LENGTH = "content-length";
 
   @Override
@@ -213,35 +215,28 @@ public class PatronHandler extends Handler {
   }
 
   @Override
-  protected void handleProxyResponse(RoutingContext ctx, HttpClientResponse resp) {
+  protected void handleProxyResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
     HttpServerResponse serverResponse = ctx.response();
-    final StringBuilder body = new StringBuilder();
-    resp.handler(buf -> {
-      if (logger.isTraceEnabled()) {
-        logger.trace("read bytes: " + buf.toString());
-      }
-      body.append(buf);
-    }).endHandler(v -> {
-      int statusCode = resp.statusCode();
-      serverResponse.setStatusCode(statusCode);
 
-      String respBody = body.toString();
-      if (logger.isDebugEnabled()) {
-        logger.debug("response: " + respBody);
-      }
+    int statusCode = resp.statusCode();
+    serverResponse.setStatusCode(statusCode);
 
-      String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE);
+    String respBody = resp.bodyAsString();
+    if (logger.isDebugEnabled()) {
+      logger.debug("response: " + respBody);
+    }
 
-      if (resp.statusCode() < 400){
-        setContentType(serverResponse, contentType);
-        serverResponse.end(respBody);  //not an error case, pass on the response body as received
-      }
-      else {
-        String errorMsg = getErrorMessage(statusCode, respBody);
-        setContentType(serverResponse, APPLICATION_JSON);
-        serverResponse.end(errorMsg);
-      }
-    });
+    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+
+    if (resp.statusCode() < 400){
+      setContentType(serverResponse, contentType);
+      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+    }
+    else {
+      String errorMsg = getErrorMessage(statusCode, respBody);
+      setContentType(serverResponse, APPLICATION_JSON);
+      serverResponse.end(errorMsg);
+    }
   }
 
   @Override

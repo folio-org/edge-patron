@@ -1,3 +1,7 @@
+## 4.6.0 2021-09-27
+
+* Upgrade to vert.x 4.x [EDGPATRON-39] (https://issues.folio.org/browse/EDGPATRON-39)
+
 ## 4.5.0 2021-06-17
 
 * Requires `circulation 9.5 10.0 or 11.0` ([EDGPATRON-44](https://issues.folio.org/browse/EDGPATRON-44), [EDGPATRON-46](https://issues.folio.org/browse/EDGPATRON-46))

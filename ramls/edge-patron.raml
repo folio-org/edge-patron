@@ -30,9 +30,8 @@ types:
       description: Service endpoints that manage accounts by an existing Id
       uriParameters:
         id:
-          description: The UUID of a FOLIO user
+          description: The external system ID of a folio user
           type: string
-          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
       get:
         description: Return account details for the specified FOLIO user id
         queryParameters:

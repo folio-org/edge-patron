@@ -1,3 +1,7 @@
+## 4.7.0 IN-PROGRESS
+
+Removed UUID string pattern from RAML file, as module now uses externalSystemID to look up patron data [EDGPATRON-61] (https://issues.folio.org/browse/EDGPATRON-61)
+
 ## 4.6.0 2021-09-27
 
 * Upgrade to vert.x 4.x [EDGPATRON-39] (https://issues.folio.org/browse/EDGPATRON-39)

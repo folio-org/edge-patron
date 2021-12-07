@@ -56,6 +56,9 @@ types:
             required: false
             type: boolean
             default: false
+          apikey:
+            description: "API Key"
+            type: string
         responses:
           200:
             description: Returns the user account info
@@ -100,6 +103,10 @@ types:
             description: Service endpoint for loan renewal
             post:
               description: Renews a loan on the item for the user
+              queryParameters:
+                apikey:
+                  description: "API Key"
+                  type: string
               responses:
                 201:
                   description: Returns the renewed loan data
@@ -139,6 +146,10 @@ types:
             post:
               description: |
                 Creates a hold request on an existing item for the user
+              queryParameters:
+                apikey:
+                  description: "API Key"
+                  type: string
               body:
                 application/json:
                   schema: hold
@@ -190,6 +201,10 @@ types:
             post:
               description: |
                 Creates a hold request on an existing item by instance ID for the user
+              queryParameters:
+                apikey:
+                  description: "API Key"
+                  type: string
               body:
                 application/json:
                   schema: hold
@@ -247,6 +262,10 @@ types:
           /cancel:
             post:
               description: Removes the specified hold request
+              queryParameters:
+                apikey:
+                  description: "API Key"
+                  type: string
               body:
                 application/json:
                   schema: hold-cancellation

@@ -1,6 +1,7 @@
 ## 4.7.0 IN-PROGRESS
 
-Removed UUID string pattern from RAML file, as module now uses externalSystemID to look up patron data [EDGPATRON-61] (https://issues.folio.org/browse/EDGPATRON-61)
+* Removed UUID string pattern from RAML file, as module now uses externalSystemID to look up patron data [EDGPATRON-61] (https://issues.folio.org/browse/EDGPATRON-61)
+* Include API key parameter for every endpoint in RAML. [EDGPATRON-63](https://issues.folio.org/browse/EDGPATRON-63)
 
 ## 4.6.0 2021-09-27
 

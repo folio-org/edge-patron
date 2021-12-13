@@ -62,6 +62,12 @@ public class PatronHandler extends Handler {
       badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;
     }
+    if (null == ctx.request().getParam(PARAM_LIMIT)) {
+      ctx.request().params().add(PARAM_LIMIT, "10");
+    }
+    if (null == ctx.request().getParam(PARAM_OFFSET)) {
+      ctx.request().params().add(PARAM_OFFSET, "0");
+    }
 
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
       final PatronOkapiClient patronClient = new PatronOkapiClient(client);

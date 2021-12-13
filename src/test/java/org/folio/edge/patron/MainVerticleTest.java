@@ -17,6 +17,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -185,7 +186,7 @@ public class MainVerticleTest {
     logger.info("=== Test request where patron is found ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&limit=10&offset=0", extPatronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -243,7 +244,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount/includeLoans ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&limit=10&offset=0", patronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -261,7 +262,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount/includeCharges ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeCharges=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeCharges=true&limit=10&offset=0", patronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -279,7 +280,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount/includeHolds ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeHolds=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeHolds=true&limit=10&offset=0", patronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -297,7 +298,7 @@ public class MainVerticleTest {
     logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true",
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=10&offset=0",
           patronId, apiKey))
       .then()
       .statusCode(200)
@@ -312,12 +313,68 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds & limit=1 ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=0",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountPatronFoundIncludeLoansAndSortBy(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans & sortBy ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=10&offset=0",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSortedLoans(patronId);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountOffsetIsWrong(TestContext context) throws Exception {
+    logger.info("=== Test getAccount offset is wrong ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=-1",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(wrongOffsetMessage, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
   public void testGetAccountEmptyQueryArgs(TestContext context) throws Exception {
     logger.info("=== Test getAccount with empty query args ===");
 
     final Response resp = RestAssured
       .get(
-          String.format("/patron/account/%s?apikey=%s&includeCharges=&includeLoans=&includeCharges=", patronId, apiKey))
+          String.format("/patron/account/%s?apikey=%s&includeCharges=&includeLoans=&includeCharges=&limit=10&offset=0", patronId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -338,7 +395,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .header(X_DURATION, requestTimeoutMs * 2)
-      .get(String.format("/patron/account/%s?apikey=%s", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&limit=10&offset=0", patronId, apiKey))
       .then()
       .contentType(APPLICATION_JSON)
       .statusCode(expectedStatusCode)
@@ -1284,7 +1341,7 @@ public class MainVerticleTest {
 
     for (int i = 0; i < iters; i++) {
       final Response resp = RestAssured
-        .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
+        .get(String.format("/patron/account/%s?apikey=%s&limit=10&offset=0", extPatronId, apiKey))
         .then()
         .contentType(APPLICATION_JSON)
         .statusCode(200)

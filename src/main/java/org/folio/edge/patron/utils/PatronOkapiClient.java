@@ -74,21 +74,28 @@ public class PatronOkapiClient extends OkapiClient {
   }
 
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges,
-      boolean includeHolds, Handler<HttpResponse<Buffer>> responseHandler,
+      boolean includeHolds, String sortBy, int limit, int offset, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
-    getAccount(patronId, includeLoans, includeCharges, includeHolds, null, responseHandler, exceptionHandler);
+    getAccount(patronId, includeLoans, includeCharges, includeHolds, sortBy, limit, offset, null,
+      responseHandler, exceptionHandler);
   }
 
-  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges,
-      boolean includeHolds, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
+  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,
+      String sortBy, int limit, int offset, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
+    String url = String.format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s&limit=%s&offset=%s",
+      okapiURL,
+      patronId,
+      includeLoans,
+      includeCharges,
+      includeHolds,
+      limit,
+      offset);
+    if (null != sortBy) {
+      url = String.format(url + "&sortBy=%s", sortBy);
+    }
     get(
-        String.format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
-            okapiURL,
-            patronId,
-            includeLoans,
-            includeCharges,
-            includeHolds),
+        url,
         tenant,
         combineHeadersWithDefaults(headers),
         responseHandler,

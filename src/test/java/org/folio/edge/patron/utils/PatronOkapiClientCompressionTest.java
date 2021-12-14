@@ -65,12 +65,12 @@ public class PatronOkapiClientCompressionTest {
     headers.add("Accept-Encoding", "gzip");
     Async async = context.async();
     client.getAccount(patronId,
-      true,
-      true,
-      true,
-      null,
-      null,
-      null,
+        true,
+        true,
+        true,
+        null,
+        null,
+        null,
         headers,
         resp -> {
           logger.info("mod-patron response body: " + resp.body());

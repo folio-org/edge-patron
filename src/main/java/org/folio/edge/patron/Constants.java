@@ -13,6 +13,9 @@ public class Constants {
   public static final long DEFAULT_NULL_PATRON_ID_CACHE_TTL_MS = 30 * 1000L;
   public static final int DEFAULT_PATRON_ID_CACHE_CAPACITY = 1000;
 
+  public static final String PARAM_SORT_BY = "sortBy";
+  public static final String PARAM_LIMIT = "limit";
+  public static final String PARAM_OFFSET = "offset";
   public static final String PARAM_INCLUDE_LOANS = "includeLoans";
   public static final String PARAM_INCLUDE_CHARGES = "includeCharges";
   public static final String PARAM_INCLUDE_HOLDS = "includeHolds";

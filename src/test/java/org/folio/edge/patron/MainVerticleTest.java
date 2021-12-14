@@ -17,6 +17,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -309,6 +310,62 @@ public class MainVerticleTest {
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds & limit=1 ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=0",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountPatronFoundIncludeLoansAndSortBy(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans & sortBy ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=10&offset=0",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSortedLoans(patronId);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountOffsetIsNegative(TestContext context) throws Exception {
+    logger.info("=== Test getAccount offset is negative ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=-1",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(wrongOffsetMessage, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
@@ -1284,7 +1341,7 @@ public class MainVerticleTest {
 
     for (int i = 0; i < iters; i++) {
       final Response resp = RestAssured
-        .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
+        .get(String.format("/patron/account/%s?apikey=%s&limit=10&offset=0", extPatronId, apiKey))
         .then()
         .contentType(APPLICATION_JSON)
         .statusCode(200)

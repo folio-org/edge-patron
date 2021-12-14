@@ -193,17 +193,17 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(patronId + " not found");
-    } else if("-1".equals(offset)) {
+    } else if ("-1".equals(offset)) {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(wrongOffsetMessage);
-    } else if("1".equals(limit)) {
+    } else if ("1".equals(limit)) {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(getAccountWithSingleItemsJson(patronId, includeLoans, includeCharges, includeHolds));
-    } else if(StringUtils.isNotEmpty(sortBy)) {
+    } else if (StringUtils.isNotEmpty(sortBy)) {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

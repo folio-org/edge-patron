@@ -1341,7 +1341,7 @@ public class MainVerticleTest {
 
     for (int i = 0; i < iters; i++) {
       final Response resp = RestAssured
-        .get(String.format("/patron/account/%s?apikey=%s&limit=10&offset=0", extPatronId, apiKey))
+        .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
         .then()
         .contentType(APPLICATION_JSON)
         .statusCode(200)

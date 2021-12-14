@@ -1,15 +1,5 @@
 package org.folio.edge.patron.utils;
 
-import java.util.UUID;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.utils.test.TestUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -17,6 +7,14 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.UUID;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.test.TestUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(VertxUnitRunner.class)
 public class PatronOkapiClientCompressionTest {
@@ -67,17 +65,18 @@ public class PatronOkapiClientCompressionTest {
     headers.add("Accept-Encoding", "gzip");
     Async async = context.async();
     client.getAccount(patronId,
-        true,
-        true,
-        true,
+      true,
+      true,
+      true,
+      null,
+      null,
+      null,
         headers,
         resp -> {
           logger.info("mod-patron response body: " + resp.body());
           context.assertEquals("{\"test\":\"1234\"}", resp.bodyAsString());
           async.complete();
         },
-        t -> {
-          context.fail(t);
-        });
+        context::fail);
   }
 }

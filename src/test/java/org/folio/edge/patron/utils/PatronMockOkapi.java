@@ -1,5 +1,6 @@
 package org.folio.edge.patron.utils;
 
+import static java.util.Collections.singletonList;
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
@@ -10,8 +11,11 @@ import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
 import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
+import static org.folio.edge.patron.Constants.PARAM_LIMIT;
+import static org.folio.edge.patron.Constants.PARAM_OFFSET;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
+import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
@@ -75,6 +80,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String goodRequestId = holdCancellationHoldId ;
   public static final String nonUUIDHoldCanceledByPatronId = "patron@folio.org";
   public static final String patronComments = "Can you deliver this to the History building for Professor Grant?";
+  public static final String wrongOffsetMessage = "'offset' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -171,6 +177,9 @@ public class PatronMockOkapi extends MockOkapi {
     boolean includeLoans = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_LOANS));
     boolean includeCharges = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_CHARGES));
     boolean includeHolds = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_HOLDS));
+    String limit  = ctx.request().getParam(PARAM_LIMIT);
+    String offset  = ctx.request().getParam(PARAM_OFFSET);
+    String sortBy = ctx.request().getParam(PARAM_SORT_BY);
 
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
@@ -184,6 +193,21 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end(patronId + " not found");
+    } else if ("-1".equals(offset)) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(wrongOffsetMessage);
+    } else if ("1".equals(limit)) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getAccountWithSingleItemsJson(patronId, includeLoans, includeCharges, includeHolds));
+    } else if (StringUtils.isNotEmpty(sortBy)) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getAccountWithSortedLoans(patronId));
     } else {
       ctx.response()
         .setStatusCode(200)
@@ -440,16 +464,48 @@ public class PatronMockOkapi extends MockOkapi {
 
     List<Charge> charges = new ArrayList<>();
     charges.add(getCharge(itemId_overdue));
+    charges.add(getCharge(itemId));
     acctBldr.charges(charges);
 
     List<Hold> holds = new ArrayList<>();
+    holds.add(getHold(itemId_overdue));
     holds.add(getHold(itemId));
     acctBldr.holds(holds);
 
     List<Loan> loans = new ArrayList<>();
     loans.add(getLoan(itemId_overdue));
+    loans.add(getLoan(itemId));
     acctBldr.loans(loans);
 
+    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds);
+  }
+
+  public static String getAccountWithSingleItemsJson(String patronId, boolean includeLoans, boolean includeCharges,
+    boolean includeHolds) {
+
+    Account.Builder acctBldr = Account.builder()
+      .id(patronId);
+    acctBldr.loans(singletonList(getLoan(itemId)));
+    acctBldr.holds(singletonList(getHold(itemId)));
+    acctBldr.charges(singletonList(getCharge(itemId)));
+
+    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds);
+  }
+
+  public static String getAccountWithSortedLoans(String patronId) {
+
+    Account.Builder acctBldr = Account.builder()
+      .id(patronId);
+    List<Loan> loans = new ArrayList<>();
+    loans.add(getLoan(itemId));
+    loans.add(getLoan(itemId_overdue));
+    acctBldr.loans(loans);
+
+    return builderToJson(acctBldr, true, false, false);
+  }
+
+  private static String builderToJson(Account.Builder acctBldr, boolean includeLoans, boolean includeCharges,
+    boolean includeHolds) {
     String ret = null;
     try {
       ret = acctBldr.build().toJson(includeLoans, includeCharges, includeHolds);
@@ -461,6 +517,7 @@ public class PatronMockOkapi extends MockOkapi {
 
   public static Item getItem(String itemId) {
     return Item.builder()
+      .itemId(itemId)
       .title("The Stars My Destination")
       .author("Bester, Alfred")
       .instanceId(instanceId)

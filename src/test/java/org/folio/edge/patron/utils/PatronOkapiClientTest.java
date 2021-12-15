@@ -114,8 +114,8 @@ public class PatronOkapiClientTest {
           true,
           true,
           null,
-        null,
-        null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             String accountResponse = resp.bodyAsString();
@@ -232,9 +232,9 @@ public class PatronOkapiClientTest {
           true,
           true,
           true,
-              null,
-        null,
-        null,
+          null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(404, resp.statusCode());
@@ -256,9 +256,9 @@ public class PatronOkapiClientTest {
           true,
           true,
           false,
-        null,
-        null,
-        null,
+          null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, false), resp.bodyAsString());
@@ -281,8 +281,8 @@ public class PatronOkapiClientTest {
           false,
           true,
           null,
-        null,
-        null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, false, true), resp.bodyAsString());
@@ -304,9 +304,9 @@ public class PatronOkapiClientTest {
           false,
           true,
           true,
-        null,
-        null,
-        null,
+          null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, true, true), resp.bodyAsString());
@@ -328,9 +328,9 @@ public class PatronOkapiClientTest {
           false,
           false,
           false,
-        null,
-        null,
-        null,
+          null,
+          null,
+          null,
           resp -> {
             logger.info("mod-patron response body: " + resp.body());
             context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, false, false), resp.bodyAsString());
@@ -349,9 +349,9 @@ public class PatronOkapiClientTest {
         false,
         false,
         false,
-      null,
-      null,
-      null,
+        null,
+        null,
+        null,
         resp -> {
           logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(403, resp.statusCode());

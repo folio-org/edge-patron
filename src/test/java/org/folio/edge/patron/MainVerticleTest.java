@@ -332,11 +332,11 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeLoansAndSortBy(TestContext context) throws Exception {
-    logger.info("=== Test getAccount/includeLoans & sortBy ===");
+  public void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans & sortBy & negative limit ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=10&offset=0",
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=-1",
         patronId, apiKey))
       .then()
       .statusCode(200)
@@ -364,7 +364,44 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(wrongOffsetMessage, msg.message);
+    assertEquals(String.format(wrongOffsetMessage, -1), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testGetAccountOffsetIsNotNumber(TestContext context) throws Exception {
+    logger.info("=== Test getAccount offset is not a number ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=test",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(wrongOffsetMessage, "test"), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testGetAccountLimitIsNotNumber(TestContext context) throws Exception {
+    logger.info("=== Test getAccount limit is not a number ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=test",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer",
+                        "test"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 

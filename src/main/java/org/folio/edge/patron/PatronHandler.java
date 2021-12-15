@@ -63,6 +63,20 @@ public class PatronHandler extends Handler {
       return;
     }
 
+    String offsetParam = ctx.request().getParam(PARAM_OFFSET);
+    if (isRequestIntegerParamWrong(offsetParam, true)) {
+      badRequest(ctx, String.format("'offset' parameter is incorrect. parameter value {%s} is not valid: must be "
+        + "an integer, greater than or equal to 0", offsetParam));
+      return;
+    }
+
+    String limitParam = ctx.request().getParam(PARAM_LIMIT); {
+      if (isRequestIntegerParamWrong(limitParam, false)) {
+        badRequest(ctx, String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer", limitParam));
+        return;
+      }
+    }
+
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
       final PatronOkapiClient patronClient = new PatronOkapiClient(client);
 
@@ -261,6 +275,22 @@ public class PatronHandler extends Handler {
     if (contentType != null && !contentType.equals("")) {
         response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
+  }
+
+  private boolean isRequestIntegerParamWrong(String paramToValidate, boolean isShouldCheckForNegativity) {
+    if (paramToValidate != null) {
+      try {
+        int paramValue = Integer.parseInt(paramToValidate);
+        if (isShouldCheckForNegativity && paramValue < 0) {
+          return true;
+        }
+      } catch (NumberFormatException nfe) {
+        logger.debug("Exception during validation of query param: " + nfe.getMessage());
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static String checkDates(JsonObject requestMessage) {

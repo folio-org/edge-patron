@@ -80,7 +80,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String goodRequestId = holdCancellationHoldId ;
   public static final String nonUUIDHoldCanceledByPatronId = "patron@folio.org";
   public static final String patronComments = "Can you deliver this to the History building for Professor Grant?";
-  public static final String wrongOffsetMessage = " 'offset' parameter is incorrect. parameter value {-1} is not valid: must be greater than or equal to 0";
+  public static final String wrongOffsetMessage = "'offset' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);

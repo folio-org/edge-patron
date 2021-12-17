@@ -22,7 +22,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
@@ -35,7 +36,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class AccountTest {
 
-  private static final Logger logger = Logger.getLogger(AccountTest.class);
+  private static final Logger logger = LogManager.getLogger(AccountTest.class);
   private static final String SCHEMA = "ramls/account.json";
   private static final String XSD = "ramls/patron.xsd";
 

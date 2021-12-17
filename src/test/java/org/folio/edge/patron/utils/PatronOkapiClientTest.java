@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.vertx.core.json.JsonObject;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.utils.PatronOkapiClient.PatronLookupException;
@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -27,7 +28,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class PatronOkapiClientTest {
 
-  private static final Logger logger = Logger.getLogger(PatronOkapiClientTest.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClientTest.class);
 
   private final String patronId = UUID.randomUUID().toString();
   private final String itemId = UUID.randomUUID().toString();

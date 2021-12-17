@@ -1,3 +1,7 @@
+## 4.5.1 IN-PROGRESS
+
+* Update Log4J to 2.16.0. (CVE-2021-4104) (EDGPATRON-69)
+
 ## 4.5.0 2021-06-17
 
 * Requires `circulation 9.5 10.0 or 11.0` ([EDGPATRON-44](https://issues.folio.org/browse/EDGPATRON-44), [EDGPATRON-46](https://issues.folio.org/browse/EDGPATRON-46))

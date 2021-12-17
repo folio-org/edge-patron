@@ -1,9 +1,17 @@
 package org.folio.edge.patron.utils;
 
+import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
+import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
+import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
+
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.patron.model.Hold;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -11,17 +19,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
-import org.folio.edge.patron.model.Hold;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
-import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
-import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
-import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
 
 public class PatronOkapiClient extends OkapiClient {
 
-  private static final Logger logger = Logger.getLogger(PatronOkapiClient.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClient.class);
 
   public PatronOkapiClient(OkapiClient client) {
     super(client);

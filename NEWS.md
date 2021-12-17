@@ -2,6 +2,7 @@
 
 * Removed UUID string pattern from RAML file, as module now uses externalSystemID to look up patron data [EDGPATRON-61] (https://issues.folio.org/browse/EDGPATRON-61)
 * Include API key parameter for every endpoint in RAML. [EDGPATRON-63](https://issues.folio.org/browse/EDGPATRON-63)
+* Update Log4j to 2.16.0. (CVE-2021-44228) [EDGPATRON-67](https://issues.folio.org/browse/EDGPATRON-67)
 
 ## 4.6.0 2021-09-27
 

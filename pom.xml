@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>edge-patron</artifactId>
-  <version>4.5.0</version>
+  <version>4.5.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Edge API - Patron Empowerment</name>

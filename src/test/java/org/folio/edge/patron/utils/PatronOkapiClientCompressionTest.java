@@ -2,7 +2,8 @@ package org.folio.edge.patron.utils;
 
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -19,7 +20,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class PatronOkapiClientCompressionTest {
-  private static final Logger logger = Logger.getLogger(PatronOkapiClientCompressionTest.class);
+  private static final Logger logger = LogManager.getLogger(PatronOkapiClientCompressionTest.class);
 
   private final Vertx vertx = Vertx.vertx();
 

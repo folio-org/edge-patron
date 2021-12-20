@@ -16,7 +16,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -28,7 +29,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class MoneyTest {
 
-  private static final Logger logger = Logger.getLogger(MoneyTest.class);
+  private static final Logger logger = LogManager.getLogger(MoneyTest.class);
   private static final String SCHEMA = "ramls/money.json";
   private static final String XSD = "ramls/patron.xsd";
 

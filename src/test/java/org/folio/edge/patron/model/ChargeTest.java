@@ -21,7 +21,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.everit.json.schema.FormatValidator;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.core.utils.Mappers;
@@ -35,7 +36,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class ChargeTest {
 
-  private static final Logger logger = Logger.getLogger(ChargeTest.class);
+  private static final Logger logger = LogManager.getLogger(ChargeTest.class);
   private static final String SCHEMA = "ramls/charge.json";
   private static final String XSD = "ramls/patron.xsd";
 

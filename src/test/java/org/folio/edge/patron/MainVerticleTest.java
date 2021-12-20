@@ -18,9 +18,9 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellatio
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
@@ -37,13 +37,14 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.ApiKeyUtils;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.utils.PatronMockOkapi;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -53,7 +54,6 @@ import org.junit.runner.RunWith;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
@@ -63,7 +63,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
 
-  private static final Logger logger = Logger.getLogger(MainVerticleTest.class);
+  private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
 
   private static final String extPatronId = PatronMockOkapi.extPatronId;
   private static final String patronId = PatronMockOkapi.patronId;

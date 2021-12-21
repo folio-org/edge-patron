@@ -1,4 +1,4 @@
-## 4.5.2 IN-PROGRESS
+## 4.5.2 2021-12-21
 
 * Update Log4J to 2.17.0. (CVE-2021-45105) [EDGPATRON-76](https://issues.folio.org/browse/EDGPATRON-76)
 

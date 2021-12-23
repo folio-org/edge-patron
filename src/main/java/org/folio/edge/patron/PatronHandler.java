@@ -52,6 +52,10 @@ public class PatronHandler extends Handler {
   }
   private static final Logger logger = LogManager.getLogger(Handler.class);
   private static final String CONTENT_LENGTH = "content-length";
+  private static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
+    + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  private static final String OFFSET = "offset";
+  private static final String LIMIT = "limit";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -65,14 +69,13 @@ public class PatronHandler extends Handler {
 
     String offsetParam = ctx.request().getParam(PARAM_OFFSET);
     if (isRequestIntegerParamWrong(offsetParam, true)) {
-      badRequest(ctx, String.format("'offset' parameter is incorrect. parameter value {%s} is not valid: must be "
-        + "an integer, greater than or equal to 0", offsetParam));
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, OFFSET), offsetParam));
       return;
     }
 
     String limitParam = ctx.request().getParam(PARAM_LIMIT); {
-      if (isRequestIntegerParamWrong(limitParam, false)) {
-        badRequest(ctx, String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer", limitParam));
+      if (isRequestIntegerParamWrong(limitParam, true)) {
+        badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, LIMIT), limitParam));
         return;
       }
     }

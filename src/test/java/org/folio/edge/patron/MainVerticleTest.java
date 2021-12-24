@@ -11,13 +11,14 @@ import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.utils.test.MockOkapi.X_DURATION;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.PatronHandler.OFFSET;
+import static org.folio.edge.patron.PatronHandler.WRONG_INTEGER_PARAM_MESSAGE;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
-import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -364,7 +365,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format(wrongOffsetMessage, -1), msg.message);
+    assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, "-1"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
@@ -382,7 +383,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format(wrongOffsetMessage, "test"), msg.message);
+    assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, "test"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 

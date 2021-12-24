@@ -1,8 +1,9 @@
 package org.folio.edge.patron.utils;
 
 import static org.folio.edge.core.utils.test.MockOkapi.MOCK_TOKEN;
-import static org.folio.edge.patron.utils.PatronMockOkapi.wrongLimitMessage;
-import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
+import static org.folio.edge.patron.PatronHandler.LIMIT;
+import static org.folio.edge.patron.PatronHandler.OFFSET;
+import static org.folio.edge.patron.PatronHandler.WRONG_INTEGER_PARAM_MESSAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -214,7 +215,7 @@ public class PatronOkapiClientTest {
         resp -> {
           logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(400, resp.statusCode());
-          context.assertEquals(wrongOffsetMessage, resp.bodyAsString());
+          context.assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, "-1"), resp.bodyAsString());
           async.complete();
         },
         context::fail);
@@ -239,7 +240,7 @@ public class PatronOkapiClientTest {
         resp -> {
           logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(400, resp.statusCode());
-          context.assertEquals(wrongLimitMessage, resp.bodyAsString());
+          context.assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, "-1"), resp.bodyAsString());
           async.complete();
         },
         context::fail);

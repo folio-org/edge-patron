@@ -11,6 +11,7 @@ import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.utils.test.MockOkapi.X_DURATION;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.PatronHandler.LIMIT;
 import static org.folio.edge.patron.PatronHandler.OFFSET;
 import static org.folio.edge.patron.PatronHandler.WRONG_INTEGER_PARAM_MESSAGE;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
@@ -336,19 +337,18 @@ public class MainVerticleTest {
   public void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit(TestContext context) throws Exception {
     logger.info("=== Test getAccount/includeLoans & sortBy & negative limit ===");
 
+    int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=-1",
         patronId, apiKey))
       .then()
-      .statusCode(200)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountWithSortedLoans(patronId);
-    String actual = resp.body().asString();
-
-    assertEquals(expected, actual);
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, "-1"), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
@@ -401,8 +401,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer",
-                        "test"), msg.message);
+    assertEquals(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, "test"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 

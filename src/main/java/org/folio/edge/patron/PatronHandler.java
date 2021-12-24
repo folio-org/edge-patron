@@ -47,15 +47,16 @@ import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
 public class PatronHandler extends Handler {
 
+  public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
+    + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  public static final String OFFSET = "offset";
+  public static final String LIMIT = "limit";
+  private static final String CONTENT_LENGTH = "content-length";
+  private static final Logger logger = LogManager.getLogger(Handler.class);
+
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
-  private static final Logger logger = LogManager.getLogger(Handler.class);
-  private static final String CONTENT_LENGTH = "content-length";
-  private static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
-    + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
-  private static final String OFFSET = "offset";
-  private static final String LIMIT = "limit";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
@@ -69,13 +70,13 @@ public class PatronHandler extends Handler {
 
     String offsetParam = ctx.request().getParam(PARAM_OFFSET);
     if (isRequestIntegerParamWrong(offsetParam, true)) {
-      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, OFFSET), offsetParam));
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, offsetParam), offsetParam));
       return;
     }
 
     String limitParam = ctx.request().getParam(PARAM_LIMIT); {
       if (isRequestIntegerParamWrong(limitParam, true)) {
-        badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, LIMIT), limitParam));
+        badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, limitParam), limitParam));
         return;
       }
     }

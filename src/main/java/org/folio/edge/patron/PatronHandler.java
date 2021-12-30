@@ -12,9 +12,20 @@ import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
 import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
 import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
+import static org.folio.edge.patron.Constants.PARAM_LIMIT;
+import static org.folio.edge.patron.Constants.PARAM_OFFSET;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -22,27 +33,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeoutException;
-
-import io.vertx.core.json.JsonObject;
-import org.folio.edge.patron.model.error.Error;
-import org.folio.edge.patron.model.error.Errors;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.ErrorMessage;
+import org.folio.edge.patron.model.error.Errors;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 import org.folio.edge.patron.utils.PatronOkapiClientFactory;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.client.HttpResponse;
-
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.ext.web.RoutingContext;
 
 public class PatronHandler extends Handler {
 
@@ -60,6 +61,20 @@ public class PatronHandler extends Handler {
     if (extPatronId == null || extPatronId.isEmpty()) {
       badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;
+    }
+
+    String offsetParam = ctx.request().getParam(PARAM_OFFSET);
+    if (isRequestIntegerParamWrong(offsetParam, true)) {
+      badRequest(ctx, String.format("'offset' parameter is incorrect. parameter value {%s} is not valid: must be "
+        + "an integer, greater than or equal to 0", offsetParam));
+      return;
+    }
+
+    String limitParam = ctx.request().getParam(PARAM_LIMIT); {
+      if (isRequestIntegerParamWrong(limitParam, false)) {
+        badRequest(ctx, String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer", limitParam));
+        return;
+      }
     }
 
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
@@ -84,16 +99,23 @@ public class PatronHandler extends Handler {
   public void handleGetAccount(RoutingContext ctx) {
     handleCommon(ctx,
         new String[] {},
-        new String[] { PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS },
+        new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_SORT_BY, PARAM_LIMIT,
+        PARAM_OFFSET},
         (client, params) -> {
           boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
           boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
           boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
+          String sortBy = params.get(PARAM_SORT_BY);
+          String limit = params.get(PARAM_LIMIT);
+          String offset = params.get(PARAM_OFFSET);
 
           ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
               includeLoans,
               includeCharges,
               includeHolds,
+              sortBy,
+              limit,
+              offset,
               ctx.request().headers(),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t));
@@ -253,6 +275,22 @@ public class PatronHandler extends Handler {
     if (contentType != null && !contentType.equals("")) {
         response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
+  }
+
+  private boolean isRequestIntegerParamWrong(String paramToValidate, boolean isShouldCheckForNegativity) {
+    if (paramToValidate != null) {
+      try {
+        int paramValue = Integer.parseInt(paramToValidate);
+        if (isShouldCheckForNegativity && paramValue < 0) {
+          return true;
+        }
+      } catch (NumberFormatException nfe) {
+        logger.debug("Exception during validation of query param: " + nfe.getMessage());
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static String checkDates(JsonObject requestMessage) {

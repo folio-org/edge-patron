@@ -59,6 +59,27 @@ types:
           apikey:
             description: "API Key"
             type: string
+          sortBy:
+            description: |
+              Part of CQL query, indicates the order of records within the lists of holds, charges, loans
+            example: item.title/sort.ascending
+            required: false
+            type: string
+          offset:
+            description: |
+              Skip over a number of elements by specifying an offset value for the query
+            type: integer
+            required: false
+            example: 1
+            minimum: 0
+            maximum: 2147483647
+          limit:
+            description: |
+              Limit the number of elements returned in the response
+            type: integer
+            required: false
+            example: 10
+            maximum: 2147483647
         responses:
           200:
             description: Returns the user account info

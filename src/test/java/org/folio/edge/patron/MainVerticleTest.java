@@ -17,6 +17,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -309,6 +310,99 @@ public class MainVerticleTest {
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds & limit=1 ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=0",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit(TestContext context) throws Exception {
+    logger.info("=== Test getAccount/includeLoans & sortBy & negative limit ===");
+
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=-1",
+        patronId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    String expected = PatronMockOkapi.getAccountWithSortedLoans(patronId);
+    String actual = resp.body().asString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetAccountOffsetIsNegative(TestContext context) throws Exception {
+    logger.info("=== Test getAccount offset is negative ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=-1",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(wrongOffsetMessage, -1), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testGetAccountOffsetIsNotNumber(TestContext context) throws Exception {
+    logger.info("=== Test getAccount offset is not a number ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=test",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(wrongOffsetMessage, "test"), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testGetAccountLimitIsNotNumber(TestContext context) throws Exception {
+    logger.info("=== Test getAccount limit is not a number ===");
+
+    int expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=test",
+        patronId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer",
+                        "test"), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test

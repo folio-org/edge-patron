@@ -60,7 +60,7 @@ public class PatronHandler extends Handler {
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
-      TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
+    TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
 
     String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
     if (extPatronId == null || extPatronId.isEmpty()) {
@@ -69,16 +69,15 @@ public class PatronHandler extends Handler {
     }
 
     String offsetParam = ctx.request().getParam(PARAM_OFFSET);
-    if (isRequestIntegerParamWrong(offsetParam, true)) {
+    if (isRequestIntegerParamWrong(offsetParam)) {
       badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, offsetParam), offsetParam));
       return;
     }
 
-    String limitParam = ctx.request().getParam(PARAM_LIMIT); {
-      if (isRequestIntegerParamWrong(limitParam, true)) {
-        badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, limitParam), limitParam));
-        return;
-      }
+    String limitParam = ctx.request().getParam(PARAM_LIMIT);
+    if (isRequestIntegerParamWrong(limitParam)) {
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, limitParam), limitParam));
+      return;
     }
 
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
@@ -281,11 +280,11 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private boolean isRequestIntegerParamWrong(String paramToValidate, boolean isShouldCheckForNegativity) {
+  private boolean isRequestIntegerParamWrong(String paramToValidate) {
     if (paramToValidate != null) {
       try {
         int paramValue = Integer.parseInt(paramToValidate);
-        if (isShouldCheckForNegativity && paramValue < 0) {
+        if (paramValue < 0) {
           return true;
         }
       } catch (NumberFormatException nfe) {

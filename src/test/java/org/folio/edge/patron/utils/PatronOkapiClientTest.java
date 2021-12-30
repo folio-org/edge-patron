@@ -224,7 +224,7 @@ public class PatronOkapiClientTest {
 
   @Test
   public void testGetAccountLimitIsWrong(TestContext context) throws Exception {
-    logger.info("=== Test getAccount - offset is wrong ===");
+    logger.info("=== Test getAccount - limit is wrong ===");
 
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {

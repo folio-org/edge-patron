@@ -49,8 +49,6 @@ public class PatronHandler extends Handler {
 
   public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
     + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
-  public static final String OFFSET = "offset";
-  public static final String LIMIT = "limit";
   private static final String CONTENT_LENGTH = "content-length";
   private static final Logger logger = LogManager.getLogger(Handler.class);
 
@@ -68,15 +66,15 @@ public class PatronHandler extends Handler {
       return;
     }
 
-    String offsetParam = ctx.request().getParam(PARAM_OFFSET);
-    if (isRequestIntegerParamWrong(offsetParam)) {
-      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, OFFSET, offsetParam), offsetParam));
+    String offsetValue = ctx.request().getParam(PARAM_OFFSET);
+    if (isRequestIntegerParamWrong(offsetValue)) {
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, "offset", offsetValue), offsetValue));
       return;
     }
 
-    String limitParam = ctx.request().getParam(PARAM_LIMIT);
-    if (isRequestIntegerParamWrong(limitParam)) {
-      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, LIMIT, limitParam), limitParam));
+    String limitValue = ctx.request().getParam(PARAM_LIMIT);
+    if (isRequestIntegerParamWrong(limitValue)) {
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, "limit", limitValue), limitValue));
       return;
     }
 

@@ -80,7 +80,9 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String goodRequestId = holdCancellationHoldId ;
   public static final String nonUUIDHoldCanceledByPatronId = "patron@folio.org";
   public static final String patronComments = "Can you deliver this to the History building for Professor Grant?";
-  public static final String wrongOffsetMessage = "'offset' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  public static final String wrongIntegerParamMessage = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  public static final String offset_param = "offset";
+  public static final String limit_param = "limit";
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -197,7 +199,12 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(wrongOffsetMessage);
+        .end(String.format(wrongIntegerParamMessage, offset_param, "-1"));
+    } else if ("-1".equals(limit)) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format(wrongIntegerParamMessage, limit_param, "-1"));
     } else if ("1".equals(limit)) {
       ctx.response()
         .setStatusCode(200)

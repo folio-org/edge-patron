@@ -1,7 +1,9 @@
 package org.folio.edge.patron.utils;
 
 import static org.folio.edge.core.utils.test.MockOkapi.MOCK_TOKEN;
-import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
+import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
+import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
+import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -196,7 +198,7 @@ public class PatronOkapiClientTest {
   }
 
   @Test
-  public void testGetAccountOffsetIsWrong(TestContext context) throws Exception {
+  public void testGetAccountLimitIsNegative(TestContext context) throws Exception {
     logger.info("=== Test getAccount - offset is wrong ===");
 
     Async async = context.async();
@@ -213,7 +215,32 @@ public class PatronOkapiClientTest {
         resp -> {
           logger.info("mod-patron response body: " + resp.body());
           context.assertEquals(400, resp.statusCode());
-          context.assertEquals(wrongOffsetMessage, resp.bodyAsString());
+          context.assertEquals(String.format(wrongIntegerParamMessage, offset_param, "-1"), resp.bodyAsString());
+          async.complete();
+        },
+        context::fail);
+    });
+  }
+
+  @Test
+  public void testGetAccountLimitIsWrong(TestContext context) throws Exception {
+    logger.info("=== Test getAccount - limit is wrong ===");
+
+    Async async = context.async();
+    client.login("admin", "password").thenAcceptAsync(v -> {
+      assertEquals(MOCK_TOKEN, client.getToken());
+
+      client.getAccount(PatronMockOkapi.patronId,
+        true,
+        true,
+        true,
+        null,
+        "-1",
+        null,
+        resp -> {
+          logger.info("mod-patron response body: " + resp.body());
+          context.assertEquals(400, resp.statusCode());
+          context.assertEquals(String.format(wrongIntegerParamMessage, limit_param, "-1"), resp.bodyAsString());
           async.complete();
         },
         context::fail);

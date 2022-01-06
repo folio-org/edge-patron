@@ -15,9 +15,11 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
-import static org.folio.edge.patron.utils.PatronMockOkapi.wrongOffsetMessage;
+import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
+import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -335,19 +337,18 @@ public class MainVerticleTest {
   public void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit(TestContext context) throws Exception {
     logger.info("=== Test getAccount/includeLoans & sortBy & negative limit ===");
 
+    int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=-1",
         patronId, apiKey))
       .then()
-      .statusCode(200)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .statusCode(expectedStatusCode)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountWithSortedLoans(patronId);
-    String actual = resp.body().asString();
-
-    assertEquals(expected, actual);
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(wrongIntegerParamMessage, limit_param, "-1"), msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
@@ -364,7 +365,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format(wrongOffsetMessage, -1), msg.message);
+    assertEquals(String.format(wrongIntegerParamMessage, offset_param, "-1"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
@@ -382,7 +383,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format(wrongOffsetMessage, "test"), msg.message);
+    assertEquals(String.format(wrongIntegerParamMessage, offset_param, "test"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
@@ -400,8 +401,7 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer",
-                        "test"), msg.message);
+    assertEquals(String.format(wrongIntegerParamMessage, limit_param, "test"), msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 

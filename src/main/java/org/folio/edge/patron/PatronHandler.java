@@ -47,15 +47,18 @@ import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
 public class PatronHandler extends Handler {
 
+  public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
+    + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  private static final String CONTENT_LENGTH = "content-length";
+  private static final Logger logger = LogManager.getLogger(Handler.class);
+
   public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
-  private static final Logger logger = LogManager.getLogger(Handler.class);
-  private static final String CONTENT_LENGTH = "content-length";
 
   @Override
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
-      TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
+    TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
 
     String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
     if (extPatronId == null || extPatronId.isEmpty()) {
@@ -63,18 +66,16 @@ public class PatronHandler extends Handler {
       return;
     }
 
-    String offsetParam = ctx.request().getParam(PARAM_OFFSET);
-    if (isRequestIntegerParamWrong(offsetParam, true)) {
-      badRequest(ctx, String.format("'offset' parameter is incorrect. parameter value {%s} is not valid: must be "
-        + "an integer, greater than or equal to 0", offsetParam));
+    String offsetValue = ctx.request().getParam(PARAM_OFFSET);
+    if (isRequestIntegerParamWrong(offsetValue)) {
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, "offset", offsetValue), offsetValue));
       return;
     }
 
-    String limitParam = ctx.request().getParam(PARAM_LIMIT); {
-      if (isRequestIntegerParamWrong(limitParam, false)) {
-        badRequest(ctx, String.format("'limit' parameter is incorrect. parameter value {%s} is not valid: must be an integer", limitParam));
-        return;
-      }
+    String limitValue = ctx.request().getParam(PARAM_LIMIT);
+    if (isRequestIntegerParamWrong(limitValue)) {
+      badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, "limit", limitValue), limitValue));
+      return;
     }
 
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
@@ -277,11 +278,11 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private boolean isRequestIntegerParamWrong(String paramToValidate, boolean isShouldCheckForNegativity) {
+  private boolean isRequestIntegerParamWrong(String paramToValidate) {
     if (paramToValidate != null) {
       try {
         int paramValue = Integer.parseInt(paramToValidate);
-        if (isShouldCheckForNegativity && paramValue < 0) {
+        if (paramValue < 0) {
           return true;
         }
       } catch (NumberFormatException nfe) {

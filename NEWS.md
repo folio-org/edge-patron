@@ -1,8 +1,13 @@
-## 4.7.0 IN-PROGRESS
+## 4.8.0 IN-PROGRESS
+
+## 4.7.0 2022-01-12
 
 * Removed UUID string pattern from RAML file, as module now uses externalSystemID to look up patron data [EDGPATRON-61] (https://issues.folio.org/browse/EDGPATRON-61)
 * Include API key parameter for every endpoint in RAML. [EDGPATRON-63](https://issues.folio.org/browse/EDGPATRON-63)
 * Update Log4j to 2.17.0. (CVE-2021-44228, CVE-2021-45105) ([EDGPATRON-67](https://issues.folio.org/browse/EDGPATRON-67), [EDGPATRON-74](https://issues.folio.org/browse/EDGPATRON-74))
+* [EDGPATRON-64](https://issues.folio.org/browse/EDGPATRON-64): Update interface circulation version to 12.0
+* [EDGPATRON-62](https://issues.folio.org/browse/EDGPATRON-62): Support new query arguments:  sortBy, limit, offset for patron account info endpoint
+* [EDGPATRON-72](https://issues.folio.org/browse/EDGPATRON-72): Inconsistent handling of invalid limit parameter
 
 ## 4.6.0 2021-09-27
 

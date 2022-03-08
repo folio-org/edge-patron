@@ -1,4 +1,6 @@
-## 4.8.0 IN-PROGRESS
+## 4.8.0 2022-03-08
+
+* Support circulation interface v13 (EDGPATRON-79)
 
 ## 4.7.0 2022-01-12
 

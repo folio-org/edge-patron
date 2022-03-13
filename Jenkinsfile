@@ -1,9 +1,9 @@
 buildMvn {
   publishModDescriptor = 'yes'
-  publishAPI = 'yes'
   mvnDeploy = 'yes'
 
   doApiLint = true
+  doApiDoc = true
   apiTypes = 'RAML'
   apiDirectories = 'ramls'
 

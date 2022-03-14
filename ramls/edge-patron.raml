@@ -86,7 +86,7 @@ types:
             description: Returns the user account info
             body:
               application/json:
-                schema: account
+                type: account
                 example: !include examples/account.json
           400:
             description: Bad request
@@ -134,7 +134,7 @@ types:
                   description: Returns the renewed loan data
                   body:
                     application/json:
-                      schema: loan
+                      type: loan
                       example: !include examples/loan.json
                 400:
                   description: Bad request
@@ -174,7 +174,7 @@ types:
                   type: string
               body:
                 application/json:
-                  schema: hold
+                  type: hold
                   example: !include examples/hold.json
               responses:
                 201:
@@ -182,7 +182,7 @@ types:
                     Returns data for a new hold request on the specified item
                   body:
                     application/json:
-                      schema: hold
+                      type: hold
                       example: !include examples/hold.json
                 400:
                   description: Bad request
@@ -229,7 +229,7 @@ types:
                   type: string
               body:
                 application/json:
-                  schema: hold
+                  type: hold
                   example: !include examples/hold.json
               responses:
                 201:
@@ -237,7 +237,7 @@ types:
                     Returns data for a new hold request on the selected item
                   body:
                     application/json:
-                      schema: hold
+                      type: hold
                       example: !include examples/hold.json
                 400:
                   description: Bad request
@@ -263,7 +263,7 @@ types:
                   description: Validation error
                   body:
                     application/json:
-                      schema : errors
+                      type : errors
                 500:
                   description: |
                     Internal server error, e.g. due to misconfiguration
@@ -290,14 +290,14 @@ types:
                   type: string
               body:
                 application/json:
-                  schema: hold-cancellation
+                  type: hold-cancellation
                   example: !include examples/hold-cancellation.json
               responses:
                 201:
                   description: The specified hold request was removed
                   body:
                     application/json:
-                      schema: hold
+                      type: hold
                       example: !include examples/hold.json
                 400:
                   description: Bad request

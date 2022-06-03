@@ -16,7 +16,7 @@ public class PatronIdHelper {
   }
 
   public static CompletableFuture<String> lookupPatron(PatronOkapiClient client, String tenant, String extPatronId) {
-    CompletableFuture<String> future = new CompletableFuture<String>();
+    CompletableFuture<String> future = new CompletableFuture<>();
 
     String patronId = null;
     try {

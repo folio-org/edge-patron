@@ -45,7 +45,7 @@ public class PatronOkapiClient extends OkapiClient {
   }
 
   public CompletableFuture<String> getPatron(String extPatronId) {
-    CompletableFuture<String> future = new CompletableFuture<String>();
+    CompletableFuture<String> future = new CompletableFuture<>();
 
     getPatron(
         extPatronId,

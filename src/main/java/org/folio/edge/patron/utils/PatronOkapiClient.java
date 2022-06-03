@@ -12,7 +12,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -46,7 +45,7 @@ public class PatronOkapiClient extends OkapiClient {
   }
 
   public CompletableFuture<String> getPatron(String extPatronId) {
-    VertxCompletableFuture<String> future = new VertxCompletableFuture<>(vertx);
+    CompletableFuture<String> future = new CompletableFuture<>();
 
     getPatron(
         extPatronId,

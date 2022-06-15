@@ -1,6 +1,10 @@
+## 4.9.0 2022-06-15
+
+* Fix header injection security vulnerability when tenant header is present in a request. ([EDGPATRON-89](https://issues.folio.org/browse/EDGPATRON-89))
+
 ## 4.8.0 2022-03-08
 
-* Support circulation interface v13 (EDGPATRON-79)
+* Support circulation interface v13 ([EDGPATRON-79](https://issues.folio.org/browse/EDGPATRON-79))
 
 ## 4.7.0 2022-01-12
 
@@ -21,7 +25,7 @@
 
 ## 4.4.0 2021-03-18
 
-* Introduces patron comments on requests (EDGPATRON-33)
+* Introduces patron comments on requests ([EDGPATRON-33](https://issues.folio.org/browse/EDGPATRON-33))
 * Requires `patron 4.2`
 * Required `circulation 9.5`
 

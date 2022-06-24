@@ -53,20 +53,20 @@ public class PatronOkapiClient extends OkapiClient {
           String bodyStr = resp.bodyAsString();
           logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
           if (status != 200) {
-            promise.fail(new PatronLookupException(bodyStr));
+            promise.tryFail(new PatronLookupException(bodyStr));
           } else {
             JsonObject json = resp.bodyAsJsonObject();
             try {
-              promise.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+              promise.tryComplete(json.getJsonArray("users").getJsonObject(0).getString("id"));
             } catch (Exception e) {
               logger.error("Exception parsing response from mod-users", e);
-              promise.fail(new PatronLookupException(e));
+              promise.tryFail(new PatronLookupException(e));
             }
           }
         },
         t -> {
           logger.error("Exception calling mod-users", t);
-          promise.fail(new PatronLookupException(t));
+          promise.tryFail(new PatronLookupException(t));
         });
     return promise.future();
   }

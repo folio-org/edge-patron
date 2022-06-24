@@ -18,7 +18,8 @@ import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,8 +27,6 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -672,17 +671,10 @@ public class PatronMockOkapi extends MockOkapi {
 
   public static String readMockFile(final String path) {
     try {
-      final InputStream is = PatronMockOkapi.class.getResourceAsStream(path);
-
-      if (is != null) {
-        return IOUtils.toString(is, "UTF-8");
-      } else {
-        return "";
-      }
-    } catch (Throwable e) {
-      logger.error(String.format("Unable to read mock configuration in %s file", path));
+      return new String(PatronMockOkapi.class.getResourceAsStream(path).readAllBytes(),
+          StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
-
-    return "";
   }
 }

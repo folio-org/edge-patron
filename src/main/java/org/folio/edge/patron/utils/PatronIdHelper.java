@@ -29,8 +29,8 @@ public class PatronIdHelper {
     }
 
     return client.getPatron(extPatronId)
-        .onSuccess(internalId -> logger.info(String.format("Patron lookup successful: %s -> %s", extPatronId, internalId)))
-        .onFailure(t -> logger.error("Patron lookup failed for " + extPatronId, t));
+        .onSuccess(internalId -> logger.info("Patron lookup successful: {} -> {}", extPatronId, internalId))
+        .onFailure(t -> logger.error("Patron lookup failed for {}", extPatronId, t));
   }
 
 }

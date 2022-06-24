@@ -136,7 +136,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceItemHold(RoutingContext ctx) {
-    final String body = checkDates(ctx.getBodyAsJson());
+    final String body = checkDates(ctx.body().asJsonObject());
     handleCommon(ctx,
         new String[] { PARAM_ITEM_ID },
         new String[] {},
@@ -150,7 +150,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handleCancelHold(RoutingContext ctx) {
-    String validationResult = validateCancelHoldRequest(ctx.getBodyAsJson());
+    String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());
     if ( validationResult != null) {
       final int errorStatusCode = 422;
       String errorMessage = get422ErrorMsg(errorStatusCode, constructValidationErrorMessage(validationResult));
@@ -168,7 +168,7 @@ public class PatronHandler extends Handler {
           ((PatronOkapiClient) client).cancelHold(
               params.get(PARAM_PATRON_ID),
               params.get(PARAM_HOLD_ID),
-              ctx.getBodyAsJson(),
+              ctx.body().asJsonObject(),
               ctx.request().headers().remove(CONTENT_LENGTH),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))
@@ -176,7 +176,7 @@ public class PatronHandler extends Handler {
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
-    final String body = checkDates(ctx.getBodyAsJson());
+    final String body = checkDates(ctx.body().asJsonObject());
     handleCommon(ctx,
         new String[] { PARAM_INSTANCE_ID },
         new String[] {},

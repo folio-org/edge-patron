@@ -67,8 +67,8 @@ public class PatronOkapiClientTest {
 
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
-    String patronId = client.getPatron(PatronMockOkapi.extPatronId).get();
-    assertEquals(PatronMockOkapi.patronId, patronId);
+    client.getPatron(PatronMockOkapi.extPatronId)
+    .onComplete(context.asyncAssertSuccess(patronId -> assertEquals(PatronMockOkapi.patronId, patronId)));
   }
 
   @Test
@@ -77,30 +77,24 @@ public class PatronOkapiClientTest {
 
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
-    try {
-      client.getPatron(PatronMockOkapi.extPatronId_notFound).get();
-      fail("Expected " + PatronLookupException.class.getName() + " to be thrown");
-    } catch (Exception e) {
-      if (!(e.getCause() instanceof PatronLookupException)) {
-        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getCause().getClass().getName());
-        throw e;
+    client.getPatron(PatronMockOkapi.extPatronId_notFound)
+    .onComplete(context.asyncAssertFailure(e -> {
+      if (!(e instanceof PatronLookupException)) {
+        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getClass().getName());
       }
-    }
+    }));
   }
 
   @Test
   public void testGetPatronInsufficientPrivs(TestContext context) throws Exception {
     logger.info("=== Test getPatron patron doesn't exist ===");
 
-    try {
-      client.getPatron(PatronMockOkapi.extPatronId).get();
-      fail("Expected " + PatronLookupException.class.getName() + " to be thrown");
-    } catch (Exception e) {
-      if (!(e.getCause() instanceof PatronLookupException)) {
-        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getCause().getClass().getName());
-        throw e;
+    client.getPatron(PatronMockOkapi.extPatronId)
+    .onComplete(context.asyncAssertFailure(e -> {
+      if (!(e instanceof PatronLookupException)) {
+        fail("Expected " + PatronLookupException.class.getName() + " got " + e.getClass().getName());
       }
-    }
+    }));
   }
 
   @Test

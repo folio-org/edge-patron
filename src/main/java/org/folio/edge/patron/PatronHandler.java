@@ -82,17 +82,16 @@ public class PatronHandler extends Handler {
       final PatronOkapiClient patronClient = new PatronOkapiClient(client);
 
       PatronIdHelper.lookupPatron(patronClient, client.tenant, extPatronId)
-        .thenAcceptAsync(patronId -> {
+        .onSuccess(patronId -> {
           params.put(PARAM_PATRON_ID, patronId);
           action.apply(patronClient, params);
         })
-        .exceptionally(t -> {
+        .onFailure(t -> {
           if (t instanceof TimeoutException) {
             requestTimeout(ctx, t.getMessage());
           } else {
             notFound(ctx, "Unable to find patron " + extPatronId);
           }
-          return null;
         });
     });
   }

@@ -1,15 +1,14 @@
 package org.folio.edge.patron.utils;
 
-import java.util.concurrent.CompletableFuture;
-
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
-
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.folio.edge.patron.model.Hold;
@@ -32,7 +31,7 @@ public class PatronOkapiClient extends OkapiClient {
     super(vertx, okapiURL, tenant, timeout);
   }
 
-  public void getPatron(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,
+  private void getPatron(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
     get(
         String.format("%s/users?query=externalSystemId==%s",
@@ -44,8 +43,8 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public CompletableFuture<String> getPatron(String extPatronId) {
-    CompletableFuture<String> future = new CompletableFuture<>();
+  public Future<String> getPatron(String extPatronId) {
+    Promise<String> promise = Promise.promise();
 
     getPatron(
         extPatronId,
@@ -54,22 +53,22 @@ public class PatronOkapiClient extends OkapiClient {
           String bodyStr = resp.bodyAsString();
           logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
           if (status != 200) {
-            future.completeExceptionally(new PatronLookupException(bodyStr));
+            promise.fail(new PatronLookupException(bodyStr));
           } else {
             JsonObject json = resp.bodyAsJsonObject();
             try {
-              future.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+              promise.complete(json.getJsonArray("users").getJsonObject(0).getString("id"));
             } catch (Exception e) {
               logger.error("Exception parsing response from mod-users", e);
-              future.completeExceptionally(new PatronLookupException(e));
+              promise.fail(new PatronLookupException(e));
             }
           }
         },
         t -> {
           logger.error("Exception calling mod-users", t);
-          future.completeExceptionally(new PatronLookupException(t));
+          promise.fail(new PatronLookupException(t));
         });
-    return future;
+    return promise.future();
   }
 
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges,

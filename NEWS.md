@@ -1,3 +1,11 @@
+## 4.9.1 2022-06-30
+
+* [EDGPATRON-15](https://issues.folio.org/browse/EDGPATRON-15): Fix sonar code smells
+* [EDGPATRON-90](https://issues.folio.org/browse/EDGPATRON-90): Broken logging: %d [%thread] %-5level %logger - %msg%n
+* [EDGPATRON-91](https://issues.folio.org/browse/EDGPATRON-91): Upgrade dependencies fixing DoS and HTTP Request Smuggling
+* [EDGPATRON-92](https://issues.folio.org/browse/EDGPATRON-92): Replace CompletableFuture with Future fixing spurious test failures
+* [EDGPATRON-93](https://issues.folio.org/browse/EDGPATRON-93): Replace IOUtils.toString by readAllBytes
+
 ## 4.9.0 2022-06-15
 
 * Fix header injection security vulnerability when tenant header is present in a request. ([EDGPATRON-89](https://issues.folio.org/browse/EDGPATRON-89))

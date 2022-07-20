@@ -7,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClient;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -71,15 +70,8 @@ public class PatronOkapiClient extends OkapiClient {
     return promise.future();
   }
 
-  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges,
-      boolean includeHolds, String sortBy, String limit, String offset, Handler<HttpResponse<Buffer>> responseHandler,
-      Handler<Throwable> exceptionHandler) {
-    getAccount(patronId, includeLoans, includeCharges, includeHolds, sortBy, limit, offset, null,
-      responseHandler, exceptionHandler);
-  }
-
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,
-      String sortBy, String limit, String offset, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
+      String sortBy, String limit, String offset, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
     String url = String.format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
       okapiURL,
@@ -100,62 +92,36 @@ public class PatronOkapiClient extends OkapiClient {
     get(
         url,
         tenant,
-        combineHeadersWithDefaults(headers),
+        null,
         responseHandler,
         exceptionHandler);
   }
 
   public void renewItem(String patronId, String itemId,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    renewItem(patronId, itemId, null, responseHandler, exceptionHandler);
-  }
-
-  public void renewItem(String patronId, String itemId, MultiMap headers,
-      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
         String.format("%s/patron/account/%s/item/%s/renew", okapiURL, patronId, itemId),
         tenant,
         null,
-        combineHeadersWithDefaults(headers),
+        null,
         responseHandler,
         exceptionHandler);
   }
 
   public void placeItemHold(String patronId, String itemId, String requestBody,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    placeItemHold(patronId,
-        itemId,
+    post(
+        String.format("%s/patron/account/%s/item/%s/hold", okapiURL, patronId, itemId),
+        tenant,
         requestBody,
         null,
         responseHandler,
         exceptionHandler);
   }
 
-  public void placeItemHold(String patronId, String itemId, String requestBody, MultiMap headers,
-      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    post(
-        String.format("%s/patron/account/%s/item/%s/hold", okapiURL, patronId, itemId),
-        tenant,
-        requestBody,
-        combineHeadersWithDefaults(headers),
-        responseHandler,
-        exceptionHandler);
-  }
-
-  public void cancelHold(String patronId, String holdId, JsonObject requestBody,
+  public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    cancelHold(patronId,
-        holdId,
-        requestBody,
-      null,
-      responseHandler,
-      exceptionHandler);
-  }
-
-  public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest, MultiMap headers,
-      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     getRequest(holdId,
-      headers,
       resp -> {
         if (resp.statusCode() == 200) {
           String bodyStr = resp.bodyAsString();
@@ -166,7 +132,7 @@ public class PatronOkapiClient extends OkapiClient {
               String.format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
               tenant,
               holdEntity.toJson(),
-              combineHeadersWithDefaults(headers),
+              null,
               responseHandler,
               exceptionHandler);
           } catch (Exception ex) {
@@ -183,39 +149,23 @@ public class PatronOkapiClient extends OkapiClient {
   public void getRequest(String holdId, Handler<HttpResponse<Buffer>> responseHandler,
                       Handler<Throwable> exceptionHandler) {
 
-    getRequest(holdId, null, responseHandler, exceptionHandler);
-  }
-
-  public void getRequest(String holdId, MultiMap headers,
-                      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-
     String url = String.format("%s/circulation/requests/%s", okapiURL, holdId);
 
     get(
       url,
       tenant,
-      combineHeadersWithDefaults(headers),
+      null,
       responseHandler,
       exceptionHandler);
   }
 
   public void placeInstanceHold(String patronId, String instanceId, String requestBody,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    placeInstanceHold(patronId,
-        instanceId,
-        requestBody,
-        null,
-        responseHandler,
-        exceptionHandler);
-  }
-
-  public void placeInstanceHold(String patronId, String instanceId, String requestBody, MultiMap headers,
-      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
         String.format("%s/patron/account/%s/instance/%s/hold", okapiURL, patronId, instanceId),
         tenant,
         requestBody,
-        combineHeadersWithDefaults(headers),
+        null,
         responseHandler,
         exceptionHandler);
   }

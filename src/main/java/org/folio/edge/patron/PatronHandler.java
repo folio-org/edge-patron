@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.TimeoutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -87,7 +86,7 @@ public class PatronHandler extends Handler {
           action.apply(patronClient, params);
         })
         .onFailure(t -> {
-          if (t instanceof TimeoutException) {
+          if (isTimeoutException(t)) {
             requestTimeout(ctx, t.getMessage());
           } else {
             notFound(ctx, "Unable to find patron " + extPatronId);
@@ -116,7 +115,6 @@ public class PatronHandler extends Handler {
               sortBy,
               limit,
               offset,
-              ctx.request().headers(),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t));
         });
@@ -129,7 +127,6 @@ public class PatronHandler extends Handler {
         (client, params) -> ((PatronOkapiClient) client).renewItem(
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
-            ctx.request().headers(),
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
 
@@ -144,7 +141,6 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_ITEM_ID),
             body,
-            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -169,7 +165,6 @@ public class PatronHandler extends Handler {
               params.get(PARAM_PATRON_ID),
               params.get(PARAM_HOLD_ID),
               ctx.body().asJsonObject(),
-              ctx.request().headers().remove(CONTENT_LENGTH),
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))
         );
@@ -184,7 +179,6 @@ public class PatronHandler extends Handler {
             params.get(PARAM_PATRON_ID),
             params.get(PARAM_INSTANCE_ID),
             body,
-            ctx.request().headers().remove(CONTENT_LENGTH), //removing content-length header here as the new message's size isn't the same it was originally
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
   }
@@ -264,7 +258,7 @@ public class PatronHandler extends Handler {
   @Override
   protected void handleProxyException(RoutingContext ctx, Throwable t) {
     logger.error("Exception calling OKAPI", t);
-    if (t instanceof TimeoutException) {
+    if (isTimeoutException(t)) {
       requestTimeout(ctx, t.getMessage());
     } else {
       internalServerError(ctx, t.getMessage());

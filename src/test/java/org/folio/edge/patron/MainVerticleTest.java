@@ -6,9 +6,9 @@ import static org.folio.edge.core.Constants.SYS_LOG_LEVEL;
 import static org.folio.edge.core.Constants.SYS_OKAPI_URL;
 import static org.folio.edge.core.Constants.SYS_PORT;
 import static org.folio.edge.core.Constants.SYS_REQUEST_TIMEOUT_MS;
+import static org.folio.edge.core.Constants.SYS_RESPONSE_COMPRESSION;
 import static org.folio.edge.core.Constants.SYS_SECURE_STORE_PROP_FILE;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
-import static org.folio.edge.core.utils.test.MockOkapi.X_DURATION;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
@@ -20,9 +20,9 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellat
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -49,6 +49,7 @@ import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.utils.PatronMockOkapi;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -56,11 +57,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.restassured.RestAssured;
+import io.restassured.config.DecoderConfig;
+import io.restassured.config.DecoderConfig.ContentDecoder;
 import io.restassured.response.Response;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
@@ -91,19 +93,22 @@ public class MainVerticleTest {
     List<String> knownTenants = new ArrayList<>();
     knownTenants.add(ApiKeyUtils.parseApiKey(apiKey).tenantId);
 
-    mockOkapi = spy(new PatronMockOkapi(okapiPort, knownTenants));
-    mockOkapi.start(context);
-
     vertx = Vertx.vertx();
 
     System.setProperty(SYS_PORT, String.valueOf(serverPort));
     System.setProperty(SYS_OKAPI_URL, "http://localhost:" + okapiPort);
     System.setProperty(SYS_SECURE_STORE_PROP_FILE, "src/main/resources/ephemeral.properties");
     System.setProperty(SYS_LOG_LEVEL, "DEBUG");
+    System.setProperty(SYS_RESPONSE_COMPRESSION, "true");
     System.setProperty(SYS_REQUEST_TIMEOUT_MS, String.valueOf(requestTimeoutMs));
 
-    final DeploymentOptions opt = new DeploymentOptions();
-    vertx.deployVerticle(MainVerticle.class.getName(), opt, context.asyncAssertSuccess());
+    mockOkapi = spy(new PatronMockOkapi(okapiPort, knownTenants));
+    mockOkapi.start()
+    .compose(x -> {
+      final DeploymentOptions opt = new DeploymentOptions();
+      return vertx.deployVerticle(MainVerticle.class.getName(), opt);
+    })
+    .onComplete(context.asyncAssertSuccess());
 
     RestAssured.baseURI = "http://localhost:" + serverPort;
     RestAssured.port = serverPort;
@@ -113,19 +118,15 @@ public class MainVerticleTest {
   @AfterClass
   public static void tearDownOnce(TestContext context) {
     logger.info("Shutting down server");
-    final Async async = context.async();
-    vertx.close(res -> {
-      if (res.failed()) {
-        logger.error("Failed to shut down edge-patron server", res.cause());
-        fail(res.cause().getMessage());
-      } else {
-        logger.info("Successfully shut down edge-patron server");
-      }
+    mockOkapi.close()
+    .compose(x -> vertx.close())
+    .onSuccess(x -> logger.info("Successfully shut down mock Okapi and edge-patron server"))
+    .onComplete(context.asyncAssertSuccess());
+  }
 
-      logger.info("Shutting down mock Okapi");
-      mockOkapi.close(context);
-      async.complete();
-    });
+  @After
+  public void after() {
+    mockOkapi.setDelay(0);
   }
 
   @Test
@@ -187,18 +188,48 @@ public class MainVerticleTest {
   public void testGetAccountPatronFound(TestContext context) throws Exception {
     logger.info("=== Test request where patron is found ===");
 
-    final Response resp = RestAssured
+    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+
+    RestAssured
+    .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
+    .then()
+    .statusCode(200)
+    .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+    .body(is(expected));
+  }
+
+  @Test
+  public void testGetAccountPatronFoundGzip(TestContext context) throws Exception {
+    logger.info("=== Patron in GZip compression ===");
+
+    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+
+    RestAssured.given()
+      .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.GZIP)))
+    .when()
       .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
-      .then()
+    .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .extract()
-      .response();
+      .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+      .body(is(expected));
+  }
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
-    String actual = resp.body().asString();
+  @Test
+  public void testGetAccountPatronFoundDeflate(TestContext context) throws Exception {
+    logger.info("=== Patron in Deflate compression ===");
 
-    assertEquals(expected, actual);
+    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+
+    RestAssured.given()
+      .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.DEFLATE)))
+    .when()
+      .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
+    .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .header(HttpHeaders.CONTENT_ENCODING, "deflate")
+      .body(is(expected));
   }
 
   @Test
@@ -428,20 +459,14 @@ public class MainVerticleTest {
   public void testGetAccountRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test getAccount request timeout ===");
 
-    int expectedStatusCode = 408;
-    final Response resp = RestAssured
-      .with()
-      .header(X_DURATION, requestTimeoutMs * 3)
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .get(String.format("/patron/account/%s?apikey=%s", patronId, apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-      ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-      assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-      assertEquals(expectedStatusCode, msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test
@@ -547,22 +572,15 @@ public class MainVerticleTest {
   public void testRenewRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test renew request timeout ===");
 
-    int expectedStatusCode = 408;
-
-    final Response resp = RestAssured
-      .with()
-      .header(X_DURATION, requestTimeoutMs * 3)
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId,
           apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test
@@ -757,25 +775,20 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
-    int expectedStatusCode = 408;
 
-    final Response resp = RestAssured
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .with()
       .body(hold.toJson())
-      .header(X_DURATION, requestTimeoutMs * 3)
       .contentType(APPLICATION_JSON)
       .post(
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-    assertEquals(expectedStatusCode,  msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test
@@ -984,25 +997,20 @@ public class MainVerticleTest {
     logger.info("=== Test place item hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
-    int expectedStatusCode = 408;
 
-    final Response resp = RestAssured
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .with()
       .body(hold.toJson())
-      .header(X_DURATION, requestTimeoutMs * 3)
       .contentType(APPLICATION_JSON)
       .post(
           String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test
@@ -1201,27 +1209,21 @@ public class MainVerticleTest {
   @Test
   public void testCancelHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test cancel hold request timeout ===");
-    int expectedStatusCode = 408;
 
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId);
 
-    final Response resp = RestAssured
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .with()
-      .header(X_DURATION, requestTimeoutMs * 3)
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId, holdCancellationHoldId,
           apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test
@@ -1349,24 +1351,19 @@ public class MainVerticleTest {
   public void testEditHoldRequestTimeout(TestContext context) throws Exception {
     logger.info("=== Test edit hold request timeout ===");
 
-    int expectedStatusCode = 408;
     String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
 
-    final Response resp = RestAssured
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
       .with()
       .contentType(APPLICATION_JSON)
-      .header(X_DURATION, requestTimeoutMs * 3)
       .body(canceledHold)
       .post(String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId, holdId, apiKey))
       .then()
       .contentType(APPLICATION_JSON)
-      .statusCode(expectedStatusCode)
-      .extract()
-      .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(MSG_REQUEST_TIMEOUT, msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
+      .statusCode(408)
+      .body("code", is(408))
+      .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
   }
 
   @Test

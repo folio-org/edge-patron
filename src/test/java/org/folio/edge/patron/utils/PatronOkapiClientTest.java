@@ -50,7 +50,8 @@ public class PatronOkapiClientTest {
     knownTenants.add(tenant);
 
     mockOkapi = new PatronMockOkapi(okapiPort, knownTenants);
-    mockOkapi.start(context);
+    mockOkapi.start()
+    .onComplete(context.asyncAssertSuccess());
 
     client = new PatronOkapiClientFactory(Vertx.vertx(), "http://localhost:" + okapiPort, reqTimeout)
       .getPatronOkapiClient(tenant);
@@ -58,7 +59,8 @@ public class PatronOkapiClientTest {
 
   @After
   public void tearDown(TestContext context) {
-    mockOkapi.close(context);
+    mockOkapi.close()
+    .onComplete(context.asyncAssertSuccess());
   }
 
   @Test

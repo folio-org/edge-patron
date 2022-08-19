@@ -1,3 +1,7 @@
+## 4.9.2 2022-08-19
+
+* [EDGPATRON-96](https://issues.folio.org/browse/EDGPATRON-96): Suppress headers, edge-common 4.4.0, fix timeout, enable compression
+
 ## 4.9.1 2022-06-30
 
 * [EDGPATRON-15](https://issues.folio.org/browse/EDGPATRON-15): Fix sonar code smells

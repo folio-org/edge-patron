@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>edge-patron</artifactId>
-  <version>4.9.2-SNAPSHOT</version>
+  <version>4.9.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Edge API - Patron Empowerment</name>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>4.3.0</version>
+      <version>4.4.0</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->

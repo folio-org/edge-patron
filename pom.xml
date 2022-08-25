@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>edge-patron</artifactId>
-  <version>4.9.3-SNAPSHOT</version>
+  <version>4.9.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Edge API - Patron Empowerment</name>
@@ -33,7 +33,7 @@
 
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
-    <vertx.version>4.3.1</vertx.version>
+    <vertx.version>4.3.3</vertx.version>
   </properties>
 
   <dependencyManagement>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>4.4.0</version>
+      <version>4.4.1</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->

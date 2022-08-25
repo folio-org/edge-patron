@@ -1,3 +1,7 @@
+## 4.9.3 2022-08-24
+
+* [EDGPATRON-99](https://issues.folio.org/browse/EDGPATRON-99) Bump to Vert.x 4.3.3 and edge-common 4.4.1
+
 ## 4.9.2 2022-08-19
 
 * [EDGPATRON-96](https://issues.folio.org/browse/EDGPATRON-96): Suppress headers, edge-common 4.4.0, fix timeout, enable compression

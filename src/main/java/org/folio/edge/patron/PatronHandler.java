@@ -85,6 +85,7 @@ public class PatronHandler extends Handler {
           action.apply(patronClient, params);
         })
         .onFailure(t -> {
+          logger.error("Error retrieving user data from cache or mod-user");
           if (isTimeoutException(t)) {
             requestTimeout(ctx, t.getMessage());
           } else {
@@ -256,7 +257,7 @@ public class PatronHandler extends Handler {
 
   @Override
   protected void handleProxyException(RoutingContext ctx, Throwable t) {
-    logger.error("Exception calling OKAPI", t);
+    logger.error("Exception retrieving data from mod-patron:", t);
     if (isTimeoutException(t)) {
       requestTimeout(ctx, t.getMessage());
     } else {

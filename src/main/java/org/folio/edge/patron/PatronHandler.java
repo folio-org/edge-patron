@@ -85,7 +85,7 @@ public class PatronHandler extends Handler {
           action.apply(patronClient, params);
         })
         .onFailure(t -> {
-          logger.error("Error retrieving user data from cache or mod-user");
+          logger.error("Error retrieving user data from cache or mod-user: ", t);
           if (isTimeoutException(t)) {
             requestTimeout(ctx, t.getMessage());
           } else {

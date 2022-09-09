@@ -199,6 +199,13 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testGetPatronInfoPatronFoung(TestContext context) throws Exception {
+    logger.info("=== Test request where patron's info is found ===");
+
+
+  }
+
+  @Test
   public void testGetAccountPatronFoundGzip(TestContext context) throws Exception {
     logger.info("=== Patron in GZip compression ===");
 

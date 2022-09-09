@@ -42,32 +42,48 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public Future<String> getPatron(String extPatronId) {
+  public Future<String> getPatronId(String extPatronId) {
     Promise<String> promise = Promise.promise();
 
     getPatron(
-        extPatronId,
-        resp -> {
-          int status = resp.statusCode();
-          String bodyStr = resp.bodyAsString();
-          logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
-          if (status != 200) {
-            promise.tryFail(new PatronLookupException(bodyStr));
-          } else {
-            JsonObject json = resp.bodyAsJsonObject();
-            try {
-              promise.tryComplete(json.getJsonArray("users").getJsonObject(0).getString("id"));
-            } catch (Exception e) {
-              logger.error("Exception parsing response from mod-users", e);
-              promise.tryFail(new PatronLookupException(e));
-            }
+      extPatronId,
+      resp -> {
+        int status = resp.statusCode();
+        String bodyStr = resp.bodyAsString();
+        logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
+        if (status != 200) {
+          promise.tryFail(new PatronLookupException(bodyStr));
+        } else {
+          JsonObject json = resp.bodyAsJsonObject();
+          try {
+            promise.tryComplete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+          } catch (Exception e) {
+            logger.error("Exception parsing response from mod-users", e);
+            promise.tryFail(new PatronLookupException(e));
           }
-        },
-        t -> {
-          logger.error("Exception calling mod-users", t);
-          promise.tryFail(new PatronLookupException(t));
-        });
+        }
+      },
+      t -> {
+        logger.error("Exception calling mod-users", t);
+        promise.tryFail(new PatronLookupException(t));
+      });
     return promise.future();
+  }
+
+  public void getPatronInfo(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,
+                        Handler<Throwable> exceptionHandler) {
+    get(String.format("%s/users?query=externalSystemId==%s",
+        okapiURL,
+        extPatronId),
+      tenant,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
+  public void changePatronData(String patronId, String requestBody,
+      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+        //TODO PUT to /users/:patronId
   }
 
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,

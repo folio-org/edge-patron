@@ -182,6 +182,20 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
+  public void handleGetPatron(RoutingContext ctx) {
+    super.handleCommon(ctx, new String[] {}, new String[] {}, (client, params) -> {
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client);
+      patronClient.getPatronInfo(
+        params.get(PARAM_PATRON_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t));
+    });
+  }
+
+  public void handleChangePatronData(RoutingContext ctx) {
+    //TODO
+  }
+
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);

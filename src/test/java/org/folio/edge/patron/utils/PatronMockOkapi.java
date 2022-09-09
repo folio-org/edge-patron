@@ -31,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Charge;
-import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.*;
 import org.folio.edge.patron.model.Hold.Status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,10 +42,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.folio.edge.patron.model.HoldCancellation;
-import org.folio.edge.patron.model.Item;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.Money;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -486,6 +480,12 @@ public class PatronMockOkapi extends MockOkapi {
     return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds);
   }
 
+  public static String getPatronInfoJson(String patronId) {
+    Patron.Builder ptrnbldr = Patron.builder().id(patronId);
+    //TODO
+    return builderToJson(ptrnbldr);
+  }
+
   public static String getAccountWithSingleItemsJson(String patronId, boolean includeLoans, boolean includeCharges,
     boolean includeHolds) {
 
@@ -517,6 +517,16 @@ public class PatronMockOkapi extends MockOkapi {
       ret = acctBldr.build().toJson(includeLoans, includeCharges, includeHolds);
     } catch (JsonProcessingException e) {
       logger.warn("Failed to generate Account JSON", e);
+    }
+    return ret;
+  }
+
+  private static String builderToJson(Patron.Builder ptrnBldr) {
+    String ret = null;
+    try {
+      ret = ptrnBldr.build().toJson();
+    } catch (JsonProcessingException e) {
+      logger.warn("Failed to generate Patron JSON", e);
     }
     return ret;
   }

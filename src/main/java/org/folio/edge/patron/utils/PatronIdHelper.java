@@ -28,7 +28,7 @@ public class PatronIdHelper {
       return Future.succeededFuture(patronId);
     }
 
-    return client.getPatron(extPatronId)
+    return client.getPatronId(extPatronId)
         .onSuccess(internalId -> logger.info("Patron lookup successful: {} -> {}", extPatronId, internalId))
         .onFailure(t -> logger.error("Patron lookup failed for {}", extPatronId, t));
   }

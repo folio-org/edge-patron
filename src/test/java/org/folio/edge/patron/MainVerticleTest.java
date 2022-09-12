@@ -11,6 +11,7 @@ import static org.folio.edge.core.Constants.SYS_SECURE_STORE_PROP_FILE;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
@@ -792,6 +793,24 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPlaceInstanceHoldNoBody(TestContext context) throws Exception {
+    logger.info("=== Test place instance hold request with no request body ===");
+
+    mockOkapi.setDelay(requestTimeoutMs * 3);
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .post(
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
+              apiKey))
+      .then()
+      .contentType(APPLICATION_JSON)
+      .statusCode(400)
+      .body("code", is(400))
+      .body("errorMessage", is(MSG_HOLD_NOBODY));
+  }
+
+  @Test
   public void testPlaceItemHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test successful item hold ===");
 
@@ -1011,6 +1030,23 @@ public class MainVerticleTest {
       .statusCode(408)
       .body("code", is(408))
       .body("errorMessage", is(MSG_REQUEST_TIMEOUT));
+  }
+
+  @Test
+  public void testPlaceItemHoldRequestNoBody(TestContext context) throws Exception {
+    logger.info("=== Test place item hold request with no request body ===");
+
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .post(
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
+              apiKey))
+      .then()
+      .contentType(APPLICATION_JSON)
+      .statusCode(400)
+      .body("code", is(400))
+      .body("errorMessage", is(MSG_HOLD_NOBODY));
   }
 
   @Test

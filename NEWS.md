@@ -1,3 +1,7 @@
+## 4.10.0 IN-PROGRESS
+
+* Hold requests without a JSON body will now trigger a 400 error rather than a 500. (EDGPATRON-102) 
+
 ## 4.9.0 2022-06-15
 
 * Fix header injection security vulnerability when tenant header is present in a request. ([EDGPATRON-89](https://issues.folio.org/browse/EDGPATRON-89))

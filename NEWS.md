@@ -1,6 +1,10 @@
-## 4.10.0 IN-PROGRESS
+## 4.10.0 2022-10-19
 
-* Hold requests without a JSON body will now trigger a 400 error rather than a 500. (EDGPATRON-102) 
+* Hold requests without a JSON body will now trigger a 400 error rather than a 500. ([EDGPATRON-102](https://issues.folio.org/browse/EDGPATRON-102))
+* Improve error logging for external requests ([EDGPATRON-101](https://issues.folio.org/browse/EDGPATRON-101))
+* Upgrade dependencies fixing DoS and HTTP Request Smuggling ([EDGPATRON-91](https://issues.folio.org/browse/EDGPATRON-91))
+* Replace CompletableFuture with Future, fix spurious failures ([EDGPATRON-92](https://issues.folio.org/browse/EDGPATRON-92))
+* Broken logging: `%d [%thread] %-5level %logger - %msg%n` ([EDGPATRON-90](https://issues.folio.org/browse/EDGPATRON-90))
 
 ## 4.9.0 2022-06-15
 

@@ -39,7 +39,6 @@ public class MainVerticle extends EdgeVerticleHttp {
         : DEFAULT_PATRON_ID_CACHE_CAPACITY;
     logger.info("Using patronId cache capacity: " + patronIdCacheCapacity);
 
-    // initialize the TokenCache
     PatronIdCache.initialize(cacheTtlMs, failureCacheTtlMs, cacheCapacity);
   }
 

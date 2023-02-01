@@ -3,7 +3,6 @@ package org.folio.edge.patron.utils;
 import io.vertx.core.Future;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.cache.TokenCache.NotInitializedException;
 import org.folio.edge.patron.cache.PatronIdCache;
 
 public class PatronIdHelper {
@@ -19,7 +18,7 @@ public class PatronIdHelper {
     try {
       PatronIdCache cache = PatronIdCache.getInstance();
       patronId = cache.get(tenant, extPatronId);
-    } catch (NotInitializedException e) {
+    } catch (PatronIdCache.NotInitializedException e) {
       logger.warn("Failed to access PatronIdCache", e);
     }
 

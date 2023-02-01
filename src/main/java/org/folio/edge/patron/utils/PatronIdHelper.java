@@ -18,7 +18,7 @@ public class PatronIdHelper {
     try {
       PatronIdCache cache = PatronIdCache.getInstance();
       patronId = cache.get(tenant, extPatronId);
-    } catch (PatronIdCache.NotInitializedException e) {
+    } catch (PatronIdCache.PatronIdCacheNotInitializedException e) {
       logger.warn("Failed to access PatronIdCache", e);
     }
 

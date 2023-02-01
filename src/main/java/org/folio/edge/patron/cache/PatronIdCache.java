@@ -26,16 +26,16 @@ public class PatronIdCache {
   }
 
   /**
-   * Get the PatronIdCache singleton. the singleton must be initialize before
+   * Get the PatronIdCache singleton. the singleton must be initialized before
    * calling this method.
    *
-   * @see {@link #initialize(long, int)}
+   * @see {@link #initialize(long, long, int)}
    *
    * @return the PatronIdCache singleton instance.
    */
   public static synchronized PatronIdCache getInstance() {
     if (instance == null) {
-      throw new NotInitializedException(
+      throw new PatronIdCacheNotInitializedException(
           "You must call PatronIdCache.initialize(ttl, capacity) before you can get the singleton instance");
     }
     return instance;
@@ -71,11 +71,11 @@ public class PatronIdCache {
     return String.format("%s:%s", tenant, externalId);
   }
 
-  public static class NotInitializedException extends RuntimeException {
+  public static class PatronIdCacheNotInitializedException extends RuntimeException {
 
     private static final long serialVersionUID = 4747532964596334577L;
 
-    public NotInitializedException(String msg) {
+    public PatronIdCacheNotInitializedException(String msg) {
       super(msg);
     }
   }

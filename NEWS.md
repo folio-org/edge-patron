@@ -1,3 +1,7 @@
+## 4.11.0 2023-02-15
+
+* Upgrade to edge-common 4.4.2 ([EDGPATRON-106](https://issues.folio.org/browse/EDGPATRON-106))
+
 ## 4.10.0 2022-10-19
 
 * Hold requests without a JSON body will now trigger a 400 error rather than a 500. ([EDGPATRON-102](https://issues.folio.org/browse/EDGPATRON-102))

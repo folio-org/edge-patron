@@ -41,7 +41,7 @@
     },
     "patronGroupId": "6e50e769-3e07-45f5-a7e2-d83f13d7402b"
   },
-  "fulfilmentPreference": "Hold Shelf",
+  "fulfillmentPreference": "Hold Shelf",
   "pickupServicePointId": "3a40852d-49fd-4df2-a1f9-6e2641a6e91f",
   "metadata": {
     "createdDate": "2019-09-19T19:47:12.508+0000",

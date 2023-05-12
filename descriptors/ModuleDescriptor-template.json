@@ -5,11 +5,11 @@
   "requires": [
     {
       "id": "patron",
-      "version": "4.2"
+      "version": "4.2 6.0"
     },
     {
       "id": "circulation",
-      "version": "9.5 10.0 11.0 12.0 13.0"
+      "version": "9.5 10.0 11.0 12.0 13.0 14.0"
     },
     {
       "id": "login",

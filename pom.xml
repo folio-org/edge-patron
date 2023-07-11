@@ -34,6 +34,7 @@
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
     <vertx.version>4.3.5</vertx.version>
+    <java.version>17</java.version>
   </properties>
 
   <dependencyManagement>
@@ -312,9 +313,9 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.10.1</version>
         <configuration>
-          <release>11</release>
+          <release>17</release>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>

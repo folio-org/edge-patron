@@ -78,9 +78,10 @@ public class PatronHandler extends Handler {
     }
 
     super.handleCommon(ctx, requiredParams, optionalParams, (client, params) -> {
-      final PatronOkapiClient patronClient = new PatronOkapiClient(client);
+      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
 
-      PatronIdHelper.lookupPatron(patronClient, client.tenant, extPatronId)
+      PatronIdHelper.lookupPatron(patronClient, alternateTenantId, extPatronId)
         .onSuccess(patronId -> {
           params.put(PARAM_PATRON_ID, patronId);
           action.apply(patronClient, params);

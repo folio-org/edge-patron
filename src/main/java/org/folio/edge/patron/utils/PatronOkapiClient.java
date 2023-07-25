@@ -22,12 +22,12 @@ public class PatronOkapiClient extends OkapiClient {
 
   private static final Logger logger = LogManager.getLogger(PatronOkapiClient.class);
 
-  public PatronOkapiClient(OkapiClient client) {
-    super(client);
+  public PatronOkapiClient(OkapiClient client, String alternateTenantId) {
+    super(client, alternateTenantId);
   }
 
-  protected PatronOkapiClient(Vertx vertx, String okapiURL, String tenant, int timeout) {
-    super(vertx, okapiURL, tenant, timeout);
+  protected PatronOkapiClient(Vertx vertx, String okapiURL, String tenantId, String alternateTenantId, int timeout) {
+    super(vertx, okapiURL, tenantId, alternateTenantId, timeout);
   }
 
   private void getPatron(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,

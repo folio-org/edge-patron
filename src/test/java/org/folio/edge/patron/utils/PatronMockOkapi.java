@@ -143,6 +143,10 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
 
+    router.route(HttpMethod.GET,
+        "/patron/account/:patronId/instance/:instanceId/allowed-service-points")
+      .handler(this::getAllowedServicePoints);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(this::cancelHoldHandler);
 
@@ -428,6 +432,28 @@ public class PatronMockOkapi extends MockOkapi {
           .setStatusCode(201)
           .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
           .end(getPlacedHoldJson(hold));
+    }
+  }
+
+  public void getAllowedServicePoints(RoutingContext ctx) {
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_error_mod_patron.json"));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_mod_patron_expected_response.json"));
     }
   }
 

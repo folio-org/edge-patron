@@ -146,6 +146,13 @@ public class PatronOkapiClient extends OkapiClient {
     );
   }
 
+  public void getAllowedServicePoints(String patronId, String instanceId,
+    Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    get(String.format("%s/patron/account/%s/instance/%s/allowed-service-points", okapiURL,
+      patronId, instanceId), tenant, null, responseHandler, exceptionHandler);
+  }
+
   public void getRequest(String holdId, Handler<HttpResponse<Buffer>> responseHandler,
                       Handler<Throwable> exceptionHandler) {
 

@@ -192,6 +192,17 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
+  public void handleGetAllowedServicePoints(RoutingContext ctx) {
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).getAllowedServicePoints(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_INSTANCE_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);

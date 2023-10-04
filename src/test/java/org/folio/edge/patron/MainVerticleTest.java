@@ -15,11 +15,13 @@ import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
+import static org.folio.edge.patron.utils.PatronMockOkapi.instanceId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
+import static org.folio.edge.patron.utils.PatronMockOkapi.readMockFile;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -64,6 +66,7 @@ import io.restassured.response.Response;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
@@ -1047,6 +1050,46 @@ public class MainVerticleTest {
       .statusCode(400)
       .body("code", is(400))
       .body("errorMessage", is(MSG_HOLD_NOBODY));
+  }
+
+  @Test
+  public void testAllowedServicePointsSuccess(TestContext context) throws Exception {
+    logger.info("=== Test successful allowed service points request ===");
+
+    final Response resp = RestAssured
+      .with()
+      .get(String.format("/patron/account/%s/instance/%s/allowed-service-points?apikey=%s",
+        patronId, instanceId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_mod_patron_expected_response.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testAllowedServicePointsError(TestContext context) throws Exception {
+    logger.info("=== Test validation error during allowed service points request ===");
+
+    final Response resp = RestAssured
+      .with()
+      .get(String.format("/patron/account/%s/instance/%s/allowed-service-points?apikey=%s",
+        patronId, instanceId_notFound, apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_error_edge_patron.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
   }
 
   @Test

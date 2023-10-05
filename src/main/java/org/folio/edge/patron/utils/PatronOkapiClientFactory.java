@@ -11,6 +11,6 @@ public class PatronOkapiClientFactory extends OkapiClientFactory {
   }
 
   public PatronOkapiClient getPatronOkapiClient(String tenant) {
-    return new PatronOkapiClient(vertx, okapiURL, tenant, reqTimeoutMs);
+    return new PatronOkapiClient(vertx, okapiURL, tenant, "", reqTimeoutMs);
   }
 }

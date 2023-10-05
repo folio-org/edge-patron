@@ -100,7 +100,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>4.4.2</version>
+      <version>4.5.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->
@@ -312,9 +312,9 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.10.1</version>
         <configuration>
-          <release>11</release>
+          <release>17</release>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>

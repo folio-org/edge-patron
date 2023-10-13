@@ -1,3 +1,11 @@
+## 5.0.0 2023-10-13
+
+* Add allowed-service-points endpoint ([EDGPATRON-119](https://issues.folio.org/browse/EDGPATRON-119))
+* Support Consortium Authentication & Routing ([EDGPATRON-114](https://issues.folio.org/browse/EDGPATRON-114))
+* Fix `patron` interface version ([EDGPATRON-113](https://issues.folio.org/browse/EDGPATRON-113))
+* Use GitHub Workflows api-lint and api-schema-lint and api-doc ([EDGPATRON-112](https://issues.folio.org/browse/EDGPATRON-112))
+* Updating `patron`, `circulation` interfaces ([EDGPATRON-113](https://issues.folio.org/browse/EDGPATRON-113))
+
 ## 4.11.0 2023-02-15
 
 * Upgrade to edge-common 4.4.2 ([EDGPATRON-106](https://issues.folio.org/browse/EDGPATRON-106))

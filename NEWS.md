@@ -1,3 +1,7 @@
+## 5.0.1 2023-11-06
+
+* Vert.x 4.4.6, Netty 4.1.100.Final ([EDGPATRON-123](https://issues.folio.org/browse/EDGPATRON-123))
+
 ## 5.0.0 2023-10-13
 
 * Add allowed-service-points endpoint ([EDGPATRON-119](https://issues.folio.org/browse/EDGPATRON-119))

@@ -1,6 +1,7 @@
-## 5.0.1 2023-11-06
+## 5.1.0 2024-03-21
 
-* Vert.x 4.4.6, Netty 4.1.100.Final ([EDGPATRON-123](https://issues.folio.org/browse/EDGPATRON-123))
+* Upgrade to Vert.x 4.5.5, log4j-bom 2.23.0 ([EDGEPATRON-128](https://folio-org.atlassian.net/browse/EDGPATRON-128))
+* Upgrade to Vert.x 4.4.6, Netty 4.1.100.Final ([EDGPATRON-123](https://issues.folio.org/browse/EDGPATRON-123))
 
 ## 5.0.0 2023-10-13
 

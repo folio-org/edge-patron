@@ -60,6 +60,7 @@ public class PatronHandler extends Handler {
     TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
 
     String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
+    logger.info("Getting account for patronId={}...", extPatronId);
     if (extPatronId == null || extPatronId.isEmpty()) {
       badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;

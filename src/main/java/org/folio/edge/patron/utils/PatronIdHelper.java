@@ -14,6 +14,7 @@ public class PatronIdHelper {
   }
 
   public static Future<String> lookupPatron(PatronOkapiClient client, String tenant, String extPatronId) {
+    logger.info("looking up patronId={}...", extPatronId);
     String patronId = null;
     try {
       PatronIdCache cache = PatronIdCache.getInstance();

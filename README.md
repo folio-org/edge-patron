@@ -32,23 +32,27 @@ Configuration information is specified in two forms:
 
 ### System Properties
 
-| Property                      | Default     | Description                                                                                                                                |
-|-------------------------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `port`                        | `8081`      | Server port to listen on                                                                                                                   |
-| `okapi_url`                   | *required*  | Where to find Okapi (URL)                                                                                                                  |
-| `secure_store`                | `Ephemeral` | Type of secure store to use.  Valid: `Ephemeral`, `AwsSsm`, `Vault`                                                                        |
-| `secure_store_props`          | `NA`        | Path to a properties file specifying secure store configuration                                                                            |
-| `token_cache_ttl_ms`          | `3600000`   | How long to cache JWTs, in milliseconds (ms)                                                                                               |
-| `null_token_cache_ttl_ms`     | `30000`     | How long to cache login failures (null JWTs), in milliseconds (ms)                                                                         |
-| `token_cache_capacity`        | `100`       | Max token cache size                                                                                                                       |
-| `patron_id_cache_ttl_ms`      | `3600000`   | How long to cache patron ID mappings in milliseconds (ms)                                                                                  |
-| `null_patron_id_cache_ttl_ms` | `30000`     | How long to cache patron lookup failures in milliseconds (ms)                                                                              |
-| `patron_id_cache_capacity`    | `1000`      | Max token cache size                                                                                                                       |
-| `log_level`                   | `INFO`      | Log4j Log Level                                                                                                                            |
-| `request_timeout_ms`          | `30000`     | Request Timeout                                                                                                                            |
-| `keystore_path`               | `NA`        | Set the path to the key store, if both `keystore_path` and `keystore_password` are populated - BCFKS security provider is used for SSL/TLS |
-| `keystore_password`           | `NA`        | Set the password for the key store                                                                                                         |
-| `key_alias`                   | `NA`        | Optional identifier that points to a specific key within the key store                                                                     |
+| Property                      | Default             | Description                                                                |
+|-------------------------------|---------------------|----------------------------------------------------------------------------|
+| `port`                        | `8081`              | Server port to listen on                                                   |
+| `okapi_url`                   | *required*          | Where to find Okapi (URL)                                                  |
+| `secure_store`                | `Ephemeral`         | Type of secure store to use.  Valid: `Ephemeral`, `AwsSsm`, `Vault`        |
+| `secure_store_props`          | `NA`                | Path to a properties file specifying secure store configuration            |
+| `token_cache_ttl_ms`          | `3600000`           | How long to cache JWTs, in milliseconds (ms)                               |
+| `null_token_cache_ttl_ms`     | `30000`             | How long to cache login failures (null JWTs), in milliseconds (ms)         |
+| `token_cache_capacity`        | `100`               | Max token cache size                                                       |
+| `patron_id_cache_ttl_ms`      | `3600000`           | How long to cache patron ID mappings in milliseconds (ms)                  |
+| `null_patron_id_cache_ttl_ms` | `30000`             | How long to cache patron lookup failures in milliseconds (ms)              |
+| `patron_id_cache_capacity`    | `1000`              | Max token cache size                                                       |
+| `log_level`                   | `INFO`              | Log4j Log Level                                                            |
+| `request_timeout_ms`          | `30000`             | Request Timeout                                                            |
+| `ssl_enabled`                 | `false`             | Set whether SSL/TLS is enabled for Vertx Http Server                       |
+| `keystore_type`               | `NA`                | Set the key store type                                                     |
+| `keystore_provider`           | `NA`                | Set the provider name of the key store                                     |
+| `keystore_path`               | `NA`                | Set the path to the key store                                              |
+| `keystore_password`           | `NA`                | Set the password for the key store                                         |
+| `key_alias`                   | `NA`                | Optional identifier that points to a specific key within the key store     |
+| `key_alias_password`          | `NA`                | Optional param that points to a password of `key_alias` if it protected    |
 
 ## Patron Mapping
 

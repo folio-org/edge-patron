@@ -33,17 +33,7 @@
 
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
-
-    <sonar.exclusions>
-      src/main/java/org/folio/edge/patron/model/**,
-      src/main/java/org/folio/edge/patron/PatronLauncher.java
-    </sonar.exclusions>
-
-    <!--Dependency properties-->
     <vertx.version>4.5.5</vertx.version>
-    <bc-fips.version>1.0.2.5</bc-fips.version>
-    <bcpkix-fips.version>1.0.7</bcpkix-fips.version>
-    <bctls-fips.version>1.0.19</bctls-fips.version>
   </properties>
 
   <dependencyManagement>
@@ -138,23 +128,6 @@
       <version>5.1.0</version>
     </dependency>
 
-    <!-- Libraries provide the basic cryptographic functionality complying with FIPS -->
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bc-fips</artifactId>
-      <version>${bc-fips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcpkix-fips</artifactId>
-      <version>${bcpkix-fips.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bctls-fips</artifactId>
-      <version>${bctls-fips.version}</version>
-    </dependency>
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
@@ -239,7 +212,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>org.folio.edge.patron.PatronLauncher</Main-Class>
+                    <Main-Class>io.vertx.core.Launcher</Main-Class>
                     <Main-Verticle>${exec.mainClass}</Main-Verticle>
                   </manifestEntries>
                 </transformer>

@@ -11,8 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.EdgeVerticleHttp;
 import org.folio.edge.core.utils.OkapiClientFactory;
+import org.folio.edge.core.utils.OkapiClientFactoryInitializer;
 import org.folio.edge.patron.cache.PatronIdCache;
-import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
@@ -45,7 +45,7 @@ public class MainVerticle extends EdgeVerticleHttp {
 
   @Override
   public Router defineRoutes() {
-    OkapiClientFactory ocf = PatronOkapiClientFactory.createInstance(vertx, config());
+    OkapiClientFactory ocf = OkapiClientFactoryInitializer.createInstance(vertx, config());
     PatronHandler patronHandler = new PatronHandler(secureStore, ocf);
 
     Router router = Router.router(vertx);

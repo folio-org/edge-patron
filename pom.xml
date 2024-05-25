@@ -33,7 +33,7 @@
 
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
-    <vertx.version>4.5.5</vertx.version>
+    <vertx.version>4.5.7</vertx.version>
   </properties>
 
   <dependencyManagement>

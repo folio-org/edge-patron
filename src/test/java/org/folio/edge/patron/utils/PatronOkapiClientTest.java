@@ -15,6 +15,7 @@ import java.util.UUID;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.OkapiClientFactory;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
 import org.folio.edge.patron.model.Hold;
@@ -53,8 +54,8 @@ public class PatronOkapiClientTest {
     mockOkapi.start()
     .onComplete(context.asyncAssertSuccess());
 
-    client = new PatronOkapiClientFactory(Vertx.vertx(), "http://localhost:" + okapiPort, reqTimeout)
-      .getPatronOkapiClient(tenant);
+    client = new PatronOkapiClient(new OkapiClientFactory(Vertx.vertx(),
+      "http://localhost:" + okapiPort, reqTimeout).getOkapiClient(tenant), "alternateTenantId");
   }
 
   @After

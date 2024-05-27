@@ -1,3 +1,7 @@
+## 5.1.1 2024-05-27
+
+* Enhance HTTP endpoint security with TLS and FIPS-140-2 compliant cryptography ([EDGEPATRON-130](https://folio-org.atlassian.net/browse/EDGPATRON-130))
+
 ## 5.1.0 2024-03-21
 
 * Upgrade to Vert.x 4.5.5, log4j-bom 2.23.0 ([EDGEPATRON-128](https://folio-org.atlassian.net/browse/EDGPATRON-128))

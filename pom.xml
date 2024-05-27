@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>edge-patron</artifactId>
-  <version>5.1.1-SNAPSHOT</version>
+  <version>5.1.1</version>
   <packaging>jar</packaging>
 
   <name>Edge API - Patron Empowerment</name>
@@ -17,7 +17,7 @@
     <url>https://github.com/folio-org/edge-patron.git</url>
     <connection>scm:git:git://github.com/folio-org/edge-paton.git</connection>
     <developerConnection>scm:git:git@github.com:folio-org/edge-patron.git</developerConnection>
-    <tag>v5.1.0</tag>
+    <tag>v5.1.1</tag>
   </scm>
 
   <licenses>

@@ -48,6 +48,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.ApiKeyUtils;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Patron;
 import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Loan;
@@ -74,7 +75,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class MainVerticleTest {
 
   private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
-
   private static final String extPatronId = PatronMockOkapi.extPatronId;
   private static final String patronId = PatronMockOkapi.patronId;
   private static final String itemId = UUID.randomUUID().toString();
@@ -690,6 +690,30 @@ public class MainVerticleTest {
           String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound,
               instanceId,
               apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void test1(TestContext context) throws Exception {
+    logger.info("=== Test place instance hold w/ patron not found ===");
+
+    Patron hold = PatronMockOkapi.getPatron();
+    int expectedStatusCode = 404;
+
+    final Response resp = RestAssured
+      .with()
+      .body(hold.toJson())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account?apikey=%s", apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

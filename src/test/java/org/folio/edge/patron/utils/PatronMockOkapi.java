@@ -31,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Charge;
-import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.*;
 import org.folio.edge.patron.model.Hold.Status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,10 +42,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.folio.edge.patron.model.HoldCancellation;
-import org.folio.edge.patron.model.Item;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.Money;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -131,7 +125,7 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/users")
       .handler(this::getPatronHandler);
 
-    router.route(HttpMethod.GET, "/patron/account/:patronId")
+    router.route(HttpMethod.POST, "/patron/account")
       .handler(this::getAccountHandler);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
@@ -139,6 +133,9 @@ public class PatronMockOkapi extends MockOkapi {
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(this::placeItemHoldHandler);
+
+    router.route(HttpMethod.POST, "/patron/account/:patronId")
+      .handler(this::postP1);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
@@ -321,6 +318,49 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(201)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(getPlacedHoldJson(hold));
+    }
+  }
+
+  public void postP1(RoutingContext ctx) {
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    String body = ctx.getBodyAsString();
+
+    Patron hold;
+    try {
+      hold = Patron.fromJson(body);
+    } catch (IOException e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request");
+      return;
+    }
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.item.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      // Magic patronId signifying we want to mock a "not found"
+      // response.
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(patronId + " not found");
+    }  else if (hold == null) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request");
+    } else {
+      ctx.response()
+        .setStatusCode(201)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getPJson(hold));
     }
   }
 
@@ -597,6 +637,16 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
+  public static Patron getPatron() {
+    return Patron.builder()
+      .address0(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
+      .address1(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
+      .contactInfo(new Patron.ContactInfo("342424","232321","fgh@mail"))
+      .generalInfo(new Patron.GeneralInfo("1234","sds","a","s", "45"))
+      .preferredEmailCommunication(new ArrayList<>())
+      .build();
+  }
+
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))
@@ -633,6 +683,17 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public static String getPlacedHoldJson(Hold hold) {
+
+    String ret = null;
+    try {
+      ret = hold.toJson();
+    } catch (JsonProcessingException e) {
+      logger.warn("Failed to generate Hold JSON", e);
+    }
+    return ret;
+  }
+
+  public static String getPJson(Patron hold) {
 
     String ret = null;
     try {

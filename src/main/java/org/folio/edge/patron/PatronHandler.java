@@ -151,6 +151,21 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
+  public void handlePatronRequest(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      badRequest(ctx, MSG_HOLD_NOBODY);
+      return;
+    }
+    final String body = String.valueOf(ctx.body().asJsonObject());
+    handleCommon(ctx,
+      new String[] {},
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).postPatron(
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());
     if ( validationResult != null) {

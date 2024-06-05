@@ -63,6 +63,9 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(patronHandler::handlePlaceItemHold);
 
+    router.route(HttpMethod.POST, "/patron/account/:patronId")
+      .handler(patronHandler::handlePatronRequest);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(patronHandler::handlePlaceInstanceHold);
 

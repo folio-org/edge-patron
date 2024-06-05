@@ -38,12 +38,12 @@ import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
 import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.core.utils.OkapiClientFactory;
 import org.folio.edge.patron.model.error.Error;
 import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.error.Errors;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
-import org.folio.edge.patron.utils.PatronOkapiClientFactory;
 
 public class PatronHandler extends Handler {
 
@@ -51,7 +51,7 @@ public class PatronHandler extends Handler {
     + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
   private static final Logger logger = LogManager.getLogger(Handler.class);
 
-  public PatronHandler(SecureStore secureStore, PatronOkapiClientFactory ocf) {
+  public PatronHandler(SecureStore secureStore, OkapiClientFactory ocf) {
     super(secureStore, ocf);
   }
 

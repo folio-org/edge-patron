@@ -8,7 +8,6 @@ import org.folio.edge.core.utils.OkapiClient;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
@@ -24,10 +23,6 @@ public class PatronOkapiClient extends OkapiClient {
 
   public PatronOkapiClient(OkapiClient client, String alternateTenantId) {
     super(client, alternateTenantId);
-  }
-
-  protected PatronOkapiClient(Vertx vertx, String okapiURL, String tenantId, String alternateTenantId, int timeout) {
-    super(vertx, okapiURL, tenantId, alternateTenantId, timeout);
   }
 
   private void getPatron(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,

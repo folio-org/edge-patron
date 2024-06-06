@@ -2,7 +2,6 @@ package org.folio.edge.patron.model;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -175,36 +174,11 @@ public final class Patron {
     }
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(generalInfo, address0, address1, contactInfo, preferredEmailCommunication);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    Patron patron = (Patron) o;
-    return Objects.equals(generalInfo, patron.generalInfo) &&
-      Objects.equals(address0, patron.address0) &&
-      Objects.equals(address1, patron.address1) &&
-      Objects.equals(contactInfo, patron.contactInfo) &&
-      Objects.equals(preferredEmailCommunication, patron.preferredEmailCommunication);
-  }
-
-  public String toXml() throws JsonProcessingException {
-    return Mappers.XML_PROLOG + Mappers.xmlMapper.writeValueAsString(this);
-  }
-
   public String toJson() throws JsonProcessingException {
     return Mappers.jsonMapper.writeValueAsString(this);
   }
 
   public static Patron fromJson(String json) throws IOException {
     return Mappers.jsonMapper.readValue(json, Patron.class);
-  }
-
-  public static Patron fromXml(String xml) throws IOException {
-    return Mappers.xmlMapper.readValue(xml, Patron.class);
   }
 }

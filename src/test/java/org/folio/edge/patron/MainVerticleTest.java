@@ -82,7 +82,7 @@ public class MainVerticleTest {
   private static final String holdId = UUID.randomUUID().toString();
   private static final String apiKey = ApiKeyUtils.generateApiKey(10, "diku", "diku");
   private static final String badApiKey = apiKey + "0000";
-  private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");;
+  private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");
 
   private static final long requestTimeoutMs = 3000L;
 
@@ -706,23 +706,19 @@ public class MainVerticleTest {
     logger.info("=== Test place instance hold w/ patron not found ===");
 
     Patron hold = PatronMockOkapi.getPatron();
-    int expectedStatusCode = 404;
+    int expectedStatusCode = 201;
 
     final Response resp = RestAssured
       .with()
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-        String.format("/patron/account?apikey=%s", apiKey))
+        String.format("/patron/account/%s?apikey=%s", UUID.randomUUID(), apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
-
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
-    assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test

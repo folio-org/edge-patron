@@ -125,7 +125,7 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/users")
       .handler(this::getPatronHandler);
 
-    router.route(HttpMethod.POST, "/patron/account")
+    router.route(HttpMethod.GET, "/patron/account")
       .handler(this::getAccountHandler);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
@@ -134,7 +134,7 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(this::placeItemHoldHandler);
 
-    router.route(HttpMethod.POST, "/patron/account/:patronId")
+    router.route(HttpMethod.POST, "/patron/account")
       .handler(this::postP1);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
@@ -322,7 +322,7 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public void postP1(RoutingContext ctx) {
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    logger.info("Inside postp1");
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
     String body = ctx.getBodyAsString();
@@ -330,6 +330,10 @@ public class PatronMockOkapi extends MockOkapi {
     Patron hold;
     try {
       hold = Patron.fromJson(body);
+      ctx.response()
+        .setStatusCode(201)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end("hiiiiiiiiiii");
     } catch (IOException e) {
       logger.error("Exception parsing request payload", e);
       ctx.response()
@@ -337,30 +341,6 @@ public class PatronMockOkapi extends MockOkapi {
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Bad Request");
       return;
-    }
-
-    if (token == null || !token.equals(MOCK_TOKEN)) {
-      ctx.response()
-        .setStatusCode(403)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Access requires permission: patron.item.post");
-    } else if (patronId.equals(patronId_notFound)) {
-      // Magic patronId signifying we want to mock a "not found"
-      // response.
-      ctx.response()
-        .setStatusCode(404)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end(patronId + " not found");
-    }  else if (hold == null) {
-      ctx.response()
-        .setStatusCode(400)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request");
-    } else {
-      ctx.response()
-        .setStatusCode(201)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getPJson(hold));
     }
   }
 

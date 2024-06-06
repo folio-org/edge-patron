@@ -28,11 +28,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -274,13 +271,13 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled()) {
+    if (logger.isDebugEnabled() ) {
       logger.debug("response: " + respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400){
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
       setContentType(serverResponse, contentType);
       serverResponse.end(respBody);  //not an error case, pass on the response body as received
     }

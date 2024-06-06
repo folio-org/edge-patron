@@ -702,7 +702,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostExternalPatron(TestContext context) throws Exception {
+  public void testPostExternalLCPatron(TestContext context) throws Exception {
     logger.info("=== Test post external patron ===");
 
     Patron patron = PatronMockOkapi.getPatron();

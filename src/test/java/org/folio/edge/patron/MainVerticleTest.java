@@ -702,15 +702,14 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void test1(TestContext context) throws Exception {
-    logger.info("=== Test place instance hold w/ patron not found ===");
+  public void testPostExternalPatron(TestContext context) throws Exception {
+    logger.info("=== Test post external patron ===");
 
-    Patron hold = PatronMockOkapi.getPatron();
+    Patron patron = PatronMockOkapi.getPatron();
     int expectedStatusCode = 201;
-
-    final Response resp = RestAssured
+    RestAssured
       .with()
-      .body(hold.toJson())
+      .body(patron.toJson())
       .contentType(APPLICATION_JSON)
       .post(
         String.format("/patron/account/%s?apikey=%s", UUID.randomUUID(), apiKey))

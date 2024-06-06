@@ -135,7 +135,7 @@ public class PatronMockOkapi extends MockOkapi {
       .handler(this::placeItemHoldHandler);
 
     router.route(HttpMethod.POST, "/patron/account")
-      .handler(this::postP1);
+      .handler(this::postPatronMock);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
@@ -321,33 +321,24 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
-  public void postP1(RoutingContext ctx) {
-    logger.info("Inside postp1");
-    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
-    String body = ctx.getBodyAsString();
-
-    Patron hold;
+  public void postPatronMock(RoutingContext ctx) {
     try {
-      hold = Patron.fromJson(body);
       ctx.response()
         .setStatusCode(201)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end("hiiiiiiiiiii");
-    } catch (IOException e) {
+        .end();
+    } catch (Exception e) {
       logger.error("Exception parsing request payload", e);
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Bad Request");
-      return;
     }
   }
 
   public void getRequestHandler(RoutingContext ctx) {
     String requestId = ctx.request().getParam(PARAM_REQUEST_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
         .setStatusCode(403)

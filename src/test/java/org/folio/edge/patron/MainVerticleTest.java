@@ -257,6 +257,17 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testGetAccountByEmail(TestContext context) {
+    logger.info("=== Test request for getting external_patron by email ===");
+
+    RestAssured
+      .get(String.format("/patron/account/%s/by-email/%s?apikey=%s", extPatronId, "fgh@mail", apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+  }
+
+  @Test
   public void testGetAccountNoApiKey(TestContext context) throws Exception {
     logger.info("=== Test request with malformed apiKey ===");
 

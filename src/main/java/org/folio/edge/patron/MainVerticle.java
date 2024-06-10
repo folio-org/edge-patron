@@ -57,6 +57,9 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(patronHandler::handleGetAccount);
 
+    router.route(HttpMethod.GET, "/patron/account/:patronId/by-email/:emailId")
+      .handler(patronHandler::handleGetExtPatronAccountByEmail);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
       .handler(patronHandler::handleRenew);
 

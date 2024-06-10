@@ -2,7 +2,7 @@
 title: Patron Services
 baseUri: https://github.com/folio-org/mod-patron
 protocols: [ HTTPS ]
-version: v4.3
+version: v4.4
 
 documentation:
   - title: Patron Services
@@ -41,7 +41,7 @@ types:
       responses:
         201:
           description: |
-            Returns data for a new hold request on the selected item
+            Returns data for a new created external patron
           body:
             application/json:
               type: external_patron
@@ -56,11 +56,6 @@ types:
           body:
             text/plain:
               example: unable to create request
-        404:
-          description: Instance with a given ID not found
-          body:
-            text/plain:
-              example: item not found
         403:
           description: Access Denied
           body:

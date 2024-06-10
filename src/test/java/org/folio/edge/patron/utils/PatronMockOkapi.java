@@ -135,6 +135,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(this::getAccountHandler);
 
+    router.route(HttpMethod.GET, "/patron/account/by-email/:emailId")
+      .handler(this::getExtPatronAccountHandler);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
       .handler(this::renewItemHandler);
 
@@ -227,6 +230,23 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(getAccountJson(patronId, includeLoans, includeCharges, includeHolds));
+    }
+  }
+
+  public void getExtPatronAccountHandler(RoutingContext ctx) {
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.account.get");
+    }  else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getPatron().toString());
     }
   }
 

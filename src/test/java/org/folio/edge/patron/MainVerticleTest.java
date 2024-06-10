@@ -257,7 +257,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountByEmail(TestContext context) throws Exception {
+  public void testGetAccountByEmail(TestContext context) {
     logger.info("=== Test request for getting external_patron by email ===");
 
     RestAssured

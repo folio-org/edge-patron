@@ -234,7 +234,6 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public void getExtPatronAccountHandler(RoutingContext ctx) {
-    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
     if (token == null || !token.equals(MOCK_TOKEN)) {

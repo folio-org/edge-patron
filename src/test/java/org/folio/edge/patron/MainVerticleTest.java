@@ -48,6 +48,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.ApiKeyUtils;
 import org.folio.edge.core.utils.test.TestUtils;
 import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Patron;
 import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Loan;
@@ -74,7 +75,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class MainVerticleTest {
 
   private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
-
   private static final String extPatronId = PatronMockOkapi.extPatronId;
   private static final String patronId = PatronMockOkapi.patronId;
   private static final String itemId = UUID.randomUUID().toString();
@@ -82,7 +82,7 @@ public class MainVerticleTest {
   private static final String holdId = UUID.randomUUID().toString();
   private static final String apiKey = ApiKeyUtils.generateApiKey(10, "diku", "diku");
   private static final String badApiKey = apiKey + "0000";
-  private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");;
+  private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");
 
   private static final long requestTimeoutMs = 3000L;
 
@@ -699,6 +699,25 @@ public class MainVerticleTest {
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
     assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testPostExternalLCPatron(TestContext context) throws Exception {
+    logger.info("=== Test post external patron ===");
+
+    Patron patron = PatronMockOkapi.getPatron();
+    int expectedStatusCode = 201;
+    RestAssured
+      .with()
+      .body(patron.toJson())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account/%s?apikey=%s", UUID.randomUUID(), apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
   }
 
   @Test

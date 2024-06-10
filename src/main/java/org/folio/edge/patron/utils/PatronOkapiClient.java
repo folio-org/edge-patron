@@ -114,6 +114,17 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
+  public void postPatron(String requestBody,
+                            Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+    post(
+      String.format("%s/patron/account", okapiURL),
+      tenant,
+      requestBody,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     getRequest(holdId,

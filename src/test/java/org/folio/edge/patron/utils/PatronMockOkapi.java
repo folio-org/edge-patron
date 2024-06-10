@@ -48,6 +48,7 @@ import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.Item;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.Money;
+import org.folio.edge.patron.model.Patron;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -139,6 +140,9 @@ public class PatronMockOkapi extends MockOkapi {
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(this::placeItemHoldHandler);
+
+    router.route(HttpMethod.POST, "/patron/account")
+      .handler(this::postPatronMock);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
@@ -324,10 +328,24 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
+  public void postPatronMock(RoutingContext ctx) {
+    try {
+      ctx.response()
+        .setStatusCode(201)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end();
+    } catch (Exception e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request");
+    }
+  }
+
   public void getRequestHandler(RoutingContext ctx) {
     String requestId = ctx.request().getParam(PARAM_REQUEST_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
         .setStatusCode(403)
@@ -597,6 +615,16 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
+  public static Patron getPatron() {
+    return Patron.builder()
+      .address0(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
+      .address1(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
+      .contactInfo(new Patron.ContactInfo("342424","232321","fgh@mail"))
+      .generalInfo(new Patron.GeneralInfo("1234","sds","a","s", "45"))
+      .preferredEmailCommunication(new ArrayList<>())
+      .build();
+  }
+
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))
@@ -633,6 +661,17 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public static String getPlacedHoldJson(Hold hold) {
+
+    String ret = null;
+    try {
+      ret = hold.toJson();
+    } catch (JsonProcessingException e) {
+      logger.warn("Failed to generate Hold JSON", e);
+    }
+    return ret;
+  }
+
+  public static String getPJson(Patron hold) {
 
     String ret = null;
     try {

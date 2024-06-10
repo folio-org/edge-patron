@@ -4,9 +4,10 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
 import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.patron.Constants.MSG_EXTERNAL_NOBODY;
+import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -32,7 +33,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -151,6 +154,21 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
+  public void handlePatronRequest(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      badRequest(ctx, MSG_EXTERNAL_NOBODY);
+      return;
+    }
+    final String body = String.valueOf(ctx.body().asJsonObject());
+    handleCommon(ctx,
+      new String[] {},
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).postPatron(
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());
     if ( validationResult != null) {
@@ -259,13 +277,13 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled()) {
+    if (logger.isDebugEnabled() ) {
       logger.debug("response: " + respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400){
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
       setContentType(serverResponse, contentType);
       serverResponse.end(respBody);  //not an error case, pass on the response body as received
     }

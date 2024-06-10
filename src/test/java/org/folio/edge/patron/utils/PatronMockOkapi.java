@@ -31,7 +31,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.*;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Charge;
+import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Hold.Status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +44,11 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.folio.edge.patron.model.HoldCancellation;
+import org.folio.edge.patron.model.Item;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.Money;
+import org.folio.edge.patron.model.Patron;
 
 public class PatronMockOkapi extends MockOkapi {
 

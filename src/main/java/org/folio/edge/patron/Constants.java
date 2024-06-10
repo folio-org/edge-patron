@@ -29,6 +29,7 @@ public class Constants {
   public static final String MSG_INTERNAL_SERVER_ERROR = "Internal Server Error";
   public static final String MSG_REQUEST_TIMEOUT = "Request to FOLIO timed out";
   public static final String MSG_HOLD_NOBODY = "No hold data provided";
+  public static final String MSG_EXTERNAL_NOBODY = "No external_patron data provided";
 
   public static final String FIELD_EXPIRATION_DATE = "expirationDate";
   public static final String FIELD_REQUEST_DATE = "requestDate";

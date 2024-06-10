@@ -4,9 +4,10 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
 import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.patron.Constants.MSG_EXTERNAL_NOBODY;
+import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -155,7 +156,7 @@ public class PatronHandler extends Handler {
 
   public void handlePatronRequest(RoutingContext ctx) {
     if (ctx.body().asJsonObject() == null) {
-      badRequest(ctx, MSG_HOLD_NOBODY);
+      badRequest(ctx, MSG_EXTERNAL_NOBODY);
       return;
     }
     final String body = String.valueOf(ctx.body().asJsonObject());

@@ -94,7 +94,7 @@ public class PatronOkapiClient extends OkapiClient {
 
   public void getExtPatronAccountByEmail(String patronId, String email, Handler<HttpResponse<Buffer>> responseHandler,
                                          Handler<Throwable> exceptionHandler) {
-    String url = String.format("%s/patron/account/%s/by-email/%s", patronId, okapiURL, email);
+    String url = String.format("%s/patron/account/%s/by-email/%s", okapiURL, patronId, email);
     get(
       url,
       tenant,

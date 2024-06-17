@@ -140,10 +140,9 @@ public class PatronHandler extends Handler {
 
   public void handleGetExtPatronAccountByEmail(RoutingContext ctx) {
     handleCommon(ctx,
-      new String[] { PARAM_EMAIL_ID },
+      new String[] { PARAM_PATRON_ID, PARAM_EMAIL_ID },
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
-        params.get(PARAM_PATRON_ID),
         params.get(PARAM_EMAIL_ID),
         resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));

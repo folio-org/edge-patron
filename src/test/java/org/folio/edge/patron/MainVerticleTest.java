@@ -736,7 +736,7 @@ public class MainVerticleTest {
     logger.info("=== Test put external patron ===");
 
     Patron patron = PatronMockOkapi.getPatron();
-    int expectedStatusCode = 201;
+    int expectedStatusCode = 204;
     RestAssured
       .with()
       .body(patron.toJson())

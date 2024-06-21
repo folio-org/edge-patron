@@ -24,6 +24,7 @@ public class Constants {
   public static final String PARAM_INSTANCE_ID = "instanceId";
   public static final String PARAM_HOLD_ID = "holdId";
   public static final String PARAM_EMAIL_ID = "emailId";
+  public static final String PARAM_EXPIRED = "expired";
   public static final String PARAM_REQUEST_ID = "requestId";
 
   public static final String MSG_ACCESS_DENIED = "Access Denied";

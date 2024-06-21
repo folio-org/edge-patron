@@ -135,6 +135,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(this::getAccountHandler);
 
+    router.route(HttpMethod.GET, "/patron/account")
+      .handler(this::getExtPatronAccountHandler);
+
     router.route(HttpMethod.GET, "/patron/account/by-email/:emailId")
       .handler(this::getExtPatronAccountHandler);
 

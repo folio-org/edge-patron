@@ -77,6 +77,48 @@ types:
           body:
             text/plain:
               example: internal server error, contact administrator
+    /external-patrons:
+      displayName: Get Accounts of External Patrons
+      description: Get accounts of external patrons based on flag
+      get:
+        description: Return external_patrons detail
+        queryParameters:
+          expired:
+            description: |
+              Indicates to return only expired patron
+            required: false
+            type: boolean
+            default: false
+          apikey:
+            description: "API Key"
+            type: string
+        responses:
+          200:
+            description: Returns the external patron accounts collection
+            body:
+              application/json:
+                type: external_patron_collection
+                example: !include examples/external_patron_collection.json
+          400:
+            description: Bad request
+            body:
+              text/plain:
+                example: unable to process request -- constraint violation
+          401:
+            description: Not authorized to perform requested action
+            body:
+              text/plain:
+                example: unable to get account -- unauthorized
+          403:
+            description: Access Denied
+            body:
+              text/plain:
+                example: Access Denied
+          500:
+            description: Internal server error, e.g. due to misconfiguration
+            body:
+              text/plain:
+                example: internal server error, contact administrator
     /by-email/{emailId}:
       displayName: Get Accounts By email
       description: Service endpoints that manage accounts by an existing email

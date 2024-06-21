@@ -635,9 +635,7 @@ public class MainVerticleTest {
               .statusCode(expectedStatusCode)
               .extract()
               .response();
-
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-
       assertEquals("No error message found", msg.message);
       assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
@@ -724,6 +722,22 @@ public class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .post(
         String.format("/patron/account/%s?apikey=%s", UUID.randomUUID(), apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+  }
+
+  @Test
+  public void testGetExternalLCPatrons(TestContext context) throws Exception {
+    logger.info("=== Test get external patron ===");
+    int expectedStatusCode = 200;
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .get(
+        String.format("/patron/account/%s/external-patrons?apikey=%s&expired=false",UUID.randomUUID(), apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

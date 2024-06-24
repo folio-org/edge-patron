@@ -254,13 +254,17 @@ public class PatronMockOkapi extends MockOkapi {
 
   public void putExtPatronAccountHandler(RoutingContext ctx) {
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
+    String body = ctx.request().body().toString();
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
         .setStatusCode(403)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Access requires permission: patron.account.put");
-    }  else {
+    } else if (body.isEmpty()) {
+      ctx.response()
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("No Body");
+    } else {
       ctx.response()
         .setStatusCode(204)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

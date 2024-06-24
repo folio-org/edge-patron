@@ -245,16 +245,9 @@ public class PatronOkapiClient extends OkapiClient {
     logger.info("PUT '{}' tenant: {} token: {}", () -> url, () -> tenant, () -> request.headers()
       .get(X_OKAPI_TOKEN));
     request.timeout(reqTimeout);
-    if (payload.isEmpty()) {
-      logger.info("put:: Payload is empty");
-      request.send()
-        .onSuccess(responseHandler)
-        .onFailure(exceptionHandler);
-    } else {
-      request.sendBuffer(Buffer.buffer(payload))
-        .onSuccess(responseHandler)
-        .onFailure(exceptionHandler);
-    }
+    request.sendBuffer(Buffer.buffer(payload))
+      .onSuccess(responseHandler)
+      .onFailure(exceptionHandler);
   }
 }
 

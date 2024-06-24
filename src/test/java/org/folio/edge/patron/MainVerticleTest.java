@@ -751,6 +751,24 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPutExternalLCPatronWithEmptyBody(TestContext context) throws Exception {
+    logger.info("=== Test put external patron ===");
+
+    int expectedStatusCode = 500;
+    RestAssured
+      .with()
+      .body(new JsonObject())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+  }
+
+  @Test
   public void testPlaceInstanceHoldInstanceNotFound(TestContext context) throws Exception {
     logger.info("=== Test place instance hold w/ instance not found ===");
 

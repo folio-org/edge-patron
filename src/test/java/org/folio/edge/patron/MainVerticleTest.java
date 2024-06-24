@@ -745,19 +745,16 @@ public class MainVerticleTest {
         String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
       .then()
       .statusCode(expectedStatusCode)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .extract()
-      .response();
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
   }
 
   @Test
-  public void testPutExternalLCPatronWithEmptyBody(TestContext context) throws Exception {
+  public void testPutExternalLCPatronWithEmptyBody(TestContext context) {
     logger.info("=== Test put external patron ===");
 
-    int expectedStatusCode = 500;
+    int expectedStatusCode = 400;
     RestAssured
       .with()
-      .body(new JsonObject())
       .contentType(APPLICATION_JSON)
       .put(
         String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))

@@ -9,6 +9,7 @@ import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
+import static org.folio.edge.patron.Constants.PARAM_EXPIRED;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -219,6 +220,16 @@ public class PatronHandler extends Handler {
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))
         );
+  }
+
+  public void handleGetExtPatronsAccounts(RoutingContext ctx) {
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_EXPIRED },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).getExtPatronAccounts(
+        Boolean.parseBoolean(params.get(PARAM_EXPIRED)),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {

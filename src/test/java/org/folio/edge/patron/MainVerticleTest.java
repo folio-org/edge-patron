@@ -730,7 +730,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetExternalLCPatrons(TestContext context) throws Exception {
+  public void testGetExternalLCPatrons(TestContext context) {
     logger.info("=== Test get external patron ===");
     int expectedStatusCode = 200;
     RestAssured

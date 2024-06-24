@@ -138,10 +138,10 @@ public class PatronOkapiClient extends OkapiClient {
       exceptionHandler);
   }
 
-  public void putPatron(String email, String patronId, String requestBody,
+  public void putPatron(String patronId, String emailId, String requestBody,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     put(
-      String.format("%s/patron/account/%s/by-email/%s", okapiURL, patronId, email),
+      String.format("%s/patron/account/%s/by-email/%s", okapiURL, patronId, emailId),
       requestBody,
       defaultHeaders,
       responseHandler,

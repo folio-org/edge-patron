@@ -155,10 +155,9 @@ public class PatronHandler extends Handler {
     }
     final String body = String.valueOf(ctx.body().asJsonObject());
     handleCommon(ctx,
-      new String[] {PARAM_EMAIL_ID},
+      new String[] {PARAM_PATRON_ID, PARAM_EMAIL_ID},
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).putPatron(
-        params.get(PARAM_PATRON_ID),
         params.get(PARAM_EMAIL_ID),
         body,
         resp -> handleProxyResponse(ctx, resp),

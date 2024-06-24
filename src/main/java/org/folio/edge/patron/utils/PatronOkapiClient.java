@@ -15,6 +15,7 @@ import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
@@ -142,6 +143,7 @@ public class PatronOkapiClient extends OkapiClient {
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     put(
       String.format("%s/patron/account/%s/by-email/%s", okapiURL, patronId, emailId),
+      tenant,
       requestBody,
       defaultHeaders,
       responseHandler,
@@ -231,14 +233,28 @@ public class PatronOkapiClient extends OkapiClient {
     }
   }
 
-  public void put(String url, String payload, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
+  public void put(String url, String tenant, String payload, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
                   Handler<Throwable> exceptionHandler) {
+    logger.debug("put:: Trying to send request to Okapi with url: {}, payload: {}, tenant: {}", url, payload, tenant);
     HttpRequest<Buffer> request = client.putAbs(url);
-    request.headers().setAll(combineHeadersWithDefaults(headers));
-
-    request.sendBuffer(Buffer.buffer(payload))
-      .onSuccess(responseHandler)
-      .onFailure(exceptionHandler);
+    if (headers != null) {
+      request.headers().setAll(combineHeadersWithDefaults(headers));
+    } else {
+      request.headers().setAll(defaultHeaders);
     }
+    logger.info("PUT '{}' tenant: {} token: {}", () -> url, () -> tenant, () -> request.headers()
+      .get(X_OKAPI_TOKEN));
+    request.timeout(reqTimeout);
+    if (payload.isEmpty()) {
+      logger.info("put:: Payload is empty");
+      request.send()
+        .onSuccess(responseHandler)
+        .onFailure(exceptionHandler);
+    } else {
+      request.sendBuffer(Buffer.buffer(payload))
+        .onSuccess(responseHandler)
+        .onFailure(exceptionHandler);
+    }
+  }
 }
 

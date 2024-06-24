@@ -148,6 +148,21 @@ public class PatronHandler extends Handler {
         t -> handleProxyException(ctx, t)));
   }
 
+  public void handlePutExtPatronAccountByEmail(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      badRequest(ctx, MSG_EXTERNAL_NOBODY);
+      return;
+    }
+    final String body = String.valueOf(ctx.body().asJsonObject());
+    handleCommon(ctx,
+      new String[] {PARAM_PATRON_ID, PARAM_EMAIL_ID},
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).putPatron(
+        params.get(PARAM_EMAIL_ID),
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
 
   public void handlePlaceItemHold(RoutingContext ctx) {
     if (ctx.body().asJsonObject() == null) {

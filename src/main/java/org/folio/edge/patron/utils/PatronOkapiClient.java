@@ -1,6 +1,8 @@
 package org.folio.edge.patron.utils;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +15,7 @@ import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
@@ -136,6 +139,17 @@ public class PatronOkapiClient extends OkapiClient {
       exceptionHandler);
   }
 
+  public void putPatron(String emailId, String requestBody,
+                         Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+    put(
+      String.format("%s/patron/account/by-email/%s", okapiURL, emailId),
+      tenant,
+      requestBody,
+      defaultHeaders,
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     getRequest(holdId,
@@ -219,4 +233,21 @@ public class PatronOkapiClient extends OkapiClient {
     }
   }
 
+  public void put(String url, String tenant, String payload, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
+                  Handler<Throwable> exceptionHandler) {
+    logger.debug("put:: Trying to send request to Okapi with url: {}, payload: {}, tenant: {}", url, payload, tenant);
+    HttpRequest<Buffer> request = client.putAbs(url);
+    if (headers != null) {
+      request.headers().setAll(combineHeadersWithDefaults(headers));
+    } else {
+      request.headers().setAll(defaultHeaders);
+    }
+    logger.info("PUT '{}' tenant: {} token: {}", () -> url, () -> tenant, () -> request.headers()
+      .get(X_OKAPI_TOKEN));
+    request.timeout(reqTimeout);
+    request.sendBuffer(Buffer.buffer(payload))
+      .onSuccess(responseHandler)
+      .onFailure(exceptionHandler);
+  }
 }
+

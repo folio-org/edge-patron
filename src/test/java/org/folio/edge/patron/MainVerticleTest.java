@@ -746,6 +746,40 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPutExternalLCPatron(TestContext context) throws Exception {
+    logger.info("=== Test put external patron ===");
+
+    Patron patron = PatronMockOkapi.getPatron();
+    int expectedStatusCode = 204;
+    RestAssured
+      .with()
+      .body(patron.toJson())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+  }
+
+  @Test
+  public void testPutExternalLCPatronWithEmptyBody(TestContext context) {
+    logger.info("=== Test put external patron ===");
+
+    int expectedStatusCode = 400;
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+  }
+
+  @Test
   public void testPlaceInstanceHoldInstanceNotFound(TestContext context) throws Exception {
     logger.info("=== Test place instance hold w/ instance not found ===");
 

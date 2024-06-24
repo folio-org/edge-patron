@@ -106,6 +106,17 @@ public class PatronOkapiClient extends OkapiClient {
       exceptionHandler);
   }
 
+  public void getExtPatronAccounts(boolean expired, Handler<HttpResponse<Buffer>> responseHandler,
+                                   Handler<Throwable> exceptionHandler) {
+    String url = String.format("%s/patron/account?expired=%s", okapiURL, expired);
+    get(
+      url,
+      tenant,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void renewItem(String patronId, String itemId,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(

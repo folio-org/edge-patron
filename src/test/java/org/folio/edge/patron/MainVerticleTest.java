@@ -203,6 +203,22 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testGetExternalLCPatrons(TestContext context) {
+    logger.info("=== Test get external patron ===");
+    int expectedStatusCode = 200;
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .get(
+        String.format("/patron/account/%s/external-patrons?apikey=%s&expired=false",UUID.randomUUID(), apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+  }
+
+  @Test
   public void testGetAccountPatronFoundGzip(TestContext context) throws Exception {
     logger.info("=== Patron in GZip compression ===");
 

@@ -7,6 +7,7 @@ public class Constants {
   public static final String SYS_PATRON_ID_CACHE_TTL_MS = "patron_id_cache_ttl_ms";
   public static final String SYS_NULL_PATRON_ID_CACHE_TTL_MS = "null_patron_id_cache_ttl_ms";
   public static final String SYS_PATRON_ID_CACHE_CAPACITY = "patron_id_cache_capacity";
+  public static final String PARAM_EXPIRED = "expired";
 
   public static final String DEFAULT_CURRENCY_CODE = Currency.getInstance("USD").getCurrencyCode();
   public static final long DEFAULT_PATRON_ID_CACHE_TTL_MS = 60 * 60 * 1000L;

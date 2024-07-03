@@ -1,3 +1,7 @@
+## 5.1.2 2024-07-03
+
+* Upgrade edge-common to 4.7.1 ([EDGPATRON-139](https://folio-org.atlassian.net/browse/EDGPATRON-139))
+
 ## 5.1.1 2024-05-27
 
 * Enhance HTTP endpoint security with TLS and FIPS-140-2 compliant cryptography ([EDGEPATRON-130](https://folio-org.atlassian.net/browse/EDGPATRON-130))

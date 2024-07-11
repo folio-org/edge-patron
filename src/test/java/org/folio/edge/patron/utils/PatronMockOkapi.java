@@ -661,8 +661,7 @@ public class PatronMockOkapi extends MockOkapi {
 
   public static Patron getPatron() {
     return Patron.builder()
-      .address0(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
-      .address1(new Patron.Address("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
+      .address(new Patron.AddressInfo("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
       .contactInfo(new Patron.ContactInfo("342424","232321","fgh@mail"))
       .generalInfo(new Patron.GeneralInfo("1234","sds","a","s", "45"))
       .preferredEmailCommunication(new ArrayList<>())

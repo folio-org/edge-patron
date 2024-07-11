@@ -18,22 +18,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JsonDeserialize(builder = Patron.Builder.class)
 @JsonPropertyOrder({
   "generalInfo",
-  "address0",
-  "address1",
+  "addressInfo",
   "contactInfo",
   "preferredEmailCommunication"
 })
 public final class Patron {
   public final GeneralInfo generalInfo;
-  public final Address address0;
-  public final Address address1;
+  public final AddressInfo address;
   public final ContactInfo contactInfo;
   public final List<String> preferredEmailCommunication;
 
   private Patron(Builder builder) {
     this.generalInfo = builder.generalInfo;
-    this.address0 = builder.address0;
-    this.address1 = builder.address1;
+    this.address = builder.address;
     this.contactInfo = builder.contactInfo;
     this.preferredEmailCommunication = builder.preferredEmailCommunication;
   }
@@ -46,11 +43,8 @@ public final class Patron {
     @JsonProperty("generalInfo")
     private GeneralInfo generalInfo;
 
-    @JsonProperty("address0")
-    private Address address0;
-
-    @JsonProperty("address1")
-    private Address address1;
+    @JsonProperty("addressInfo")
+    private AddressInfo address;
 
     @JsonProperty("contactInfo")
     private ContactInfo contactInfo;
@@ -63,13 +57,8 @@ public final class Patron {
       return this;
     }
 
-    public Builder address0(Address address0) {
-      this.address0 = address0;
-      return this;
-    }
-
-    public Builder address1(Address address1) {
-      this.address1 = address1;
+    public Builder address(AddressInfo address) {
+      this.address = address;
       return this;
     }
 
@@ -127,7 +116,7 @@ public final class Patron {
     "zip",
     "country"
   })
-  public static class Address {
+  public static class AddressInfo {
     public final String addressLine0;
     public final String addressLine1;
     public final String city;
@@ -136,7 +125,7 @@ public final class Patron {
     public final String country;
 
     @JsonCreator
-    public Address(
+    public AddressInfo(
       @JsonProperty("addressLine0") String addressLine0,
       @JsonProperty("addressLine1") String addressLine1,
       @JsonProperty("city") String city,

@@ -32,7 +32,7 @@
       "required": ["externalSystemId", "firstName", "lastName"],
       "additionalProperties": false
     },
-    "address": {
+    "addressInfo": {
       "type": "object",
       "description": "Secondary address info of patron",
       "properties": {
@@ -92,11 +92,10 @@
         "type": "string",
         "enum": ["Support", "Programs", "Service"]
       },
-      "minItems": 1,
       "maxItems": 3,
       "uniqueItems": true
     }
   },
-  "required": ["generalInfo", "address", "contactInfo"],
+  "required": ["generalInfo", "addressInfo", "contactInfo"],
   "additionalProperties": false
 }

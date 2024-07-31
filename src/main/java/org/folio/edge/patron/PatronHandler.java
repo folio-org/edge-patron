@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
@@ -193,7 +194,7 @@ public class PatronHandler extends Handler {
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).postPatron(
         body,
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleProxyResponseCustom(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 
@@ -332,6 +333,44 @@ public class PatronHandler extends Handler {
     }
   }
 
+  protected void handleProxyResponseCustom(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    HttpServerResponse serverResponse = ctx.response();
+
+    int statusCode = resp.statusCode();
+    serverResponse.setStatusCode(statusCode);
+
+    String respBody = resp.bodyAsString();
+    if (logger.isDebugEnabled()) {
+      logger.debug("response: " + respBody);
+    }
+
+    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)) {
+      setContentType(serverResponse, contentType);
+      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+    } else {
+      String errorResponse = extractErrorResponse(statusCode, respBody);
+      setContentType(serverResponse, APPLICATION_JSON);
+      serverResponse.end(errorResponse);
+    }
+  }
+
+  private String extractErrorResponse(int statusCode, String respBody) {
+    String errorMessage = "";
+    try {
+      Errors err = Json.decodeValue(respBody, Errors.class);
+      errorMessage = Optional.ofNullable(err)
+        .map(Errors::getErrors).map(e -> e.get(0))
+        .map(firstError -> getStructuredErrorMessage(statusCode, firstError))
+        .orElse(getStructuredErrorMessage(statusCode, "No error message found"));
+    } catch (Exception ex) {
+      logger.debug(ex.getMessage());
+      errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+    }
+    return errorMessage;
+  }
+
   @Override
   protected void handleProxyException(RoutingContext ctx, Throwable t) {
     logger.error("Exception retrieving data from mod-patron:", t);
@@ -394,11 +433,23 @@ public class PatronHandler extends Handler {
   private String getStructuredErrorMessage(int statusCode, String message){
     String finalMsg;
     try{
-      ErrorMessage error = new ErrorMessage(statusCode, message);
+      ErrorMessage error = new ErrorMessage(statusCode, message, null);
       finalMsg = error.toJson();
     }
     catch(JsonProcessingException ex){
       finalMsg = "{ code : \"\", message : \"" + message + "\" }";
+    }
+    return finalMsg;
+  }
+
+  private String getStructuredErrorMessage(int statusCode, Error error){
+    String finalMsg;
+    try{
+      ErrorMessage errorMsg = new ErrorMessage(statusCode, error.getMessage(), error.getCode());
+      finalMsg = errorMsg.toJson();
+    }
+    catch(JsonProcessingException ex){
+      finalMsg = "{\"code\":"+statusCode+",\"errorMessage\":\""+error.getMessage()+"\",\"errorCode\":\""+error.getCode()+"\"}";
     }
     return finalMsg;
   }

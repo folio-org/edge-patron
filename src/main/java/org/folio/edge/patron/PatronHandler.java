@@ -146,7 +146,7 @@ public class PatronHandler extends Handler {
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
         params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponseCustom(ctx, resp),
+        resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 

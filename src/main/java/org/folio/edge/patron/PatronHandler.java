@@ -146,7 +146,7 @@ public class PatronHandler extends Handler {
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
         params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleProxyResponseCustom(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 
@@ -162,7 +162,7 @@ public class PatronHandler extends Handler {
       (client, params) -> ((PatronOkapiClient) client).putPatron(
         params.get(PARAM_EMAIL_ID),
         body,
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleProxyResponseCustom(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 
@@ -229,7 +229,7 @@ public class PatronHandler extends Handler {
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).getExtPatronAccounts(
         Boolean.parseBoolean(params.get(PARAM_EXPIRED)),
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleProxyResponseCustom(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 

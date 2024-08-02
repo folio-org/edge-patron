@@ -765,6 +765,30 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPutExternalLCPatronError(TestContext context) throws Exception {
+    logger.info("=== Test put external patron Error response ===");
+
+    Patron patron = Patron.builder().generalInfo(new Patron.GeneralInfo("TEST-ERROR-FLOW", "sds", "a", "s", "45")).build();
+    int expectedStatusCode = 422;
+    final Response resp = RestAssured
+      .with()
+      .body(patron.toJson())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("MESSAGE", msg.message);
+    assertEquals("CODE", msg.code);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
   public void testPutExternalLCPatronWithEmptyBody(TestContext context) {
     logger.info("=== Test put external patron ===");
 

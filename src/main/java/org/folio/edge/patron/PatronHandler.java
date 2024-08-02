@@ -146,7 +146,7 @@ public class PatronHandler extends Handler {
       new String[] {},
       (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
         params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleProxyResponseCustom(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 
@@ -310,30 +310,14 @@ public class PatronHandler extends Handler {
 
   @Override
   protected void handleProxyResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
-    HttpServerResponse serverResponse = ctx.response();
-
-    int statusCode = resp.statusCode();
-    serverResponse.setStatusCode(statusCode);
-
-    String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("response: " + respBody);
-    }
-
-    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
-
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
-      setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
-      String errorMsg = getErrorMessage(statusCode, respBody);
-      setContentType(serverResponse, APPLICATION_JSON);
-      serverResponse.end(errorMsg);
-    }
+    handleProxyResponseCommon(ctx, resp, false);
   }
 
   private void handleProxyResponseCustom(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    handleProxyResponseCommon(ctx, resp, true);
+  }
+
+  private void handleProxyResponseCommon(RoutingContext ctx, HttpResponse<Buffer> resp, boolean isJsonErrorResponse) {
     HttpServerResponse serverResponse = ctx.response();
 
     int statusCode = resp.statusCode();
@@ -348,15 +332,16 @@ public class PatronHandler extends Handler {
 
     if (resp.statusCode() < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+      serverResponse.end(respBody);  // not an error case, pass on the response body as received
     } else {
-      String errorResponse = extractErrorResponse(statusCode, respBody);
+      String errorResponse = isJsonErrorResponse ? extractJsonErrorResponse(statusCode, respBody) :
+        getErrorMessage(statusCode, respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorResponse);
     }
   }
 
-  private String extractErrorResponse(int statusCode, String respBody) {
+  private String extractJsonErrorResponse(int statusCode, String respBody) {
     String errorMessage = "";
     try {
       Errors err = Json.decodeValue(respBody, Errors.class);

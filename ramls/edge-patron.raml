@@ -22,6 +22,7 @@ types:
   allowedServicePoints: !include allowed-service-points-response.json
   hold-cancellation: !include hold-cancellation.json
   errors: !include raml-util/schemas/errors.schema
+  external_patron_error: !include raml-util/schemas/external_patron_error.schema
 
 /patron:
   displayName: Patron Services
@@ -70,8 +71,9 @@ types:
         422:
           description: Validation error
           body:
-            text/plain:
-              example: Validation error
+            application/json:
+              type: external_patron_error
+              example: !include examples/external_patron_error.json
         500:
           description: |
             Internal server error, e.g. due to misconfiguration
@@ -185,8 +187,9 @@ types:
           400:
             description: Bad request
             body:
-              text/plain:
-                example: unable to process request
+              application/json:
+                type: external_patron_error
+                example: !include examples/external_patron_error.json
           401:
             description: Not authorized to perform requested action
             body:
@@ -195,8 +198,9 @@ types:
           404:
             description: Item with a given ID not found
             body:
-              text/plain:
-                example: item not found
+              application/json:
+                type: external_patron_error
+                example: !include examples/external_patron_error.json
           403:
             description: Access Denied
             body:

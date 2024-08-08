@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "external_patron_error.schema",
+  "description": "An external_patron user error",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "integer",
+      "description": "Error code"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message text",
+      "examples": [
+        {
+          "value": "MULTIPLE_USER_WITH_EMAIL",
+          "description": "Multiple users found with the same email"
+        },
+        {
+          "value": "USER_ACCOUNT_INACTIVE",
+          "description": "User account is not active"
+        },
+        {
+          "value": "USER_ALREADY_EXIST",
+          "description": "User already exists"
+        },
+        {
+          "value": "INVALID_PATRON_GROUP",
+          "description": "User does not belong to the required patron group"
+        }
+      ]
+    }
+  },
+  "required": [
+    "code",
+    "errorMessage"
+  ]
+}

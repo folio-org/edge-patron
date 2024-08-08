@@ -22,7 +22,10 @@ types:
   allowedServicePoints: !include allowed-service-points-response.json
   hold-cancellation: !include hold-cancellation.json
   errors: !include raml-util/schemas/errors.schema
-  external_patron_error: !include schemas/external_patron_error.schema
+  external_patron_error_404: !include schemas/external_patron_error_404.schema
+  external_patron_error_get_422: !include schemas/external_patron_error_get_422.schema
+  external_patron_error_post_422: !include schemas/external_patron_error_post_422.schema
+  external_patron_error_put_422: !include schemas/external_patron_error_put_422.schema
 
 /patron:
   displayName: Patron Services
@@ -72,7 +75,7 @@ types:
           description: Validation error
           body:
             application/json:
-              type: external_patron_error
+              type: external_patron_error_post_422
               example: !include examples/external_patron_error.json
         500:
           description: |
@@ -154,8 +157,15 @@ types:
           404:
             description: Item with a given EMAIL not found
             body:
-              text/plain:
-                example: account not found
+              application/json:
+                type: external_patron_error_404
+                example: !include examples/external_patron_error.json
+          422:
+            description: Validation error
+            body:
+              application/json:
+                type: external_patron_error_get_422
+                example: !include examples/external_patron_error.json
           403:
             description: Access Denied
             body:
@@ -187,9 +197,8 @@ types:
           400:
             description: Bad request
             body:
-              application/json:
-                type: external_patron_error
-                example: !include examples/external_patron_error.json
+              text/plain:
+                example: unable to process request
           401:
             description: Not authorized to perform requested action
             body:
@@ -199,7 +208,7 @@ types:
             description: Item with a given ID not found
             body:
               application/json:
-                type: external_patron_error
+                type: external_patron_error_404
                 example: !include examples/external_patron_error.json
           403:
             description: Access Denied
@@ -214,8 +223,9 @@ types:
           422:
             description: Validation error
             body:
-              text/plain:
-                example: Validation error
+              application/json:
+                type: external_patron_error_put_422
+                example: !include examples/external_patron_error.json
           500:
             description: |
               Internal server error, e.g. due to misconfiguration

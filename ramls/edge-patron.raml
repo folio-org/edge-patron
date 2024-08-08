@@ -198,9 +198,8 @@ types:
           400:
             description: Bad request
             body:
-              application/json:
-                type: external_patron_error_put
-                example: !include examples/external_patron_error.json
+              text/plain:
+                example: unable to process request
           401:
             description: Not authorized to perform requested action
             body:

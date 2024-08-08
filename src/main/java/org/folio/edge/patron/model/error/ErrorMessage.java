@@ -16,7 +16,8 @@ import java.util.Objects;
 @JsonDeserialize(builder = ErrorMessage.Builder.class)
 @JsonPropertyOrder({
         "code",
-        "errorMessage"
+        "errorMessage",
+        "errorCode"
 })
 public class ErrorMessage {
 
@@ -26,9 +27,13 @@ public class ErrorMessage {
     @JsonProperty("errorMessage")
     public final String message;
 
-    public ErrorMessage(int statusCode, String errorMsg){
+    @JsonProperty("errorCode")
+    public final String code;
+
+    public ErrorMessage(int statusCode, String errorMsg, String code){
         this.httpStatusCode = statusCode;
         this.message = errorMsg;
+        this.code = code;
     }
 
     @Override
@@ -53,6 +58,14 @@ public class ErrorMessage {
             }
         } else if (!message.equals(other.message)) {
             return false;
+        }
+
+        if (this.code == null) {
+          if (other.code != null) {
+            return false;
+          }
+        } else if (!code.equals(other.code)) {
+          return false;
         }
 
         return true;
@@ -87,21 +100,28 @@ public class ErrorMessage {
 
         private int httpStatusCode;
         private String message;
+        private String code;
 
         @JsonProperty("code")
-        public Builder item(int httpStatusCode) {
+        public Builder httpStatusCode(int httpStatusCode) {
             this.httpStatusCode = httpStatusCode;
             return this;
         }
 
         @JsonProperty("errorMessage")
-        public Builder chargeAmount(String errorMessage) {
+        public Builder errorMessage(String errorMessage) {
             this.message = errorMessage;
             return this;
         }
 
+        @JsonProperty("errorCode")
+        public Builder errorCode(String errorCode) {
+          this.code = errorCode;
+          return this;
+        }
+
         public ErrorMessage build() {
-            return new ErrorMessage(httpStatusCode, message);
+            return new ErrorMessage(httpStatusCode, message, code);
         }
     }
 }

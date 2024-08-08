@@ -49,6 +49,8 @@ import org.folio.edge.patron.model.Item;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.Money;
 import org.folio.edge.patron.model.Patron;
+import org.folio.edge.patron.model.error.Error;
+import org.folio.edge.patron.model.error.Errors;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -257,6 +259,8 @@ public class PatronMockOkapi extends MockOkapi {
 
   public void putExtPatronAccountHandler(RoutingContext ctx) {
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    String bodyExternalSystemId = ctx.body().asJsonObject().getJsonObject("generalInfo").getString("externalSystemId");
+    String expectedErrorTestExternalSystemId = "TEST-ERROR-FLOW";
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
         .setStatusCode(403)
@@ -266,6 +270,14 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("No Body");
+    } else if (bodyExternalSystemId.equals(expectedErrorTestExternalSystemId)) {
+      Errors errors = new Errors().withErrors(List.of(new Error().withMessage("MESSAGE").withCode("CODE")));
+      try {
+        ctx.response()
+          .setStatusCode(422)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(errors.toJson());
+      } catch (JsonProcessingException e) {/* ignored */}
     } else {
       ctx.response()
         .setStatusCode(204)

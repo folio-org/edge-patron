@@ -79,7 +79,10 @@ public class MainVerticle extends EdgeVerticleHttp {
       .handler(patronHandler::handlePlaceInstanceHold);
 
     router.route(HttpMethod.GET, "/patron/account/:patronId/instance/:instanceId/" +
-      "allowed-service-points").handler(patronHandler::handleGetAllowedServicePoints);
+      "allowed-service-points").handler(patronHandler::handleGetAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.GET, "/patron/account/:patronId/item/:itemId/" +
+      "allowed-service-points").handler(patronHandler::handleGetAllowedServicePointsForItem);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(patronHandler::handleCancelHold);

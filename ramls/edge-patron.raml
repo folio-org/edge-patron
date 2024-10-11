@@ -18,8 +18,8 @@ types:
   money: !include money.json
   item: !include item.json
   external_patron: !include external_patron.json
-  staging_user: !!include staging_user.json
-  user: !!include userdata.json
+  staging_user: !include staging_user.json
+  user: !include userdata.json
   external_patron_collection: !include external_patron_collection.json
   allowedServicePoints: !include allowed-service-points-response.json
   hold-cancellation: !include hold-cancellation.json
@@ -44,7 +44,7 @@ types:
         type: string
     body:
       application/json:
-        type: staging-user
+        type: staging_user
         example: !include examples/staging_user.json
     responses:
       200:
@@ -52,14 +52,14 @@ types:
           staging user updated successfully
         body:
           application/json:
-            type: staging-user
+            type: staging_user
             example: !include examples/staging_user.json
       201:
         description: |
           staging user created successfully
         body:
           application/json:
-            type: staging-user
+            type: staging_user
             example: !include examples/staging_user.json
       400:
         description: Bad request

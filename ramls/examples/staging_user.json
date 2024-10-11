@@ -1,0 +1,28 @@
+{
+  "isEmailVerified": true,
+  "status": "TIER-1",
+  "generalInfo": {
+    "firstName": "John",
+    "preferredFirstName": "John",
+    "middleName": "Felix",
+    "lastName": "Cena"
+  },
+  "addressInfo": {
+    "addressLine0": "William Morris Endeavor",
+    "addressLine1": "9601 Wilshire Blvd 3rd Floor",
+    "city": "Beverly Hills",
+    "province": "CA",
+    "zip": "12345",
+    "country": "USA"
+  },
+  "contactInfo": {
+    "phone": "555-123456",
+    "mobilePhone": "55555-66666",
+    "email": "john_cena@test_folio.com"
+  },
+  "preferredEmailCommunication": [
+    "Support",
+    "Programs",
+    "Services"
+  ]
+}

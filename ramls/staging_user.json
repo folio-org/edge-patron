@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "User Information Schema",
+  "description": "Schema for staging users",
+  "type": "object",
+  "properties": {
+    "isEmailVerified": {
+      "description": "A flag to determine if a patron is activated/email verification completed.",
+      "type": "boolean",
+      "example": true
+    },
+    "status": {
+      "description": "Status of the patron, whether TIER-1 or TIER-2.",
+      "type": "string",
+      "enum": ["TIER-1", "TIER-2"],
+      "example": "TIER-1"
+    },
+    "generalInfo": {
+      "type": "object",
+      "description": "General info of external patron",
+      "properties": {
+        "firstName": {
+          "description": "First name of the patron",
+          "type": "string"
+        },
+        "preferredFirstName": {
+          "description": "Preferred first name of the patron",
+          "type": "string"
+        },
+        "middleName": {
+          "description": "Middle name of the patron",
+          "type": "string"
+        },
+        "lastName": {
+          "description": "Last name of the patron",
+          "type": "string"
+        }
+      }
+    },
+    "addressInfo": {
+      "type": "object",
+      "description": "Primary address info of external patron",
+      "properties": {
+        "addressLine0": {
+          "description": "First line of the address",
+          "type": "string"
+        },
+        "addressLine1": {
+          "description": "Second line of the address",
+          "type": "string"
+        },
+        "city": {
+          "description": "City",
+          "type": "string"
+        },
+        "province": {
+          "description": "Province/State",
+          "type": "string"
+        },
+        "zip": {
+          "description": "Postal/Zip code",
+          "type": "string"
+        },
+        "country": {
+          "description": "Country",
+          "type": "string"
+        }
+      }
+    },
+    "contactInfo": {
+      "type": "object",
+      "description": "Contact info of external patron",
+      "properties": {
+        "phone": {
+          "description": "Phone number of the patron",
+          "type": "string"
+        },
+        "mobilePhone": {
+          "description": "Mobile phone number of the patron",
+          "type": "string"
+        },
+        "email": {
+          "description": "Email of the patron",
+          "type": "string"
+        }
+      }
+    },
+    "preferredEmailCommunication": {
+      "type": "array",
+      "description": "Email communication info of external patron",
+      "items": {
+        "type": "string",
+        "enum": ["Support", "Programs", "Service"]
+      },
+      "maxItems": 3,
+      "uniqueItems": true
+    }
+  },
+  "required": ["generalInfo.firstName", "generalInfo.lastName", "contactInfo.email"]
+}

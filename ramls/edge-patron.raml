@@ -18,6 +18,8 @@ types:
   money: !include money.json
   item: !include item.json
   external_patron: !include external_patron.json
+  staging_user: !include staging_user.json
+  user: !include userdata.json
   external_patron_collection: !include external_patron_collection.json
   allowedServicePoints: !include allowed-service-points-response.json
   hold-cancellation: !include hold-cancellation.json
@@ -26,11 +28,65 @@ types:
   external_patron_error_get_422: !include schemas/external_patron_error_get_422.schema
   external_patron_error_post_422: !include schemas/external_patron_error_post_422.schema
   external_patron_error_put_422: !include schemas/external_patron_error_put_422.schema
+  user_error_400: !include schemas/user_error_400.schema
+  user_error_404: !include schemas/user_error_404.schema
 
 /patron:
   displayName: Patron Services
   description: |
     Services that allow patron empowerment from 3rd party discovery services
+  post:
+    description: |
+      Create a staging user or update a staging user if it exists
+    queryParameters:
+      apikey:
+        description: "API Key"
+        type: string
+    body:
+      application/json:
+        type: staging_user
+        example: !include examples/staging_user.json
+    responses:
+      200:
+        description: |
+          staging user updated successfully
+        body:
+          application/json:
+            type: staging_user
+            example: !include examples/staging_user.json
+      201:
+        description: |
+          staging user created successfully
+        body:
+          application/json:
+            type: staging_user
+            example: !include examples/staging_user.json
+      400:
+        description: Bad request
+        body:
+          text/plain:
+            example: unable to process request
+      401:
+        description: Not authorized to perform requested action
+        body:
+          text/plain:
+            example: unable to create request
+      403:
+        description: Access Denied
+        body:
+          text/plain:
+            example: Access Denied
+      422:
+        description: Validation error
+        body:
+          text/plain:
+            example: Validation error
+      500:
+        description: |
+          Internal server error, e.g. due to misconfiguration
+        body:
+          text/plain:
+            example: internal server error, contact administrator
   /account:
     post:
       description: |
@@ -566,4 +622,50 @@ types:
                   body:
                     text/plain:
                       example: internal server error, contact administrator
+/patron-registration-status/{emailId}:
+  uriParameters:
+    emailId:
+      description: The email ID of the patron.
+      type: string
+      required: true
+  get:
+    description: Get the patron details by email ID
+    queryParameters:
+      apikey:
+        description: "API Key"
+        type: string
+    responses:
+      200:
+        description: patron information retrieved successfully
+        body:
+          application/json:
+            type: user
+            example: !include examples/user.json
+      400:
+        description: Validation error
+        body:
+          application/json:
+            type: user_error_400
+            example: !include examples/user_error.json
+      401:
+        description: Not authorized to perform requested action
+        body:
+          text/plain:
+            example: unable to get account -- unauthorized
+      403:
+        description: Access Denied
+        body:
+          text/plain:
+            example: Access Denied
+      404:
+        description: Validation error
+        body:
+          application/json:
+            type: user_error_404
+            example: !include examples/user_error.json
+      500:
+        description: Internal server error, e.g. due to misconfiguration
+        body:
+          text/plain:
+            example: internal server error, contact administrator
 

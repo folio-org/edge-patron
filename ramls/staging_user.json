@@ -100,6 +100,5 @@
       "maxItems": 3,
       "uniqueItems": true
     }
-  },
-  "required": ["generalInfo.firstName", "generalInfo.lastName", "contactInfo.email"]
+  }
 }

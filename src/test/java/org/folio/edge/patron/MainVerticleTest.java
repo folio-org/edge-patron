@@ -17,6 +17,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.instanceId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.itemId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
@@ -1158,7 +1159,7 @@ public class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .get(String.format("/patron/account/%s/item/%s/allowed-service-points?apikey=%s",
-        patronId, instanceId_notFound, apiKey))
+        patronId, itemId_notFound, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

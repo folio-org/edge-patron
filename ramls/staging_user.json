@@ -7,13 +7,13 @@
     "isEmailVerified": {
       "description": "A flag to determine if a patron is activated/email verification completed.",
       "type": "boolean",
-      "example": true
+      "default": false
     },
     "status": {
       "description": "Status of the patron, whether TIER-1 or TIER-2.",
       "type": "string",
       "enum": ["TIER-1", "TIER-2"],
-      "example": "TIER-1"
+      "default": "TIER-1"
     },
     "generalInfo": {
       "type": "object",
@@ -100,5 +100,7 @@
       "maxItems": 3,
       "uniqueItems": true
     }
-  }
+  },
+  "additionalProperties": false,
+  "required": ["generalInfo", "contactInfo"]
 }

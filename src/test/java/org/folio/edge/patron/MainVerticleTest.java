@@ -1151,9 +1151,28 @@ public class MainVerticleTest {
     JsonObject actual = new JsonObject(resp.body().asString());
     assertEquals(expected, actual);
   }
+  @Test
+  public void testAllowedServicePointsForItemError(TestContext context) throws Exception {
+    logger.info("=== Test validation error during allowed service points request ===");
+
+    final Response resp = RestAssured
+      .with()
+      .get(String.format("/patron/account/%s/item/%s/allowed-service-points?apikey=%s",
+        patronId, instanceId_notFound, apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_error_edge_patron.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
 
   @Test
-  public void testAllowedServicePointsError(TestContext context) throws Exception {
+  public void testAllowedServicePointsForInstanceError(TestContext context) throws Exception {
     logger.info("=== Test validation error during allowed service points request ===");
 
     final Response resp = RestAssured

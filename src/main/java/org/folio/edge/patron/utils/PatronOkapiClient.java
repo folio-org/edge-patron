@@ -219,6 +219,13 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
+  public void getPatronRegistrationStatus(String emailId,
+                                      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    get(String.format("%s/patron/registration-status/%s", okapiURL,
+      emailId), tenant, null, responseHandler, exceptionHandler);
+  }
+
   private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest, String patronId) {
     return Hold.builder()
       .cancellationReasonId(cancellationRequest.getString(FIELD_CANCELLATION_REASON_ID))

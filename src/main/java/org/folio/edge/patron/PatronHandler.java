@@ -260,6 +260,17 @@ public class PatronHandler extends Handler {
         t -> handleProxyException(ctx, t)));
   }
 
+  public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
+    logger.info("handleGetPatronRegistrationStatus:: EMAIL_ID {}", ctx.request().getParam(PARAM_EMAIL_ID));
+    super.handleCommon(ctx, new String[]{PARAM_EMAIL_ID}, new String[]{}, (client, params) -> {
+      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
+      patronClient.getExtPatronAccountByEmail(params.get(PARAM_EMAIL_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t));
+    });
+  }
+
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);

@@ -9,7 +9,7 @@
       "type": "boolean"
     },
     "status": {
-      "description": "Represents the patron's tier status, which can be either TIER-1 or TIER-2. If this value is not provided when creating a new record, the default status will be set to TIER-1.",
+      "description": "Represents the patron's tier status, which can be either TIER-1 or TIER-2. If this value is not provided when creating a new record, the default status will be set to TIER-1. However, for Kiosk user registrations, this value should be sent true.",
       "type": "string",
       "enum": ["TIER-1", "TIER-2"]
     },

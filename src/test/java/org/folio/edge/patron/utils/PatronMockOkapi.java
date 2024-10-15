@@ -158,7 +158,11 @@ public class PatronMockOkapi extends MockOkapi {
 
     router.route(HttpMethod.GET,
         "/patron/account/:patronId/instance/:instanceId/allowed-service-points")
-      .handler(this::getAllowedServicePoints);
+      .handler(this::getAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.GET,
+        "/patron/account/:patronId/item/:itemId/allowed-service-points")
+      .handler(this::getAllowedServicePointsForItem);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(this::cancelHoldHandler);
@@ -497,7 +501,7 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
-  public void getAllowedServicePoints(RoutingContext ctx) {
+  public void getAllowedServicePointsForInstance(RoutingContext ctx) {
     String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
@@ -507,6 +511,28 @@ public class PatronMockOkapi extends MockOkapi {
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Access requires permission: patron.instance.hold.post");
     } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_error_mod_patron.json"));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_mod_patron_expected_response.json"));
+    }
+  }
+
+  public void getAllowedServicePointsForItem(RoutingContext ctx) {
+    String itemId = ctx.request().getParam(PARAM_ITEM_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (itemId.equals(itemId_notFound)) {
       ctx.response()
         .setStatusCode(422)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

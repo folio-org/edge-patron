@@ -266,7 +266,7 @@ public class PatronHandler extends Handler {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
       patronClient.getExtPatronAccountByEmail(params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handleRegistrationStatusResponse(ctx, resp),
         t -> handleProxyException(ctx, t));
     });
   }
@@ -338,6 +338,32 @@ public class PatronHandler extends Handler {
     }
     else {
       String errorMsg = getErrorMessage(statusCode, respBody);
+      setContentType(serverResponse, APPLICATION_JSON);
+      serverResponse.end(errorMsg);
+    }
+  }
+
+  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    HttpServerResponse serverResponse = ctx.response();
+
+    int statusCode = resp.statusCode();
+    serverResponse.setStatusCode(statusCode);
+
+    String respBody = resp.bodyAsString();
+    if (logger.isDebugEnabled() ) {
+      logger.debug("handleRegistrationStatusResponse:: response {} ", respBody);
+    }
+
+    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+      setContentType(serverResponse, contentType);
+      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+    }
+    else {
+      String errorMsg = (statusCode == 404 || statusCode == 400 || statusCode == 422)
+        ? get422ErrorMsg(statusCode, respBody)
+        : getStructuredErrorMessage(statusCode, respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
     }

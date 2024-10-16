@@ -33,6 +33,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +43,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
+import org.folio.edge.core.utils.Mappers;
 import org.folio.edge.core.utils.OkapiClient;
 import org.folio.edge.core.utils.OkapiClientFactory;
 import org.folio.edge.patron.model.error.Error;
@@ -137,16 +139,6 @@ public class PatronHandler extends Handler {
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
 
-  }
-
-  public void handleGetExtPatronAccountByEmail(RoutingContext ctx) {
-    handleCommon(ctx,
-      new String[] { PARAM_PATRON_ID, PARAM_EMAIL_ID },
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
-        params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
   }
 
   public void handlePutExtPatronAccountByEmail(RoutingContext ctx) {
@@ -265,7 +257,7 @@ public class PatronHandler extends Handler {
     super.handleCommon(ctx, new String[]{PARAM_EMAIL_ID}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.getExtPatronAccountByEmail(params.get(PARAM_EMAIL_ID),
+      patronClient.getPatronRegistrationStatus(params.get(PARAM_EMAIL_ID),
         resp -> handleRegistrationStatusResponse(ctx, resp),
         t -> handleProxyException(ctx, t));
     });
@@ -361,8 +353,8 @@ public class PatronHandler extends Handler {
       serverResponse.end(respBody);  //not an error case, pass on the response body as received
     }
     else {
-      String errorMsg = (statusCode == 404 || statusCode == 400 || statusCode == 422)
-        ? get422ErrorMsg(statusCode, respBody)
+      String errorMsg = (statusCode == 404 || statusCode == 400)
+        ? getFormattedErrorMsg(statusCode, respBody)
         : getStructuredErrorMessage(statusCode, respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
@@ -467,6 +459,27 @@ public class PatronHandler extends Handler {
       errorMessage = get422ErrorMsg(statusCode, err);
     } catch(Exception ex) {
       logger.debug(ex.getMessage());
+      errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+    }
+    return errorMessage;
+  }
+
+  private String getFormattedErrorMsg(int statusCode, String respBody){
+    logger.debug("getFormattedErrorMsg:: respBody {}", respBody);
+    String errorMessage = "";
+    try {
+      var errors = Json.decodeValue(respBody, Errors.class).getErrors();
+      if (errors != null && !errors.isEmpty()) {
+        var error = errors.get(0);
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message", error.getMessage());
+        errorMap.put("code", error.getCode());
+        errorMessage = Mappers.jsonMapper.writeValueAsString(errorMap);
+      } else {
+        errorMessage = getStructuredErrorMessage(statusCode, "No error message found in response");
+      }
+    } catch(Exception ex) {
+      logger.warn(ex.getMessage());
       errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
     }
     return errorMessage;

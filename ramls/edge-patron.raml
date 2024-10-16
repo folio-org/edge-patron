@@ -622,50 +622,50 @@ types:
                   body:
                     text/plain:
                       example: internal server error, contact administrator
-/patron-registration-status/{emailId}:
-  uriParameters:
-    emailId:
-      description: The email ID of the patron.
-      type: string
-      required: true
-  get:
-    description: Get the patron details by email ID
-    queryParameters:
-      apikey:
-        description: "API Key"
+  /registration-status/{emailId}:
+    uriParameters:
+      emailId:
+        description: The email ID of the patron.
         type: string
-    responses:
-      200:
-        description: patron information retrieved successfully
-        body:
-          application/json:
-            type: user
-            example: !include examples/user.json
-      400:
-        description: Validation error
-        body:
-          application/json:
-            type: user_error_400
-            example: !include examples/user_error.json
-      401:
-        description: Not authorized to perform requested action
-        body:
-          text/plain:
-            example: unable to get account -- unauthorized
-      403:
-        description: Access Denied
-        body:
-          text/plain:
-            example: Access Denied
-      404:
-        description: Validation error
-        body:
-          application/json:
-            type: user_error_404
-            example: !include examples/user_error.json
-      500:
-        description: Internal server error, e.g. due to misconfiguration
-        body:
-          text/plain:
-            example: internal server error, contact administrator
+        required: true
+    get:
+      description: Get the patron details by email ID
+      queryParameters:
+        apikey:
+          description: "API Key"
+          type: string
+      responses:
+        200:
+          description: patron information retrieved successfully
+          body:
+            application/json:
+              type: user
+              example: !include examples/user.json
+        400:
+          description: Validation error
+          body:
+            application/json:
+              type: user_error_400
+              example: !include examples/user_error.json
+        401:
+          description: Not authorized to perform requested action
+          body:
+            text/plain:
+              example: unable to get account -- unauthorized
+        403:
+          description: Access Denied
+          body:
+            text/plain:
+              example: Access Denied
+        404:
+          description: Validation error
+          body:
+            application/json:
+              type: user_error_404
+              example: !include examples/user_error.json
+        500:
+          description: Internal server error, e.g. due to misconfiguration
+          body:
+            text/plain:
+              example: internal server error, contact administrator
 

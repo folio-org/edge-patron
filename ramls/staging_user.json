@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "isEmailVerified": {
-      "description": "A boolean flag that indicates whether the patron has completed email verification. If this value is not provided when creating a new record, it will default to false. However, for Kiosk user registrations, this value should be sent true.",
+      "description": "A boolean flag that indicates whether the patron has completed email verification. If this value is not provided when creating a new record, it will default to false. However, for Kiosk user registrations, this value should be sent false.",
       "type": "boolean"
     },
     "status": {

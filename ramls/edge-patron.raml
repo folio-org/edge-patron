@@ -623,17 +623,16 @@ types:
                     text/plain:
                       example: internal server error, contact administrator
   /registration-status/{emailId}:
-    uriParameters:
-      emailId:
-        description: The email ID of the patron.
-        type: string
-        required: true
     get:
       description: Get the patron details by email ID
       queryParameters:
         apikey:
           description: "API Key"
           type: string
+        emailId:
+          description: The email ID of the patron.
+          type: string
+          required: true
       responses:
         200:
           description: patron information retrieved successfully

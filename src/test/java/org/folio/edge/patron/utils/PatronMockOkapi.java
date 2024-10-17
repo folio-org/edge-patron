@@ -5,6 +5,7 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
+import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
 import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
 import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
@@ -22,10 +23,13 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -166,6 +170,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/circulation/requests/:requestId")
       .handler(this::getRequestHandler);
 
+    router.route(HttpMethod.GET, "/patron/registration-status/:emailId")
+      .handler(this::getRegistrationStatusHandler);
+
     return router;
   }
 
@@ -252,6 +259,42 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(getPatron().toString());
+    }
+  }
+
+  public void getRegistrationStatusHandler(RoutingContext ctx) {
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.account.get");
+    } else if(emailId.equals("active@folio.com")) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_active.json"));
+    } else if(emailId.equals("multipleuser@folio.com")) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/multiple_user_error.json"));
+    } else if(emailId.equals("usernotfound@folio.com")) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_not_found_error.json"));
+    } else if(emailId.equals("invalid@folio.com")) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Resource not found");
+    } else {
+      ctx.response()
+        .setStatusCode(500)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("unable to retrieve user details");
     }
   }
 
@@ -667,7 +710,6 @@ public class PatronMockOkapi extends MockOkapi {
       .preferredEmailCommunication(new ArrayList<>())
       .build();
   }
-
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))

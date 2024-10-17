@@ -81,7 +81,7 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(patronHandler::handleCancelHold);
 
-    router.route(HttpMethod.GET, "/patron/registration-status/:emailId")
+    router.route(HttpMethod.GET, "/patron/registration-status")
       .handler(patronHandler::handleGetPatronRegistrationStatus);
 
     return router;

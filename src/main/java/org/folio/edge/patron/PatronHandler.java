@@ -22,6 +22,7 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
+import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -253,11 +254,19 @@ public class PatronHandler extends Handler {
   }
 
   public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
-    logger.info("handleGetPatronRegistrationStatus:: EMAIL_ID {}", ctx.request().getParam(PARAM_EMAIL_ID));
-    super.handleCommon(ctx, new String[]{PARAM_EMAIL_ID}, new String[]{}, (client, params) -> {
+    String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
+    logger.debug("handleGetPatronRegistrationStatus:: Fetching patron details by emailId {}", emailId);
+    if(StringUtils.isNullOrEmpty(emailId)) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getErrorMsg("EMAIL_NOT_PROVIDED", "emailId is missing in the request"));
+      return;
+    }
+    super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.getPatronRegistrationStatus(params.get(PARAM_EMAIL_ID),
+      patronClient.getPatronRegistrationStatus(emailId,
         resp -> handleRegistrationStatusResponse(ctx, resp),
         t -> handleProxyException(ctx, t));
     });
@@ -464,25 +473,31 @@ public class PatronHandler extends Handler {
     return errorMessage;
   }
 
-  private String getFormattedErrorMsg(int statusCode, String respBody){
+  private String getFormattedErrorMsg(int statusCode, String respBody) {
     logger.debug("getFormattedErrorMsg:: respBody {}", respBody);
     String errorMessage = "";
     try {
       var errors = Json.decodeValue(respBody, Errors.class).getErrors();
       if (errors != null && !errors.isEmpty()) {
         var error = errors.get(0);
-        Map<String, String> errorMap = new HashMap<>();
-        errorMap.put("message", error.getMessage());
-        errorMap.put("code", error.getCode());
-        errorMessage = Mappers.jsonMapper.writeValueAsString(errorMap);
-      } else {
-        errorMessage = getStructuredErrorMessage(statusCode, "No error message found in response");
+        return getErrorMsg(error.getCode(), error.getMessage());
       }
-    } catch(Exception ex) {
+    } catch (Exception ex) {
       logger.warn(ex.getMessage());
-      errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
+      errorMessage = getStructuredErrorMessage(statusCode, respBody);
     }
     return errorMessage;
+  }
+
+  private String getErrorMsg(String code, String errorMessage) {
+    Map<String, String> errorMap = new HashMap<>();
+    errorMap.put("errorMessage", errorMessage);
+    errorMap.put("code", code);
+    try {
+      return Mappers.jsonMapper.writeValueAsString(errorMap);
+    } catch (JsonProcessingException e) {
+      return getStructuredErrorMessage(500, "A problem encountered when extracting error message");
+    }
   }
 
   private String getErrorMessage(int statusCode, String respBody){

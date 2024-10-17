@@ -1,21 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "external_patron_error.schema",
-  "description": "An external_patron user error",
+  "id": "user_error.schema",
+  "description": "user errors",
   "type": "object",
   "properties": {
     "code": {
-      "type": "integer",
-      "description": "Error code"
+      "type": "string",
+      "description": "Error code",
+      "examples": [
+        "MULTIPLE_USER_WITH_EMAIL",
+        "EMAIL_NOT_PROVIDED"
+      ]
     },
     "errorMessage": {
       "type": "string",
-      "description": "Error message text",
+      "description": "Error code description",
       "examples": [
-        {
-          "value": "MULTIPLE_USER_EXISTS",
-          "description": "Multiple users found with the same email"
-        }
+        "Multiple users found with the same email",
+        "emailId is missing in the request"
       ]
     }
   },

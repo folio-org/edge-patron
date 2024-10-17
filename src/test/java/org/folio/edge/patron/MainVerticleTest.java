@@ -273,14 +273,110 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountByEmail(TestContext context) {
-    logger.info("=== Test request for getting external_patron by email ===");
+  public void testGetPatronRegistrationStatusWithoutEmail(TestContext context) {
 
-    RestAssured
-      .get(String.format("/patron/account/%s/by-email/%s?apikey=%s", extPatronId, "fgh@mail", apiKey))
+    var response = RestAssured
+      .get(String.format("/patron/registration-status?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+
+    response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithActiveEmail(TestContext context) {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "active@folio.com", apiKey))
       .then()
       .statusCode(200)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var expected = new JsonObject(readMockFile(
+      "/user_active.json"));
+    var actual = new JsonObject(response.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithInvalidEmail() {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "usernotfound@folio.com", apiKey))
+      .then()
+      .statusCode(404)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("USER_NOT_FOUND", jsonResponse.getString("code"));
+    assertEquals("User does not exist", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithMultipleUserEmail() {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "multipleuser@folio.com", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("MULTIPLE_USER_WITH_EMAIL", jsonResponse.getString("code"));
+    assertEquals("Multiple users found with the same email", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithInvalidScenarios() {
+
+    // when we are getting 404, we converted it to Errors.class. But there are cases where we get text/plain errors.
+    // In that case, code will return the error as it is.
+    var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "invalid@folio.com", apiKey))
+      .then()
+      .statusCode(404)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("404", jsonResponse.getString("code"));
+    assertEquals("Resource not found", jsonResponse.getString("errorMessage"));
+
+    response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "empty@folio.com", apiKey))
+      .then()
+      .statusCode(500)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("500", jsonResponse.getString("code"));
+    assertEquals("unable to retrieve user details", jsonResponse.getString("errorMessage"));
   }
 
   @Test

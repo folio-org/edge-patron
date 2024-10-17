@@ -22,6 +22,7 @@ import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
+import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -33,6 +34,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +44,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
 import org.folio.edge.core.security.SecureStore;
+import org.folio.edge.core.utils.Mappers;
 import org.folio.edge.core.utils.OkapiClient;
 import org.folio.edge.core.utils.OkapiClientFactory;
 import org.folio.edge.patron.model.error.Error;
@@ -137,16 +140,6 @@ public class PatronHandler extends Handler {
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
 
-  }
-
-  public void handleGetExtPatronAccountByEmail(RoutingContext ctx) {
-    handleCommon(ctx,
-      new String[] { PARAM_PATRON_ID, PARAM_EMAIL_ID },
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).getExtPatronAccountByEmail(
-        params.get(PARAM_EMAIL_ID),
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
   }
 
   public void handlePutExtPatronAccountByEmail(RoutingContext ctx) {
@@ -260,6 +253,26 @@ public class PatronHandler extends Handler {
         t -> handleProxyException(ctx, t)));
   }
 
+  public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
+    logger.debug("handleGetPatronRegistrationStatus:: Fetching patron registration");
+    String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
+    if(StringUtils.isNullOrEmpty(emailId)) {
+      logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId");
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getErrorMsg("EMAIL_NOT_PROVIDED", "emailId is missing in the request"));
+      return;
+    }
+    super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
+      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
+      patronClient.getPatronRegistrationStatus(emailId,
+        resp -> handleRegistrationStatusResponse(ctx, resp),
+        t -> handleProxyException(ctx, t));
+    });
+  }
+
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);
@@ -327,6 +340,32 @@ public class PatronHandler extends Handler {
     }
     else {
       String errorMsg = getErrorMessage(statusCode, respBody);
+      setContentType(serverResponse, APPLICATION_JSON);
+      serverResponse.end(errorMsg);
+    }
+  }
+
+  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    HttpServerResponse serverResponse = ctx.response();
+
+    int statusCode = resp.statusCode();
+    serverResponse.setStatusCode(statusCode);
+
+    String respBody = resp.bodyAsString();
+    if (logger.isDebugEnabled() ) {
+      logger.debug("handleRegistrationStatusResponse:: response {} ", respBody);
+    }
+
+    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+      setContentType(serverResponse, contentType);
+      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+    }
+    else {
+      String errorMsg = (statusCode == 404 || statusCode == 400)
+        ? getFormattedErrorMsg(statusCode, respBody)
+        : getStructuredErrorMessage(statusCode, respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
     }
@@ -433,6 +472,33 @@ public class PatronHandler extends Handler {
       errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
     }
     return errorMessage;
+  }
+
+  private String getFormattedErrorMsg(int statusCode, String respBody) {
+    logger.debug("getFormattedErrorMsg:: respBody {}", respBody);
+    String errorMessage = "";
+    try {
+      var errors = Json.decodeValue(respBody, Errors.class).getErrors();
+      if (errors != null && !errors.isEmpty()) {
+        var error = errors.get(0);
+        return getErrorMsg(error.getCode(), error.getMessage());
+      }
+    } catch (Exception ex) {
+      logger.warn(ex.getMessage());
+      errorMessage = getStructuredErrorMessage(statusCode, respBody);
+    }
+    return errorMessage;
+  }
+
+  private String getErrorMsg(String code, String errorMessage) {
+    Map<String, String> errorMap = new HashMap<>();
+    errorMap.put("errorMessage", errorMessage);
+    errorMap.put("code", code);
+    try {
+      return Mappers.jsonMapper.writeValueAsString(errorMap);
+    } catch (JsonProcessingException e) {
+      return getStructuredErrorMessage(500, "A problem encountered when extracting error message");
+    }
   }
 
   private String getErrorMessage(int statusCode, String respBody){

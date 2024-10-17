@@ -1,4 +1,4 @@
 {
-  "code": 404,
-  "errorMessage": "USER_ACCOUNT_INACTIVE"
+  "code": "USER_ACCOUNT_INACTIVE",
+  "errorMessage": "User account is not active"
 }

@@ -60,9 +60,6 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.GET, "/patron/account/:patronId/external-patrons")
       .handler(patronHandler::handleGetExtPatronsAccounts);
 
-    router.route(HttpMethod.GET, "/patron/account/:patronId/by-email/:emailId")
-      .handler(patronHandler::handleGetExtPatronAccountByEmail);
-
     router.route(HttpMethod.PUT, "/patron/account/:patronId/by-email/:emailId")
       .handler(patronHandler::handlePutExtPatronAccountByEmail);
 
@@ -83,6 +80,9 @@ public class MainVerticle extends EdgeVerticleHttp {
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/hold/:holdId/cancel")
       .handler(patronHandler::handleCancelHold);
+
+    router.route(HttpMethod.GET, "/patron/registration-status")
+      .handler(patronHandler::handleGetPatronRegistrationStatus);
 
     return router;
   }

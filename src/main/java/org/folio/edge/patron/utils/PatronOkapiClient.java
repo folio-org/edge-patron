@@ -95,17 +95,6 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public void getExtPatronAccountByEmail(String email, Handler<HttpResponse<Buffer>> responseHandler,
-                                         Handler<Throwable> exceptionHandler) {
-    String url = String.format("%s/patron/account/by-email/%s", okapiURL, email);
-    get(
-      url,
-      tenant,
-      null,
-      responseHandler,
-      exceptionHandler);
-  }
-
   public void getExtPatronAccounts(boolean expired, Handler<HttpResponse<Buffer>> responseHandler,
                                    Handler<Throwable> exceptionHandler) {
     String url = String.format("%s/patron/account?expired=%s", okapiURL, expired);
@@ -217,6 +206,13 @@ public class PatronOkapiClient extends OkapiClient {
         null,
         responseHandler,
         exceptionHandler);
+  }
+
+  public void getPatronRegistrationStatus(String emailId,
+                                      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    get(String.format("%s/patron/registration-status/%s", okapiURL,
+      emailId), tenant, null, responseHandler, exceptionHandler);
   }
 
   private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest, String patronId) {

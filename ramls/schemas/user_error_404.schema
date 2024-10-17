@@ -1,25 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "external_patron_error.schema",
-  "description": "An external_patron user error",
+  "id": "user_error.schema",
+  "description": "user errors",
   "type": "object",
   "properties": {
     "code": {
-      "type": "integer",
-      "description": "Error code"
+      "type": "string",
+      "description": "Error code",
+      "examples": [
+        "USER_ACCOUNT_INACTIVE",
+        "USER_NOT_FOUND"
+      ]
     },
     "errorMessage": {
       "type": "string",
-      "description": "Error message text",
+      "description": "Error code description",
       "examples": [
-        {
-          "value": "USER_ACCOUNT_INACTIVE",
-          "description": "User is not active"
-        },
-        {
-          "value": "USER_NOT_FOUND",
-          "description": "User does not exist"
-        }
+        "User account is not active",
+        "User does not exist"
       ]
     }
   },

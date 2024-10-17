@@ -254,9 +254,10 @@ public class PatronHandler extends Handler {
   }
 
   public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
+    logger.debug("handleGetPatronRegistrationStatus:: Fetching patron registration");
     String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
-    logger.debug("handleGetPatronRegistrationStatus:: Fetching patron details by emailId {}", emailId);
     if(StringUtils.isNullOrEmpty(emailId)) {
+      logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId");
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

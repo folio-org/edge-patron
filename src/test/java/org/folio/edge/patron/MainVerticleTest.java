@@ -806,7 +806,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_201(TestContext context) throws Exception {
+  public void testPostPatron_201(TestContext context) {
     logger.info("=== testPostPatron_201 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_201");
@@ -822,7 +822,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_200(TestContext context) throws Exception {
+  public void testPostPatron_200(TestContext context) {
     logger.info("=== testPostPatron_200 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_200");
@@ -838,7 +838,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_400(TestContext context) throws Exception {
+  public void testPostPatron_400(TestContext context) {
     logger.info("=== testPostPatron_400 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_400");
@@ -856,7 +856,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_422(TestContext context) throws Exception {
+  public void testPostPatron_422(TestContext context) {
     logger.info("=== testPostPatron_422 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_422");
@@ -874,7 +874,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_500(TestContext context) throws Exception {
+  public void testPostPatron_500(TestContext context) {
     logger.info("=== testPostPatron_500 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_500");
@@ -892,7 +892,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_NoRequestBody(TestContext context) throws Exception {
+  public void testPostPatron_NoRequestBody(TestContext context) {
     logger.info("=== testPostPatron_NoRequestBody ===");
     RestAssured
       .with()

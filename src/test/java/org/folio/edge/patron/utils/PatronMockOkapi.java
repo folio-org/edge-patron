@@ -1,5 +1,36 @@
 package org.folio.edge.patron.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.test.MockOkapi;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Charge;
+import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.Hold.Status;
+import org.folio.edge.patron.model.HoldCancellation;
+import org.folio.edge.patron.model.Item;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.Money;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import static java.util.Collections.singletonList;
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
@@ -17,39 +48,6 @@ import static org.folio.edge.patron.Constants.PARAM_OFFSET;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Charge;
-import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.Hold.Status;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import org.folio.edge.patron.model.HoldCancellation;
-import org.folio.edge.patron.model.Item;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.Money;
-import org.folio.edge.patron.model.Patron;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -136,22 +134,13 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(this::getAccountHandler);
 
-    router.route(HttpMethod.GET, "/patron/account/by-email/:emailId")
-      .handler(this::getExtPatronAccountHandler);
-
-    router.route(HttpMethod.GET, "/patron/account")
-      .handler(this::getExtPatronAccountHandler);
-
-    router.route(HttpMethod.PUT, "/patron/account/by-email/:emailId")
-      .handler(this::putExtPatronAccountHandler);
-
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
       .handler(this::renewItemHandler);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(this::placeItemHoldHandler);
 
-    router.route(HttpMethod.POST, "/patron/account")
+    router.route(HttpMethod.POST, "/patron")
       .handler(this::postPatronMock);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
@@ -243,22 +232,6 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
-  public void getExtPatronAccountHandler(RoutingContext ctx) {
-    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-
-    if (token == null || !token.equals(MOCK_TOKEN)) {
-      ctx.response()
-        .setStatusCode(403)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Access requires permission: patron.account.get");
-    }  else {
-      ctx.response()
-        .setStatusCode(200)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getPatron().toString());
-    }
-  }
-
   public void getRegistrationStatusHandler(RoutingContext ctx) {
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
     String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
@@ -292,25 +265,6 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(500)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("unable to retrieve user details");
-    }
-  }
-
-  public void putExtPatronAccountHandler(RoutingContext ctx) {
-    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-    if (token == null || !token.equals(MOCK_TOKEN)) {
-      ctx.response()
-        .setStatusCode(403)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Access requires permission: patron.account.put");
-    } else if (ctx.body().isEmpty()) {
-      ctx.response()
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("No Body");
-    } else {
-      ctx.response()
-        .setStatusCode(204)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getPatron().toString());
     }
   }
 
@@ -414,16 +368,46 @@ public class PatronMockOkapi extends MockOkapi {
 
   public void postPatronMock(RoutingContext ctx) {
     try {
-      ctx.response()
-        .setStatusCode(201)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end();
+      String firstName = ctx.body().asJsonObject().getJsonObject("generalInfo").getString("firstName");
+      String mockResponseBody = readMockFile("/staging-users-post-response.json");
+      String mockResponse422ErrorBody = readMockFile("/staging-users-post-error-response.json");
+      if ("TEST_STATUS_CODE_200".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(200)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponseBody);
+      } else if ("TEST_STATUS_CODE_201".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(201)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponseBody);
+      } else if ("TEST_STATUS_CODE_250".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(250)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponseBody);
+      } else if ("TEST_STATUS_CODE_400".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(400)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("A bad exception occurred");
+      } else if ("TEST_STATUS_CODE_422".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(422)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponse422ErrorBody);
+      } else if ("TEST_STATUS_CODE_500".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(500)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Server exception occurred");
+      }
     } catch (Exception e) {
       logger.error("Exception parsing request payload", e);
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request");
+        .end("Bad Request: " + e.toString());
     }
   }
 
@@ -699,14 +683,6 @@ public class PatronMockOkapi extends MockOkapi {
       .build();
   }
 
-  public static Patron getPatron() {
-    return Patron.builder()
-      .address(new Patron.AddressInfo("fdsf","sds", "fsd", "dasd", "123", "sdsd"))
-      .contactInfo(new Patron.ContactInfo("342424","232321","fgh@mail"))
-      .generalInfo(new Patron.GeneralInfo("1234","sds","a","s", "45"))
-      .preferredEmailCommunication(new ArrayList<>())
-      .build();
-  }
   public static Charge getCharge(String itemId) {
     return Charge.builder()
       .item(getItem(itemId_overdue))
@@ -743,17 +719,6 @@ public class PatronMockOkapi extends MockOkapi {
   }
 
   public static String getPlacedHoldJson(Hold hold) {
-
-    String ret = null;
-    try {
-      ret = hold.toJson();
-    } catch (JsonProcessingException e) {
-      logger.warn("Failed to generate Hold JSON", e);
-    }
-    return ret;
-  }
-
-  public static String getPJson(Patron hold) {
 
     String ret = null;
     try {

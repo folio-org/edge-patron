@@ -1,27 +1,5 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.core.Constants.APPLICATION_JSON;
-import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
-import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
-import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_EXTERNAL_NOBODY;
-import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
-import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
-import static org.folio.edge.patron.Constants.PARAM_EXPIRED;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_LIMIT;
-import static org.folio.edge.patron.Constants.PARAM_OFFSET;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
-import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
-import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
-
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.buffer.Buffer;
@@ -31,15 +9,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -52,6 +21,35 @@ import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.error.Errors;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
+
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
+
+import static org.folio.edge.core.Constants.APPLICATION_JSON;
+import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
+import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
+import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
+import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
+import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
+import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
+import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
+import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
+import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
+import static org.folio.edge.patron.Constants.PARAM_LIMIT;
+import static org.folio.edge.patron.Constants.PARAM_OFFSET;
+import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
+import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
+import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
 public class PatronHandler extends Handler {
 
@@ -142,22 +140,6 @@ public class PatronHandler extends Handler {
 
   }
 
-  public void handlePutExtPatronAccountByEmail(RoutingContext ctx) {
-    if (ctx.body().asJsonObject() == null) {
-      badRequest(ctx, MSG_EXTERNAL_NOBODY);
-      return;
-    }
-    final String body = String.valueOf(ctx.body().asJsonObject());
-    handleCommon(ctx,
-      new String[] {PARAM_PATRON_ID, PARAM_EMAIL_ID},
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).putPatron(
-        params.get(PARAM_EMAIL_ID),
-        body,
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
-  }
-
   public void handlePlaceItemHold(RoutingContext ctx) {
     if (ctx.body().asJsonObject() == null) {
       badRequest(ctx, MSG_HOLD_NOBODY);
@@ -175,19 +157,24 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
-  public void handlePatronRequest(RoutingContext ctx) {
+  public void handlePostPatronRequest(RoutingContext ctx) {
     if (ctx.body().asJsonObject() == null) {
-      badRequest(ctx, MSG_EXTERNAL_NOBODY);
+      logger.warn("handlePostPatronRequest:: missing body found");
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
       return;
     }
+
     final String body = String.valueOf(ctx.body().asJsonObject());
-    handleCommon(ctx,
-      new String[] {},
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).postPatron(
-        body,
+    super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
+      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
+      patronClient.postPatron(body,
         resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
+        t -> handleProxyException(ctx, t));
+    });
   }
 
   public void handleCancelHold(RoutingContext ctx) {
@@ -213,16 +200,6 @@ public class PatronHandler extends Handler {
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t))
         );
-  }
-
-  public void handleGetExtPatronsAccounts(RoutingContext ctx) {
-    handleCommon(ctx,
-      new String[] { PARAM_PATRON_ID, PARAM_EXPIRED },
-      new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).getExtPatronAccounts(
-        Boolean.parseBoolean(params.get(PARAM_EXPIRED)),
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t)));
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {

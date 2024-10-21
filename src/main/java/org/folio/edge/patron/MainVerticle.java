@@ -1,12 +1,8 @@
 package org.folio.edge.patron;
 
-import static org.folio.edge.patron.Constants.DEFAULT_NULL_PATRON_ID_CACHE_TTL_MS;
-import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_CAPACITY;
-import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_TTL_MS;
-import static org.folio.edge.patron.Constants.SYS_NULL_PATRON_ID_CACHE_TTL_MS;
-import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_CAPACITY;
-import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_TTL_MS;
-
+import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.EdgeVerticleHttp;
@@ -14,9 +10,12 @@ import org.folio.edge.core.utils.OkapiClientFactory;
 import org.folio.edge.core.utils.OkapiClientFactoryInitializer;
 import org.folio.edge.patron.cache.PatronIdCache;
 
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
+import static org.folio.edge.patron.Constants.DEFAULT_NULL_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_CAPACITY;
+import static org.folio.edge.patron.Constants.DEFAULT_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.SYS_NULL_PATRON_ID_CACHE_TTL_MS;
+import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_CAPACITY;
+import static org.folio.edge.patron.Constants.SYS_PATRON_ID_CACHE_TTL_MS;
 
 public class MainVerticle extends EdgeVerticleHttp {
 
@@ -57,20 +56,14 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(patronHandler::handleGetAccount);
 
-    router.route(HttpMethod.GET, "/patron/account/:patronId/external-patrons")
-      .handler(patronHandler::handleGetExtPatronsAccounts);
-
-    router.route(HttpMethod.PUT, "/patron/account/:patronId/by-email/:emailId")
-      .handler(patronHandler::handlePutExtPatronAccountByEmail);
-
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
       .handler(patronHandler::handleRenew);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/hold")
       .handler(patronHandler::handlePlaceItemHold);
 
-    router.route(HttpMethod.POST, "/patron/account/:patronId")
-      .handler(patronHandler::handlePatronRequest);
+    router.route(HttpMethod.POST, "/patron")
+      .handler(patronHandler::handlePostPatronRequest);
 
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(patronHandler::handlePlaceInstanceHold);

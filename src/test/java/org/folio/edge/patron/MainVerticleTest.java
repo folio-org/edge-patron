@@ -838,22 +838,6 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatronWithRandomStatusCode_250(TestContext context) throws Exception {
-    logger.info("=== testPostPatronWithRandomStatusCode_250 ===");
-    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
-    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_250");
-    RestAssured
-      .with()
-      .body(jsonObject.encode())
-      .contentType(APPLICATION_JSON)
-      .post(
-        String.format("/patron?apikey=%s", apiKey))
-      .then()
-      .statusCode(250)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
-  }
-
-  @Test
   public void testPostPatron_400(TestContext context) throws Exception {
     logger.info("=== testPostPatron_400 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
@@ -868,7 +852,7 @@ public class MainVerticleTest {
       .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .body("errorMessage", is("A bad exception occurred"))
-      .body("code", is("BAD_REQUEST"));
+      .body("code", is(400));
   }
 
   @Test
@@ -886,7 +870,7 @@ public class MainVerticleTest {
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .body("errorMessage", is("ABC is required"))
-      .body("code", is("ERROR_CODE"));
+      .body("code", is(422));
   }
 
   @Test

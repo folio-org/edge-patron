@@ -381,11 +381,6 @@ public class PatronMockOkapi extends MockOkapi {
           .setStatusCode(201)
           .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
           .end(mockResponseBody);
-      } else if ("TEST_STATUS_CODE_250".equals(firstName)) {
-        ctx.response()
-          .setStatusCode(250)
-          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-          .end(mockResponseBody);
       } else if ("TEST_STATUS_CODE_400".equals(firstName)) {
         ctx.response()
           .setStatusCode(400)

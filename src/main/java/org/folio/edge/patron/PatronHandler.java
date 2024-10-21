@@ -172,41 +172,9 @@ public class PatronHandler extends Handler {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
       patronClient.postPatron(body,
-        resp -> handlePostPatronResponse(ctx, resp),
+        resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t));
     });
-  }
-
-  private void handlePostPatronResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
-    HttpServerResponse serverResponse = ctx.response();
-
-    int statusCode = resp.statusCode();
-    serverResponse.setStatusCode(statusCode);
-
-    String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("handlePostPatronResponse:: response {} ", respBody);
-    }
-
-    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
-
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
-      setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
-      String errorMsg = generateErrorMessage(statusCode, respBody);
-      setContentType(serverResponse, APPLICATION_JSON);
-      serverResponse.end(errorMsg);
-    }
-  }
-
-  private String generateErrorMessage(int statusCode, String respBody) {
-      return switch (statusCode) {
-          case 422 -> getFormattedErrorMsg(statusCode, respBody);
-          case 400 -> getErrorMsg("BAD_REQUEST", respBody);
-          default -> getStructuredErrorMessage(statusCode, respBody);
-      };
   }
 
   public void handleCancelHold(RoutingContext ctx) {

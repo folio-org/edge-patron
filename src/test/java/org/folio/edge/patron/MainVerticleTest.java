@@ -53,6 +53,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
 import static org.folio.edge.patron.utils.PatronMockOkapi.instanceId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.invalidHoldCancellationdHoldId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.itemId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.malformedHoldCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.nonUUIDHoldCanceledByPatronId;
@@ -1276,9 +1277,28 @@ public class MainVerticleTest {
     JsonObject actual = new JsonObject(resp.body().asString());
     assertEquals(expected, actual);
   }
+  @Test
+  public void testAllowedServicePointsForItemError(TestContext context) throws Exception {
+    logger.info("=== Test validation error during allowed service points request ===");
+
+    final Response resp = RestAssured
+      .with()
+      .get(String.format("/patron/account/%s/item/%s/allowed-service-points?apikey=%s",
+        patronId, itemId_notFound, apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_error_edge_patron.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
 
   @Test
-  public void testAllowedServicePointsError(TestContext context) throws Exception {
+  public void testAllowedServicePointsForInstanceError(TestContext context) throws Exception {
     logger.info("=== Test validation error during allowed service points request ===");
 
     final Response resp = RestAssured

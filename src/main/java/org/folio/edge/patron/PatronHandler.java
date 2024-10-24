@@ -219,13 +219,25 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
-  public void handleGetAllowedServicePoints(RoutingContext ctx) {
+  public void handleGetAllowedServicePointsForInstance(RoutingContext ctx) {
     handleCommon(ctx,
       new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
       new String[] {},
-      (client, params) -> ((PatronOkapiClient) client).getAllowedServicePoints(
+      (client, params) -> ((PatronOkapiClient) client).getAllowedServicePointsForInstance(
         params.get(PARAM_PATRON_ID),
         params.get(PARAM_INSTANCE_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+
+  public void handleGetAllowedServicePointsForItem(RoutingContext ctx) {
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).getAllowedServicePointsForItem(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_ITEM_ID),
         resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }

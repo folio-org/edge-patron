@@ -5,15 +5,13 @@
   "type": "object",
   "properties": {
     "isEmailVerified": {
-      "description": "A flag to determine if a patron is activated/email verification completed.",
-      "type": "boolean",
-      "default": false
+      "description": "A boolean flag that indicates whether the patron has completed email verification. If this value is not provided when creating a new record, it will default to false. However, for Kiosk user registrations, this value should be sent false.",
+      "type": "boolean"
     },
     "status": {
-      "description": "Status of the patron, whether TIER-1 or TIER-2.",
+      "description": "Represents the patron's tier status, which can be either TIER-1 or TIER-2. If this value is not provided when creating a new record, the default status will be set to TIER-1.",
       "type": "string",
-      "enum": ["TIER-1", "TIER-2"],
-      "default": "TIER-1"
+      "enum": ["TIER-1", "TIER-2"]
     },
     "generalInfo": {
       "type": "object",

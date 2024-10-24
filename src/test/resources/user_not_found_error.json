@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "message": "User does not exist",
+      "code": "USER_NOT_FOUND",
+      "parameters": []
+    }
+  ]
+}

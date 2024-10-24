@@ -1,5 +1,41 @@
 package org.folio.edge.patron;
 
+import io.restassured.RestAssured;
+import io.restassured.config.DecoderConfig;
+import io.restassured.config.DecoderConfig.ContentDecoder;
+import io.restassured.response.Response;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.ApiKeyUtils;
+import org.folio.edge.core.utils.test.TestUtils;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.error.ErrorMessage;
+import org.folio.edge.patron.utils.PatronMockOkapi;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.SYS_LOG_LEVEL;
@@ -10,8 +46,8 @@ import static org.folio.edge.core.Constants.SYS_RESPONSE_COMPRESSION;
 import static org.folio.edge.core.Constants.SYS_SECURE_STORE_PROP_FILE;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
+import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
@@ -26,51 +62,12 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.readMockFile;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.utils.ApiKeyUtils;
-import org.folio.edge.core.utils.test.TestUtils;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Patron;
-import org.folio.edge.patron.model.error.ErrorMessage;
-import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.utils.PatronMockOkapi;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import io.restassured.RestAssured;
-import io.restassured.config.DecoderConfig;
-import io.restassured.config.DecoderConfig.ContentDecoder;
-import io.restassured.response.Response;
-
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
@@ -204,22 +201,6 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetExternalLCPatrons(TestContext context) {
-    logger.info("=== Test get external patron ===");
-    int expectedStatusCode = 200;
-    RestAssured
-      .with()
-      .contentType(APPLICATION_JSON)
-      .get(
-        String.format("/patron/account/%s/external-patrons?apikey=%s&expired=false",UUID.randomUUID(), apiKey))
-      .then()
-      .statusCode(expectedStatusCode)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .extract()
-      .response();
-  }
-
-  @Test
   public void testGetAccountPatronFoundGzip(TestContext context) throws Exception {
     logger.info("=== Patron in GZip compression ===");
 
@@ -274,14 +255,110 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountByEmail(TestContext context) {
-    logger.info("=== Test request for getting external_patron by email ===");
+  public void testGetPatronRegistrationStatusWithoutEmail(TestContext context) {
 
-    RestAssured
-      .get(String.format("/patron/account/%s/by-email/%s?apikey=%s", extPatronId, "fgh@mail", apiKey))
+    var response = RestAssured
+      .get(String.format("/patron/registration-status?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+
+    response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithActiveEmail(TestContext context) {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "active@folio.com", apiKey))
       .then()
       .statusCode(200)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var expected = new JsonObject(readMockFile(
+      "/user_active.json"));
+    var actual = new JsonObject(response.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithInvalidEmail() {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "usernotfound@folio.com", apiKey))
+      .then()
+      .statusCode(404)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("USER_NOT_FOUND", jsonResponse.getString("code"));
+    assertEquals("User does not exist", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithMultipleUserEmail() {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "multipleuser@folio.com", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("MULTIPLE_USER_WITH_EMAIL", jsonResponse.getString("code"));
+    assertEquals("Multiple users found with the same email", jsonResponse.getString("errorMessage"));
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithInvalidScenarios() {
+
+    // when we are getting 404, we converted it to Errors.class. But there are cases where we get text/plain errors.
+    // In that case, code will return the error as it is.
+    var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "invalid@folio.com", apiKey))
+      .then()
+      .statusCode(404)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("404", jsonResponse.getString("code"));
+    assertEquals("Resource not found", jsonResponse.getString("errorMessage"));
+
+    response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "empty@folio.com", apiKey))
+      .then()
+      .statusCode(500)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("500", jsonResponse.getString("code"));
+    assertEquals("unable to retrieve user details", jsonResponse.getString("errorMessage"));
   }
 
   @Test
@@ -730,56 +807,104 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostExternalLCPatron(TestContext context) throws Exception {
-    logger.info("=== Test post external patron ===");
-
-    Patron patron = PatronMockOkapi.getPatron();
-    int expectedStatusCode = 201;
+  public void testPostPatron_201(TestContext context) {
+    logger.info("=== testPostPatron_201 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_201");
     RestAssured
       .with()
-      .body(patron.toJson())
+      .body(jsonObject.encode())
       .contentType(APPLICATION_JSON)
       .post(
-        String.format("/patron/account/%s?apikey=%s", UUID.randomUUID(), apiKey))
+        String.format("/patron?apikey=%s", apiKey))
       .then()
-      .statusCode(expectedStatusCode)
-      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .extract()
-      .response();
-  }
-
-  @Test
-  public void testPutExternalLCPatron(TestContext context) throws Exception {
-    logger.info("=== Test put external patron ===");
-
-    Patron patron = PatronMockOkapi.getPatron();
-    int expectedStatusCode = 204;
-    RestAssured
-      .with()
-      .body(patron.toJson())
-      .contentType(APPLICATION_JSON)
-      .put(
-        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
-      .then()
-      .statusCode(expectedStatusCode)
+      .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
   }
 
   @Test
-  public void testPutExternalLCPatronWithEmptyBody(TestContext context) {
-    logger.info("=== Test put external patron ===");
+  public void testPostPatron_200(TestContext context) {
+    logger.info("=== testPostPatron_200 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_200");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron?apikey=%s", apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+  }
 
-    int expectedStatusCode = 400;
+  @Test
+  public void testPostPatron_400(TestContext context) {
+    logger.info("=== testPostPatron_400 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_400");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("A bad exception occurred"))
+      .body("code", is(400));
+  }
+
+  @Test
+  public void testPostPatron_422(TestContext context) {
+    logger.info("=== testPostPatron_422 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_422");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron?apikey=%s", apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("ABC is required"))
+      .body("code", is(422));
+  }
+
+  @Test
+  public void testPostPatron_500(TestContext context) {
+    logger.info("=== testPostPatron_500 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_500");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron?apikey=%s", apiKey))
+      .then()
+      .statusCode(500)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("Server exception occurred"))
+      .body("code", is(500));
+  }
+
+  @Test
+  public void testPostPatron_NoRequestBody(TestContext context) {
+    logger.info("=== testPostPatron_NoRequestBody ===");
     RestAssured
       .with()
       .contentType(APPLICATION_JSON)
-      .put(
-        String.format("/patron/account/%s/by-email/%s?apikey=%s", UUID.randomUUID(), "TestMail", apiKey))
+      .post(
+        String.format("/patron?apikey=%s", apiKey))
       .then()
-      .statusCode(expectedStatusCode)
+      .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .extract()
-      .response();
+      .body("errorMessage", is("Request body must not null"))
+      .body("code", is("MISSING_BODY"));
   }
 
   @Test

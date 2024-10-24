@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "message": "Multiple users found with the same email",
+      "code": "MULTIPLE_USER_WITH_EMAIL",
+      "parameters": []
+    }
+  ]
+}

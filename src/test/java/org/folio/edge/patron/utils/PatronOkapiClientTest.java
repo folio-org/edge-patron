@@ -99,9 +99,9 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
     when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
-    client.getPatron(PatronMockOkapi.extSecurePatronId)
+    client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID)
       .onComplete(context.asyncAssertSuccess(
-        patronId -> assertEquals(PatronMockOkapi.patronId, patronId)));
+        actualPatronId -> assertEquals(PatronMockOkapi.patronId, actualPatronId)));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
     when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
-    client.getPatron(PatronMockOkapi.extSecurePatronId_notFound)
+    client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID_NOT_FOUND)
       .onComplete(context.asyncAssertFailure(e -> {
         if (!(e instanceof PatronLookupException)) {
           fail("Expected " + PatronLookupException.class.getName() + " got " + e.getClass().getName());

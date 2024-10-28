@@ -68,8 +68,8 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String patronId_notFound = UUID.randomUUID().toString();
   public static final String extPatronId = UUID.randomUUID().toString();
   public static final String extPatronId_notFound = UUID.randomUUID().toString();
-  public static final String extSecurePatronId = UUID.randomUUID().toString();
-  public static final String extSecurePatronId_notFound = UUID.randomUUID().toString();
+  public static final String EXT_SECURE_PATRON_ID = UUID.randomUUID().toString();
+  public static final String EXT_SECURE_PATRON_ID_NOT_FOUND = UUID.randomUUID().toString();
   public static final String feeFineId = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
@@ -588,9 +588,9 @@ public class PatronMockOkapi extends MockOkapi {
   public static String getPatronJson(String patronId, boolean secure) {
     JsonArray users = new JsonArray();
     logger.info(patronId);
-    var nonSecureNonexistent = List.of(extPatronId_notFound, extSecurePatronId,
-      extSecurePatronId_notFound);
-    var secureNonexistent = List.of(extSecurePatronId_notFound, extPatronId, extPatronId_notFound);
+    var nonSecureNonexistent = List.of(extPatronId_notFound, EXT_SECURE_PATRON_ID,
+      EXT_SECURE_PATRON_ID_NOT_FOUND);
+    var secureNonexistent = List.of(EXT_SECURE_PATRON_ID_NOT_FOUND, extPatronId, extPatronId_notFound);
     if (!(secure ? secureNonexistent : nonSecureNonexistent).contains(patronId)) {
       users.add(new JsonObject()
         .put("externalSystemId", patronId)

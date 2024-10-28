@@ -85,7 +85,7 @@ public class PatronOkapiClient extends OkapiClient {
       String bodyStr = response.bodyAsString();
       logger.info(format("Response from %s: (%s) body: %s", moduleName, status, bodyStr));
       if (status != 200) {
-        promise.tryFail(new PatronLookupException(status, bodyStr));
+        promise.tryFail(new PatronLookupException(bodyStr));
       } else {
         JsonObject json = response.bodyAsJsonObject();
         try {
@@ -263,19 +263,12 @@ public class PatronOkapiClient extends OkapiClient {
 
     private static final long serialVersionUID = -8671018675309863637L;
 
-    private int httpStatus;
-
     public PatronLookupException(Throwable t) {
       super(t);
     }
 
-    public PatronLookupException(int httpStatus, String msg) {
+    public PatronLookupException(String msg) {
       super(msg);
-      this.httpStatus = httpStatus;
-    }
-
-    public int getHttpStatus() {
-      return httpStatus;
     }
   }
 

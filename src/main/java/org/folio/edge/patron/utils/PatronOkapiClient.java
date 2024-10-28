@@ -15,6 +15,9 @@ import org.folio.edge.patron.model.Hold;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import static io.vertx.core.Future.failedFuture;
+import static java.lang.Boolean.FALSE;
+import static java.lang.String.format;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
@@ -24,67 +27,111 @@ public class PatronOkapiClient extends OkapiClient {
 
   private static final Logger logger = LogManager.getLogger(PatronOkapiClient.class);
 
+  private static final String SECURE_REQUESTS_FEATURE_ENABLED = "SECURE_REQUESTS_FEATURE_ENABLED";
+  private static final String SECURE_TENANT_ID = "SECURE_TENANT_ID";
+
   public PatronOkapiClient(OkapiClient client, String alternateTenantId) {
     super(client, alternateTenantId);
   }
 
   private void getPatron(String extPatronId, Handler<HttpResponse<Buffer>> responseHandler,
-      Handler<Throwable> exceptionHandler) {
-    get(
-        String.format("%s/users?query=externalSystemId==%s",
-            okapiURL,
-            extPatronId),
-        tenant,
-        defaultHeaders,
-        responseHandler,
-        exceptionHandler);
+    Handler<Throwable> exceptionHandler) {
+
+    get(format("%s/users?query=externalSystemId==%s", okapiURL, extPatronId), tenant,
+      defaultHeaders, responseHandler, exceptionHandler);
+  }
+
+  private void getPatronFromCirculationBff(String extPatronId,
+    Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+
+    logger.info("getPatronFromCirculationBff:: extPatronId={}", extPatronId);
+
+    get(format("%s/circulation-bff/external-users/%s/tenant/%s", okapiURL, extPatronId,
+        getSecureTenantId()), tenant, defaultHeaders, responseHandler, exceptionHandler);
   }
 
   public Future<String> getPatron(String extPatronId) {
     Promise<String> promise = Promise.promise();
 
-    getPatron(
-        extPatronId,
-        resp -> {
-          int status = resp.statusCode();
-          String bodyStr = resp.bodyAsString();
-          logger.info(String.format("Response from mod-users: (%s) body: %s", status, bodyStr));
-          if (status != 200) {
-            promise.tryFail(new PatronLookupException(bodyStr));
-          } else {
-            JsonObject json = resp.bodyAsJsonObject();
-            try {
-              promise.tryComplete(json.getJsonArray("users").getJsonObject(0).getString("id"));
-            } catch (Exception e) {
-              logger.error("Exception parsing response from mod-users", e);
-              promise.tryFail(new PatronLookupException(e));
-            }
-          }
-        },
-        t -> {
-          logger.error("Exception calling mod-users", t);
-          promise.tryFail(new PatronLookupException(t));
-        });
-    return promise.future();
+    Handler<HttpResponse<Buffer>> responseHandler = createResponseHandler(promise, "mod-users");
+    Handler<Throwable> exceptionHandler = createExceptionHandler(promise, "mod-users");
+
+    getPatron(extPatronId, responseHandler, exceptionHandler);
+
+    return promise.future()
+      .recover(t -> {
+        if (isSecureRequestsFeatureEnabled()) {
+          Promise<String> circulationBffPromise = Promise.promise();
+          Handler<HttpResponse<Buffer>> circulationBffResponseHandler =
+            createResponseHandler(circulationBffPromise, "mod-circulation-bff");
+          Handler<Throwable> circulationBffExceptionHandler =
+            createExceptionHandler(circulationBffPromise, "mod-circulation-bff");
+
+          getPatronFromCirculationBff(extPatronId, circulationBffResponseHandler,
+            circulationBffExceptionHandler);
+
+          return circulationBffPromise.future();
+        } else {
+          return failedFuture(t);
+        }
+      });
+  }
+
+  private Handler<HttpResponse<Buffer>> createResponseHandler(Promise<String> promise,
+    String moduleName) {
+
+    return response -> {
+      int status = response.statusCode();
+      String bodyStr = response.bodyAsString();
+      logger.info(format("Response from %s: (%s) body: %s", moduleName, status, bodyStr));
+      if (status != 200) {
+        promise.tryFail(new PatronLookupException(status, bodyStr));
+      } else {
+        JsonObject json = response.bodyAsJsonObject();
+        try {
+          promise.tryComplete(json.getJsonArray("users").getJsonObject(0).getString("id"));
+        } catch (Exception e) {
+          logger.error("Exception parsing response from {}", moduleName, e);
+          promise.tryFail(new PatronLookupException(e));
+        }
+      }
+    };
+  }
+
+  private Handler<Throwable> createExceptionHandler(Promise<String> promise, String moduleName) {
+    return throwable -> {
+      logger.error("Exception calling {}", moduleName, throwable);
+      promise.tryFail(new PatronLookupException(throwable));
+    };
+  }
+
+  public boolean isSecureRequestsFeatureEnabled() {
+    return Boolean.parseBoolean(
+      System.getenv().getOrDefault(SECURE_REQUESTS_FEATURE_ENABLED, FALSE.toString()));
+  }
+
+  public boolean getSecureTenantId() {
+    return Boolean.parseBoolean(
+      System.getenv().getOrDefault(SECURE_TENANT_ID, null));
   }
 
   public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,
       String sortBy, String limit, String offset, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
-    String url = String.format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
+    String url = format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
       okapiURL,
       patronId,
       includeLoans,
       includeCharges,
       includeHolds);
     if (null != sortBy) {
-      url = String.format(url + "&sortBy=%s", sortBy);
+      url = format(url + "&sortBy=%s", sortBy);
     }
     if (null != limit) {
-      url = String.format(url + "&limit=%s", limit);
+      url = format(url + "&limit=%s", limit);
     }
     if (null != offset) {
-      url = String.format(url + "&offset=%s", offset);
+      url = format(url + "&offset=%s", offset);
     }
 
     get(
@@ -98,7 +145,7 @@ public class PatronOkapiClient extends OkapiClient {
   public void renewItem(String patronId, String itemId,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
-        String.format("%s/patron/account/%s/item/%s/renew", okapiURL, patronId, itemId),
+        format("%s/patron/account/%s/item/%s/renew", okapiURL, patronId, itemId),
         tenant,
         null,
         null,
@@ -109,7 +156,7 @@ public class PatronOkapiClient extends OkapiClient {
   public void placeItemHold(String patronId, String itemId, String requestBody,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
-        String.format("%s/patron/account/%s/item/%s/hold", okapiURL, patronId, itemId),
+        format("%s/patron/account/%s/item/%s/hold", okapiURL, patronId, itemId),
         tenant,
         requestBody,
         null,
@@ -120,7 +167,7 @@ public class PatronOkapiClient extends OkapiClient {
   public void postPatron(String requestBody,
                             Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
-      String.format("%s/patron", okapiURL),
+      format("%s/patron", okapiURL),
       tenant,
       requestBody,
       null,
@@ -138,7 +185,7 @@ public class PatronOkapiClient extends OkapiClient {
             JsonObject requestToCancel = new JsonObject(bodyStr);
             Hold holdEntity = createCancellationHoldRequest(holdCancellationRequest, requestToCancel, patronId);
             post(
-              String.format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
+              format("%s/patron/account/%s/hold/%s/cancel", okapiURL, patronId, holdId),
               tenant,
               holdEntity.toJson(),
               null,
@@ -158,21 +205,21 @@ public class PatronOkapiClient extends OkapiClient {
   public void getAllowedServicePointsForInstance(String patronId, String instanceId,
     Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 
-    get(String.format("%s/patron/account/%s/instance/%s/allowed-service-points", okapiURL,
+    get(format("%s/patron/account/%s/instance/%s/allowed-service-points", okapiURL,
       patronId, instanceId), tenant, null, responseHandler, exceptionHandler);
   }
 
   public void getAllowedServicePointsForItem(String patronId, String itemId,
     Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 
-    get(String.format("%s/patron/account/%s/item/%s/allowed-service-points", okapiURL,
+    get(format("%s/patron/account/%s/item/%s/allowed-service-points", okapiURL,
       patronId, itemId), tenant, null, responseHandler, exceptionHandler);
   }
 
   public void getRequest(String holdId, Handler<HttpResponse<Buffer>> responseHandler,
                       Handler<Throwable> exceptionHandler) {
 
-    String url = String.format("%s/circulation/requests/%s", okapiURL, holdId);
+    String url = format("%s/circulation/requests/%s", okapiURL, holdId);
 
     get(
       url,
@@ -185,7 +232,7 @@ public class PatronOkapiClient extends OkapiClient {
   public void placeInstanceHold(String patronId, String instanceId, String requestBody,
       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     post(
-        String.format("%s/patron/account/%s/instance/%s/hold", okapiURL, patronId, instanceId),
+        format("%s/patron/account/%s/instance/%s/hold", okapiURL, patronId, instanceId),
         tenant,
         requestBody,
         null,
@@ -196,7 +243,7 @@ public class PatronOkapiClient extends OkapiClient {
   public void getPatronRegistrationStatus(String emailId,
                                       Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 
-    get(String.format("%s/patron/registration-status/%s", okapiURL,
+    get(format("%s/patron/registration-status/%s", okapiURL,
       emailId), tenant, null, responseHandler, exceptionHandler);
   }
 
@@ -216,12 +263,19 @@ public class PatronOkapiClient extends OkapiClient {
 
     private static final long serialVersionUID = -8671018675309863637L;
 
+    private int httpStatus;
+
     public PatronLookupException(Throwable t) {
       super(t);
     }
 
-    public PatronLookupException(String msg) {
+    public PatronLookupException(int httpStatus, String msg) {
       super(msg);
+      this.httpStatus = httpStatus;
+    }
+
+    public int getHttpStatus() {
+      return httpStatus;
     }
   }
 

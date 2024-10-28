@@ -6,13 +6,14 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClientFactory;
@@ -26,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -54,8 +56,8 @@ public class PatronOkapiClientTest {
     mockOkapi.start()
     .onComplete(context.asyncAssertSuccess());
 
-    client = new PatronOkapiClient(new OkapiClientFactory(Vertx.vertx(),
-      "http://localhost:" + okapiPort, reqTimeout).getOkapiClient(tenant), "alternateTenantId");
+    client = spy(new PatronOkapiClient(new OkapiClientFactory(Vertx.vertx(),
+      "http://localhost:" + okapiPort, reqTimeout).getOkapiClient(tenant), "alternateTenantId"));
   }
 
   @After
@@ -86,6 +88,36 @@ public class PatronOkapiClientTest {
         fail("Expected " + PatronLookupException.class.getName() + " got " + e.getClass().getName());
       }
     }));
+  }
+
+  @Test
+  public void testGetPatronExistingSecurePatron(TestContext context) throws Exception {
+    logger.info("=== Test getPatron patron doesn't exist in local mod-user but exists in Secure " +
+      "tenant's mod-user and accessible through mod-circulation-bff, " +
+      "secure requests feature is enabled ===");
+
+    client.login("admin", "password").get();
+    assertEquals(MOCK_TOKEN, client.getToken());
+    when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
+    client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID)
+      .onComplete(context.asyncAssertSuccess(
+        actualPatronId -> assertEquals(PatronMockOkapi.patronId, actualPatronId)));
+  }
+
+  @Test
+  public void testGetPatronNonexistentSecurePatron(TestContext context) throws Exception {
+    logger.info("=== Test getPatron patron doesn't exist in both secure and non-secure mod-user," +
+      "secure requests feature is enabled ===");
+
+    client.login("admin", "password").get();
+    assertEquals(MOCK_TOKEN, client.getToken());
+    when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
+    client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID_NOT_FOUND)
+      .onComplete(context.asyncAssertFailure(e -> {
+        if (!(e instanceof PatronLookupException)) {
+          fail("Expected " + PatronLookupException.class.getName() + " got " + e.getClass().getName());
+        }
+      }));
   }
 
   @Test

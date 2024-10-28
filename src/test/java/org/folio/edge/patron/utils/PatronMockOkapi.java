@@ -68,6 +68,8 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String patronId_notFound = UUID.randomUUID().toString();
   public static final String extPatronId = UUID.randomUUID().toString();
   public static final String extPatronId_notFound = UUID.randomUUID().toString();
+  public static final String EXT_SECURE_PATRON_ID = UUID.randomUUID().toString();
+  public static final String EXT_SECURE_PATRON_ID_NOT_FOUND = UUID.randomUUID().toString();
   public static final String feeFineId = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals = UUID.randomUUID().toString();
   public static final String itemId_reached_max_renewals_empty_error_msg = UUID.randomUUID().toString();
@@ -131,6 +133,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/users")
       .handler(this::getPatronHandler);
 
+    router.route(HttpMethod.GET, "/circulation-bff/external-users/:extPatronId/tenant/:tenantId")
+      .handler(this::getSecurePatronHandler);
+
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(this::getAccountHandler);
 
@@ -182,7 +187,23 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getPatronJson(extPatronId));
+        .end(getPatronJson(extPatronId, false));
+    }
+  }
+
+  public void getSecurePatronHandler(RoutingContext ctx) {
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: users.collection.get");
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getPatronJson(ctx.pathParam("extPatronId"), true));
     }
   }
 
@@ -564,14 +585,16 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
-  public static String getPatronJson(String extPatronId) {
+  public static String getPatronJson(String patronId, boolean secure) {
     JsonArray users = new JsonArray();
-    logger.info(extPatronId_notFound);
-    logger.info(extPatronId);
-    if (!extPatronId_notFound.equals(extPatronId)) {
+    logger.info(patronId);
+    var nonSecureNonexistent = List.of(extPatronId_notFound, EXT_SECURE_PATRON_ID,
+      EXT_SECURE_PATRON_ID_NOT_FOUND);
+    var secureNonexistent = List.of(EXT_SECURE_PATRON_ID_NOT_FOUND, extPatronId, extPatronId_notFound);
+    if (!(secure ? secureNonexistent : nonSecureNonexistent).contains(patronId)) {
       users.add(new JsonObject()
-        .put("externalSystemId", extPatronId)
-        .put("id", patronId));
+        .put("externalSystemId", patronId)
+        .put("id", PatronMockOkapi.patronId));
     }
 
     JsonObject json = new JsonObject()

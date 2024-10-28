@@ -27,9 +27,9 @@
       }
     },
     "env": [
-      { "name": "JAVA_OPTIONS",
-        "value": "-XX:MaxRAMPercentage=66.0"
-      }
+      { "name": "JAVA_OPTIONS", "value": "-XX:MaxRAMPercentage=66.0"},
+      { "name": "SECURE_REQUESTS_FEATURE_ENABLED", "value": "false"},
+      { "name": "SECURE_TENANT_ID", "value": "securetenant"}
     ]
   }
 }

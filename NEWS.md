@@ -1,3 +1,22 @@
+## 5.2.0 2024-10-31
+
+* Add new API contract for POST and GET API of LC User registration ([EDGPATRON-151](https://issues.folio.org/browse/EDGPATRON-151))
+* Implement POST staging user API with test case ([EDGPATRON-150](https://issues.folio.org/browse/EDGPATRON-150))
+* Add new GET endpoint to fetch patron details based on emailId ([EDGPATRON-149](https://issues.folio.org/browse/EDGPATRON-149))
+* Add allowed service-points endpoint for item level ([EDGPATRON-148](https://issues.folio.org/browse/EDGPATRON-148))
+* Patron lookup in the secure tenant ([EDGPATRON-147](https://issues.folio.org/browse/EDGPATRON-147))
+* Updated API doc for external_patron as per new modified error scenario ([EDGPATRON-144](https://issues.folio.org/browse/EDGPATRON-144))
+* Fix PreferredEmailCommunication Service to Services ([EDGPATRON-143](https://issues.folio.org/browse/EDGPATRON-143))
+* Add API doc for external_patron error scenario ([EDGPATRON-142](https://issues.folio.org/browse/EDGPATRON-142))
+* Update LC user registration API contract ([EDGPATRON-141](https://issues.folio.org/browse/EDGPATRON-141))
+* Update to `edge-common` v4.7.1 ([EDGPATRON-139](https://issues.folio.org/browse/EDGPATRON-139))
+* Update `patron` interface version to 6.0 ([EDGPATRON-138](https://issues.folio.org/browse/EDGPATRON-138))
+* Add GET external patron endpoint ([EDGPATRON-134](https://issues.folio.org/browse/EDGPATRON-134))
+* Add PUT endpoint to update patron account by email ([EDGPATRON-133](https://issues.folio.org/browse/EDGPATRON-133))
+* Add GET edge api for LOC patron ([EDGPATRON-132](https://issues.folio.org/browse/EDGPATRON-132))
+* Add POST edge api for LOC patron ([EDGPATRON-131](https://issues.folio.org/browse/EDGPATRON-131))
+* Enhance HTTP Endpoint Security with TLS and FIPS-140-2 ([EDGPATRON-130](https://issues.folio.org/browse/EDGPATRON-130))
+
 ## 5.1.0 2024-03-21
 
 * Upgrade to Vert.x 4.5.5, log4j-bom 2.23.0 ([EDGEPATRON-128](https://folio-org.atlassian.net/browse/EDGPATRON-128))

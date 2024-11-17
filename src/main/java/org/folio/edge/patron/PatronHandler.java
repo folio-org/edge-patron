@@ -65,7 +65,7 @@ public class PatronHandler extends Handler {
   protected void handleCommon(RoutingContext ctx, String[] requiredParams, String[] optionalParams,
     TwoParamVoidFunction<OkapiClient, Map<String, String>> action) {
 
-    String extPatronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String extPatronId = getExternalSystemIdFromRequest(ctx);
     if (extPatronId == null || extPatronId.isEmpty()) {
       badRequest(ctx, "Missing required parameter: " + PARAM_PATRON_ID);
       return;
@@ -103,40 +103,91 @@ public class PatronHandler extends Handler {
     });
   }
 
+  private boolean isNullOrBlank(String s) {
+    return s == null || s.trim().isEmpty();
+  }
+
+  private String getExternalSystemIdFromRequest(RoutingContext ctx) {
+    String token = ctx.request().headers().get("token");
+    if (!isNullOrBlank(token)) {
+      logger.info("Handling VIP Parton...");
+      return token;
+    } else {
+      logger.info("Handling Parton...");
+      return "rgopalakrishnan@ebsco.com";
+    }
+  }
+
+  private Boolean checkIfRequestIsSecure(RoutingContext ctx) {
+    String token = ctx.request().headers().get("token");
+    if (!isNullOrBlank(token)) {
+      logger.info("Handling VIP Parton...");
+      return true;
+    } else {
+      logger.info("Handling Parton...");
+      return false;
+    }
+  }
+
+  public void handleGetPatronInfo(RoutingContext ctx) {
+    handleCommon(ctx,
+      new String[]{},
+      new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_SORT_BY, PARAM_LIMIT,
+        PARAM_OFFSET},
+      (client, params) -> {
+        boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
+        boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
+        boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
+        String sortBy = params.get(PARAM_SORT_BY);
+        String limit = params.get(PARAM_LIMIT);
+        String offset = params.get(PARAM_OFFSET);
+
+        ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
+          includeLoans,
+          includeCharges,
+          includeHolds,
+          sortBy,
+          limit,
+          offset,
+          resp -> handleProxyResponse(ctx, resp),
+          t -> handleProxyException(ctx, t));
+      });
+  }
+
   public void handleGetAccount(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] {},
-        new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_SORT_BY, PARAM_LIMIT,
+      new String[]{},
+      new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_SORT_BY, PARAM_LIMIT,
         PARAM_OFFSET},
-        (client, params) -> {
-          boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
-          boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
-          boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
-          String sortBy = params.get(PARAM_SORT_BY);
-          String limit = params.get(PARAM_LIMIT);
-          String offset = params.get(PARAM_OFFSET);
+      (client, params) -> {
+        boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
+        boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
+        boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
+        String sortBy = params.get(PARAM_SORT_BY);
+        String limit = params.get(PARAM_LIMIT);
+        String offset = params.get(PARAM_OFFSET);
 
-          ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
-              includeLoans,
-              includeCharges,
-              includeHolds,
-              sortBy,
-              limit,
-              offset,
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
-        });
+        ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
+          includeLoans,
+          includeCharges,
+          includeHolds,
+          sortBy,
+          limit,
+          offset,
+          resp -> handleProxyResponse(ctx, resp),
+          t -> handleProxyException(ctx, t));
+      });
   }
 
   public void handleRenew(RoutingContext ctx) {
     handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).renewItem(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+      new String[]{PARAM_ITEM_ID},
+      new String[]{},
+      (client, params) -> ((PatronOkapiClient) client).renewItem(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_ITEM_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
 
   }
 
@@ -147,14 +198,14 @@ public class PatronHandler extends Handler {
     }
     final String body = checkDates(ctx.body().asJsonObject());
     handleCommon(ctx,
-        new String[] { PARAM_ITEM_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).placeItemHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_ITEM_ID),
-            body,
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+      new String[]{PARAM_ITEM_ID},
+      new String[]{},
+      (client, params) -> ((PatronOkapiClient) client).placeItemHold(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_ITEM_ID),
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
   }
 
   public void handlePostPatronRequest(RoutingContext ctx) {
@@ -179,7 +230,7 @@ public class PatronHandler extends Handler {
 
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());
-    if ( validationResult != null) {
+    if (validationResult != null) {
       final int errorStatusCode = 422;
       String errorMessage = get422ErrorMsg(errorStatusCode, constructValidationErrorMessage(validationResult));
       ctx.response()
@@ -190,16 +241,16 @@ public class PatronHandler extends Handler {
     }
 
     handleCommon(ctx,
-        new String[] { PARAM_PATRON_ID, PARAM_HOLD_ID },
-        new String[] {},
-        (client, params) ->
-          ((PatronOkapiClient) client).cancelHold(
-              params.get(PARAM_PATRON_ID),
-              params.get(PARAM_HOLD_ID),
-              ctx.body().asJsonObject(),
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t))
-        );
+      new String[]{PARAM_PATRON_ID, PARAM_HOLD_ID},
+      new String[]{},
+      (client, params) ->
+        ((PatronOkapiClient) client).cancelHold(
+          params.get(PARAM_PATRON_ID),
+          params.get(PARAM_HOLD_ID),
+          ctx.body().asJsonObject(),
+          resp -> handleProxyResponse(ctx, resp),
+          t -> handleProxyException(ctx, t))
+    );
   }
 
   public void handlePlaceInstanceHold(RoutingContext ctx) {
@@ -209,20 +260,20 @@ public class PatronHandler extends Handler {
     }
     final String body = checkDates(ctx.body().asJsonObject());
     handleCommon(ctx,
-        new String[] { PARAM_INSTANCE_ID },
-        new String[] {},
-        (client, params) -> ((PatronOkapiClient) client).placeInstanceHold(
-            params.get(PARAM_PATRON_ID),
-            params.get(PARAM_INSTANCE_ID),
-            body,
-            resp -> handleProxyResponse(ctx, resp),
-            t -> handleProxyException(ctx, t)));
+      new String[]{PARAM_INSTANCE_ID},
+      new String[]{},
+      (client, params) -> ((PatronOkapiClient) client).placeInstanceHold(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_INSTANCE_ID),
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
   }
 
   public void handleGetAllowedServicePointsForInstance(RoutingContext ctx) {
     handleCommon(ctx,
-      new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
-      new String[] {},
+      new String[]{PARAM_PATRON_ID, PARAM_INSTANCE_ID},
+      new String[]{},
       (client, params) -> ((PatronOkapiClient) client).getAllowedServicePointsForInstance(
         params.get(PARAM_PATRON_ID),
         params.get(PARAM_INSTANCE_ID),
@@ -233,8 +284,8 @@ public class PatronHandler extends Handler {
 
   public void handleGetAllowedServicePointsForItem(RoutingContext ctx) {
     handleCommon(ctx,
-      new String[] { PARAM_PATRON_ID, PARAM_ITEM_ID },
-      new String[] {},
+      new String[]{PARAM_PATRON_ID, PARAM_ITEM_ID},
+      new String[]{},
       (client, params) -> ((PatronOkapiClient) client).getAllowedServicePointsForItem(
         params.get(PARAM_PATRON_ID),
         params.get(PARAM_ITEM_ID),
@@ -245,7 +296,7 @@ public class PatronHandler extends Handler {
   public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
     logger.debug("handleGetPatronRegistrationStatus:: Fetching patron registration");
     String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
-    if(StringUtils.isNullOrEmpty(emailId)) {
+    if (StringUtils.isNullOrEmpty(emailId)) {
       logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId");
       ctx.response()
         .setStatusCode(400)
@@ -276,7 +327,7 @@ public class PatronHandler extends Handler {
   }
 
   @Override
-  protected void badRequest(RoutingContext ctx, String msg){
+  protected void badRequest(RoutingContext ctx, String msg) {
     ctx.response()
       .setStatusCode(400)
       .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -317,17 +368,16 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
+    if (logger.isDebugEnabled()) {
       logger.debug("response: " + respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
       serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
+    } else {
       String errorMsg = getErrorMessage(statusCode, respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
@@ -341,17 +391,16 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
+    if (logger.isDebugEnabled()) {
       logger.debug("handleRegistrationStatusResponse:: response {} ", respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
       serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
+    } else {
       String errorMsg = (statusCode == 404 || statusCode == 400)
         ? getFormattedErrorMsg(statusCode, respBody)
         : getStructuredErrorMessage(statusCode, respBody);
@@ -370,9 +419,9 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private void setContentType(HttpServerResponse response, String contentType){
+  private void setContentType(HttpServerResponse response, String contentType) {
     if (contentType != null && !contentType.equals("")) {
-        response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      response.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
   }
 
@@ -419,13 +468,12 @@ public class PatronHandler extends Handler {
     return requestMessage;
   }
 
-  private String getStructuredErrorMessage(int statusCode, String message){
+  private String getStructuredErrorMessage(int statusCode, String message) {
     String finalMsg;
-    try{
+    try {
       ErrorMessage error = new ErrorMessage(statusCode, message);
       finalMsg = error.toJson();
-    }
-    catch(JsonProcessingException ex){
+    } catch (JsonProcessingException ex) {
       finalMsg = "{ code : \"\", message : \"" + message + "\" }";
     }
     return finalMsg;
@@ -442,13 +490,14 @@ public class PatronHandler extends Handler {
       }
     }
 
-    if (errorMessage.equals(""))
+    if (errorMessage.equals("")) {
       errorMessage = getStructuredErrorMessage(statusCode, "No error message found");
+    }
 
     return errorMessage;
   }
 
-  private String get422ErrorMsg(int statusCode, String respBody){
+  private String get422ErrorMsg(int statusCode, String respBody) {
 
     logger.debug("422 message: " + respBody);
     String errorMessage = "";
@@ -456,7 +505,7 @@ public class PatronHandler extends Handler {
     try {
       Errors err = Json.decodeValue(respBody, Errors.class);
       errorMessage = get422ErrorMsg(statusCode, err);
-    } catch(Exception ex) {
+    } catch (Exception ex) {
       logger.debug(ex.getMessage());
       errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
     }
@@ -490,12 +539,13 @@ public class PatronHandler extends Handler {
     }
   }
 
-  private String getErrorMessage(int statusCode, String respBody){
+  private String getErrorMessage(int statusCode, String respBody) {
 
-    if (statusCode == 422)
+    if (statusCode == 422) {
       return get422ErrorMsg(statusCode, respBody);
-    else
+    } else {
       return getStructuredErrorMessage(statusCode, respBody);
+    }
   }
 
   private Errors constructValidationErrorMessage(String coreMessage) {

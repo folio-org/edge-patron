@@ -53,9 +53,11 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.GET, "/admin/health")
       .handler(this::handleHealthCheck);
 
+    router.route(HttpMethod.GET, "/patron/info")
+      .handler(patronHandler::handleGetPatronInfo);
+
     router.route(HttpMethod.GET, "/patron/account/:patronId")
       .handler(patronHandler::handleGetAccount);
-
     router.route(HttpMethod.POST, "/patron/account/:patronId/item/:itemId/renew")
       .handler(patronHandler::handleRenew);
 

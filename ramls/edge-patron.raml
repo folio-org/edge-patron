@@ -87,6 +87,88 @@ types:
         body:
           text/plain:
             example: internal server error, contact administrator
+  /info:
+    get:
+      description: Return account details for the specified FOLIO user id
+      queryParameters:
+        includeLoans:
+          description: |
+            Indicates whether or not to include the loans array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        includeCharges:
+          description: |
+            Indicates whether or not to include the charges array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        includeHolds:
+          description: |
+            Indicates whether or not to include the holds array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        apikey:
+          description: "API Key"
+          type: string
+        sortBy:
+          description: |
+            Part of CQL query, indicates the order of records within the lists of holds, charges, loans
+          example: item.title/sort.ascending
+          required: false
+          type: string
+        offset:
+          description: |
+            Skip over a number of elements by specifying an offset value for the query
+          type: integer
+          required: false
+          example: 1
+          minimum: 0
+          maximum: 2147483647
+        limit:
+          description: |
+            Limit the number of elements returned in the response
+          type: integer
+          required: false
+          example: 10
+          minimum: 0
+          maximum: 2147483647
+      responses:
+        200:
+          description: Returns the user account info
+          body:
+            application/json:
+              type: account
+              example: !include examples/account.json
+        400:
+          description: Bad request
+          body:
+            text/plain:
+              example: unable to process request -- constraint violation
+        401:
+          description: Not authorized to perform requested action
+          body:
+            text/plain:
+              example: unable to get account -- unauthorized
+        404:
+          description: Item with a given ID not found
+          body:
+            text/plain:
+              example: account not found
+        403:
+          description: Access Denied
+          body:
+            text/plain:
+              example: Access Denied
+        500:
+          description: Internal server error, e.g. due to misconfiguration
+          body:
+            text/plain:
+              example: internal server error, contact administrator
   /account:
     post:
       description: |

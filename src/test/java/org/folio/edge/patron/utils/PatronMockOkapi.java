@@ -1,36 +1,5 @@
 package org.folio.edge.patron.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.utils.test.MockOkapi;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Charge;
-import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.Hold.Status;
-import org.folio.edge.patron.model.HoldCancellation;
-import org.folio.edge.patron.model.Item;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.Money;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import static java.util.Collections.singletonList;
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
@@ -48,6 +17,36 @@ import static org.folio.edge.patron.Constants.PARAM_OFFSET;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.test.MockOkapi;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Charge;
+import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.Hold.Status;
+import org.folio.edge.patron.model.HoldCancellation;
+import org.folio.edge.patron.model.Item;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.Money;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -168,7 +167,17 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/patron/registration-status/:emailId")
       .handler(this::getRegistrationStatusHandler);
 
+    router.route(HttpMethod.GET, "/realms/diku/protocol/openid-connect/certs")
+      .handler(this::getKeycloakPublicKeysHandler);
+
     return router;
+  }
+
+  public void getKeycloakPublicKeysHandler(RoutingContext ctx) {
+    ctx.response()
+      .setStatusCode(200)
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(readMockFile("/keycloak_certs_response.json"));
   }
 
   public void getPatronHandler(RoutingContext ctx) {

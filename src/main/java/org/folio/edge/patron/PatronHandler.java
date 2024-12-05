@@ -1,37 +1,9 @@
 package org.folio.edge.patron;
 
-import com.amazonaws.util.StringUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.client.HttpResponse;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.Handler;
-import org.folio.edge.core.security.SecureStore;
-import org.folio.edge.core.utils.Mappers;
-import org.folio.edge.core.utils.OkapiClient;
-import org.folio.edge.core.utils.OkapiClientFactory;
-import org.folio.edge.patron.model.error.Error;
-import org.folio.edge.patron.model.error.ErrorMessage;
-import org.folio.edge.patron.model.error.Errors;
-import org.folio.edge.patron.utils.PatronIdHelper;
-import org.folio.edge.patron.utils.PatronOkapiClient;
-
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
-
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
+import static org.folio.edge.core.Constants.X_OKAPI_TENANT;
+import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
+import static org.folio.edge.patron.Constants.EXTERNAL_SYSTEM_ID_CLAIM;
 import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
 import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
@@ -49,16 +21,51 @@ import static org.folio.edge.patron.Constants.PARAM_LIMIT;
 import static org.folio.edge.patron.Constants.PARAM_OFFSET;
 import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
 import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
+import static org.folio.edge.patron.Constants.VIP_CLAIM;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
+
+import com.amazonaws.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
+import java.util.function.Consumer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.Handler;
+import org.folio.edge.core.security.SecureStore;
+import org.folio.edge.core.utils.Mappers;
+import org.folio.edge.core.utils.OkapiClient;
+import org.folio.edge.core.utils.OkapiClientFactory;
+import org.folio.edge.patron.model.error.Error;
+import org.folio.edge.patron.model.error.ErrorMessage;
+import org.folio.edge.patron.model.error.Errors;
+import org.folio.edge.patron.utils.KeycloakClient;
+import org.folio.edge.patron.utils.KeycloakTokenHelper;
+import org.folio.edge.patron.utils.PatronIdHelper;
+import org.folio.edge.patron.utils.PatronOkapiClient;
 
 public class PatronHandler extends Handler {
 
   public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
     + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
   private static final Logger logger = LogManager.getLogger(Handler.class);
-
-  public PatronHandler(SecureStore secureStore, OkapiClientFactory ocf) {
+  private final KeycloakClient keycloakClient;
+  public PatronHandler(SecureStore secureStore, OkapiClientFactory ocf, KeycloakClient keycloakClient) {
     super(secureStore, ocf);
+    this.keycloakClient = keycloakClient;
   }
 
   @Override
@@ -103,6 +110,41 @@ public class PatronHandler extends Handler {
     });
   }
 
+  private void handleSecureCommon(RoutingContext ctx, Consumer<RoutingContext> handler) {
+    var token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    var tenant = ctx.request().getHeader(X_OKAPI_TENANT);
+
+    if (token == null || token.isEmpty()) {
+      badRequest(ctx, "Missing access token");
+      return;
+    }
+
+    if (tenant == null || tenant.isEmpty()) {
+      badRequest(ctx, "Missing tenant id");
+      return;
+    }
+    KeycloakTokenHelper.getClaimsFromToken(token, tenant, keycloakClient)
+      .onSuccess(claims -> {
+        var vip = claims.get(VIP_CLAIM, Boolean.class);
+        var externalSystemId = claims.get(EXTERNAL_SYSTEM_ID_CLAIM, String.class);
+        if (vip == null || externalSystemId == null) {
+          logger.error("Token doesn't contain required claims");
+          badRequest(ctx, "Token doesn't contain required claims");
+          return;
+        }
+        if (!vip) {
+          accessDenied(ctx, "Patron is not allowed to call secure endpoints");
+          return;
+        }
+        ctx.request().params().add(PARAM_PATRON_ID, externalSystemId);
+        handler.accept(ctx);
+      })
+      .onFailure(ex -> {
+        logger.error("Failed to get claims from token", ex);
+        badRequest(ctx, "Failed to validate access token");
+      });
+  }
+
   public void handleGetAccount(RoutingContext ctx) {
     handleCommon(ctx,
         new String[] {},
@@ -126,6 +168,10 @@ public class PatronHandler extends Handler {
               resp -> handleProxyResponse(ctx, resp),
               t -> handleProxyException(ctx, t));
         });
+  }
+
+  public void handleSecureGetAccount(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleGetAccount);
   }
 
   public void handleRenew(RoutingContext ctx) {
@@ -155,6 +201,10 @@ public class PatronHandler extends Handler {
             body,
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecurePlaceItemHold(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handlePlaceItemHold);
   }
 
   public void handlePostPatronRequest(RoutingContext ctx) {
@@ -202,6 +252,10 @@ public class PatronHandler extends Handler {
         );
   }
 
+  public void handleSecureCancelHold(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleCancelHold);
+  }
+
   public void handlePlaceInstanceHold(RoutingContext ctx) {
     if (ctx.body().asJsonObject() == null) {
       badRequest(ctx, MSG_HOLD_NOBODY);
@@ -219,6 +273,10 @@ public class PatronHandler extends Handler {
             t -> handleProxyException(ctx, t)));
   }
 
+  public void handleSecurePlaceInstanceHold(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handlePlaceInstanceHold);
+  }
+
   public void handleGetAllowedServicePointsForInstance(RoutingContext ctx) {
     handleCommon(ctx,
       new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
@@ -228,6 +286,10 @@ public class PatronHandler extends Handler {
         params.get(PARAM_INSTANCE_ID),
         resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecureGetAllowedServicePointsForInstance(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleGetAllowedServicePointsForInstance);
   }
 
 
@@ -240,6 +302,10 @@ public class PatronHandler extends Handler {
         params.get(PARAM_ITEM_ID),
         resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecureGetAllowedServicePointsForItem(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleGetAllowedServicePointsForItem);
   }
 
   public void handleGetPatronRegistrationStatus(RoutingContext ctx) {

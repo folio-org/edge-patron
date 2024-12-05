@@ -139,6 +139,324 @@ types:
           body:
             text/plain:
               example: internal server error, contact administrator
+    get:
+      description: (Secure) Return account details for the user provided in access token(x-okapi-token)
+      queryParameters:
+        includeLoans:
+          description: |
+            Indicates whether or not to include the loans array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        includeCharges:
+          description: |
+            Indicates whether or not to include the charges array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        includeHolds:
+          description: |
+            Indicates whether or not to include the holds array in
+            the response
+          required: false
+          type: boolean
+          default: false
+        apikey:
+          description: "API Key"
+          type: string
+        sortBy:
+          description: |
+            Part of CQL query, indicates the order of records within the lists of holds, charges, loans
+          example: item.title/sort.ascending
+          required: false
+          type: string
+        offset:
+          description: |
+            Skip over a number of elements by specifying an offset value for the query
+          type: integer
+          required: false
+          example: 1
+          minimum: 0
+          maximum: 2147483647
+        limit:
+          description: |
+            Limit the number of elements returned in the response
+          type: integer
+          required: false
+          example: 10
+          minimum: 0
+          maximum: 2147483647
+      responses:
+        200:
+          description: Returns the user account info
+          body:
+            application/json:
+              type: account
+              example: !include examples/account.json
+        400:
+          description: Bad request
+          body:
+            text/plain:
+              example: unable to process request -- constraint violation
+        401:
+          description: Not authorized to perform requested action
+          body:
+            text/plain:
+              example: unable to get account -- unauthorized
+        404:
+          description: Item with a given ID not found
+          body:
+            text/plain:
+              example: account not found
+        403:
+          description: Access Denied
+          body:
+            text/plain:
+              example: Access Denied
+        500:
+          description: Internal server error, e.g. due to misconfiguration
+          body:
+            text/plain:
+              example: internal server error, contact administrator
+    /item:
+      /{itemId}:
+        uriParameters:
+          itemId:
+            description: The UUID of a FOLIO item
+            type: string
+            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        /hold:
+          displayName: Hold Management
+          description: (Secure) Services that provide hold management
+          post:
+            description: |
+              (Secure) Creates a hold request on an existing item for the user
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
+            body:
+              application/json:
+                type: hold
+                example: !include examples/hold.json
+            responses:
+              201:
+                description: |
+                  Returns data for a new hold request on the specified item
+                body:
+                  application/json:
+                    type: hold
+                    example: !include examples/hold.json
+              400:
+                description: Bad request
+                body:
+                  text/plain:
+                    example: unable to process request -- constraint violation
+              401:
+                description: Not authorized to perform requested action
+                body:
+                  text/plain:
+                    example: unable to create hold -- unauthorized
+              404:
+                description: Item with a given ID not found
+                body:
+                  text/plain:
+                    example: item not found
+              403:
+                description: Access Denied
+                body:
+                  text/plain:
+                    example: Access Denied
+              500:
+                description: |
+                  Internal server error, e.g. due to misconfiguration
+                body:
+                  text/plain:
+                    example: internal server error, contact administrator
+        /allowed-service-points:
+          displayName: Allowed service points
+          description: Service that provides a list of allowed pickup service points
+          get:
+            description: |
+              (Secure) Returns a list of pickup service points allowed for a particular patron and instance
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
+            body:
+              application/json:
+                type: allowedServicePoints
+                example: !include examples/allowed-service-points-response.json
+            responses:
+              200:
+                description: |
+                  Successfully returns a list of allowed service points
+                body:
+                  application/json:
+                    type: allowedServicePoints
+                    example: !include examples/allowed-service-points-response.json
+              422:
+                description: Validation error
+                body:
+                  application/json:
+                    type: errors
+              500:
+                description: |
+                  Internal server error, e.g. due to misconfiguration
+                body:
+                  text/plain:
+                    example: internal server error, contact administrator
+    /instance:
+      /{instanceId}:
+        uriParameters:
+          instanceId:
+            description: The UUID of a FOLIO instance
+            type: string
+            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        /hold:
+          displayName: Hold Management
+          description: Services that provide hold management
+          post:
+            description: |
+              (Secure) Creates a hold request on an existing item by instance ID for the user
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
+            body:
+              application/json:
+                type: hold
+                example: !include examples/hold.json
+            responses:
+              201:
+                description: |
+                  Returns data for a new hold request on the selected item
+                body:
+                  application/json:
+                    type: hold
+                    example: !include examples/hold.json
+              400:
+                description: Bad request
+                body:
+                  text/plain:
+                    example: unable to process request -- constraint violation
+              401:
+                description: Not authorized to perform requested action
+                body:
+                  text/plain:
+                    example: unable to create hold -- unauthorized
+              404:
+                description: Instance with a given ID not found
+                body:
+                  text/plain:
+                    example: item not found
+              403:
+                description: Access Denied
+                body:
+                  text/plain:
+                    example: Access Denied
+              422:
+                description: Validation error
+                body:
+                  application/json:
+                    type : errors
+              500:
+                description: |
+                  Internal server error, e.g. due to misconfiguration
+                body:
+                  text/plain:
+                    example: internal server error, contact administrator
+        /allowed-service-points:
+          displayName: Allowed service points
+          description: Service that provides a list of allowed pickup service points
+          get:
+            description: |
+              (Secure) Returns a list of pickup service points allowed for a particular patron and instance
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
+            body:
+              application/json:
+                type: allowedServicePoints
+                example: !include examples/allowed-service-points-response.json
+            responses:
+              200:
+                description: |
+                  Successfully returns a list of allowed service points
+                body:
+                  application/json:
+                    type: allowedServicePoints
+                    example: !include examples/allowed-service-points-response.json
+              422:
+                description: Validation error
+                body:
+                  application/json:
+                    type: errors
+              500:
+                description: |
+                  Internal server error, e.g. due to misconfiguration
+                body:
+                  text/plain:
+                    example: internal server error, contact administrator
+    /hold:
+      displayName: Hold Management
+      description: Services that provide hold management
+      /{holdId}:
+        displayName: Hold Management By Id
+        description: Services that provide hold management by Id
+        uriParameters:
+          holdId:
+            description: The UUID of a FOLIO hold request
+            type: string
+            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        /cancel:
+          post:
+            description: (Secure) Removes the specified hold request
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
+            body:
+              application/json:
+                type: hold-cancellation
+                example: !include examples/hold-cancellation.json
+            responses:
+              201:
+                description: The specified hold request was removed
+                body:
+                  application/json:
+                    type: hold
+                    example: !include examples/hold.json
+              400:
+                description: Bad request
+                body:
+                  text/plain:
+                    example: |
+                      unable to process request -- constraint violation
+              401:
+                description: Not authorized to perform requested action
+                body:
+                  text/plain:
+                    example: unable to cancel hold -- unauthorized
+              404:
+                description: hold with a given ID not found
+                body:
+                  text/plain:
+                    example: hold not found
+              403:
+                description: Access denied
+                body:
+                  text/plain:
+                    example: access denied
+              500:
+                description: |
+                  Internal server error, e.g. due to misconfiguration
+                body:
+                  text/plain:
+                    example: internal server error, contact administrator
     /external-patrons:
       displayName: Get Accounts of External Patrons
       description: Get accounts of external patrons based on flag

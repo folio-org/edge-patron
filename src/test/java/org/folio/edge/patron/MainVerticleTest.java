@@ -1,41 +1,5 @@
 package org.folio.edge.patron;
 
-import io.restassured.RestAssured;
-import io.restassured.config.DecoderConfig;
-import io.restassured.config.DecoderConfig.ContentDecoder;
-import io.restassured.response.Response;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.edge.core.utils.ApiKeyUtils;
-import org.folio.edge.core.utils.test.TestUtils;
-import org.folio.edge.patron.model.Account;
-import org.folio.edge.patron.model.Hold;
-import org.folio.edge.patron.model.Loan;
-import org.folio.edge.patron.model.error.ErrorMessage;
-import org.folio.edge.patron.utils.PatronMockOkapi;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.SYS_LOG_LEVEL;
@@ -45,6 +9,9 @@ import static org.folio.edge.core.Constants.SYS_REQUEST_TIMEOUT_MS;
 import static org.folio.edge.core.Constants.SYS_RESPONSE_COMPRESSION;
 import static org.folio.edge.core.Constants.SYS_SECURE_STORE_PROP_FILE;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
+import static org.folio.edge.core.Constants.X_OKAPI_TENANT;
+import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
+import static org.folio.edge.patron.Constants.KEYCLOAK_URL;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
@@ -69,6 +36,42 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import io.restassured.RestAssured;
+import io.restassured.config.DecoderConfig;
+import io.restassured.config.DecoderConfig.ContentDecoder;
+import io.restassured.response.Response;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.edge.core.utils.ApiKeyUtils;
+import org.folio.edge.core.utils.test.TestUtils;
+import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Hold;
+import org.folio.edge.patron.model.Loan;
+import org.folio.edge.patron.model.error.ErrorMessage;
+import org.folio.edge.patron.utils.JwtTokenUtil;
+import org.folio.edge.patron.utils.PatronMockOkapi;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
 
@@ -86,6 +89,7 @@ public class MainVerticleTest {
 
   private static Vertx vertx;
   private static PatronMockOkapi mockOkapi;
+  private static JwtTokenUtil jwtTokenUtil;
 
   @BeforeClass
   public static void setUpOnce(TestContext context) throws Exception {
@@ -96,6 +100,7 @@ public class MainVerticleTest {
     knownTenants.add(ApiKeyUtils.parseApiKey(apiKey).tenantId);
 
     vertx = Vertx.vertx();
+    jwtTokenUtil = new JwtTokenUtil();
 
     System.setProperty(SYS_PORT, String.valueOf(serverPort));
     System.setProperty(SYS_OKAPI_URL, "http://localhost:" + okapiPort);
@@ -103,6 +108,7 @@ public class MainVerticleTest {
     System.setProperty(SYS_LOG_LEVEL, "DEBUG");
     System.setProperty(SYS_RESPONSE_COMPRESSION, "true");
     System.setProperty(SYS_REQUEST_TIMEOUT_MS, String.valueOf(requestTimeoutMs));
+    System.setProperty(KEYCLOAK_URL, "http://localhost:" + okapiPort);
 
     mockOkapi = spy(new PatronMockOkapi(okapiPort, knownTenants));
     mockOkapi.start()
@@ -252,6 +258,126 @@ public class MainVerticleTest {
 
     assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccount(TestContext context) {
+    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    RestAssured
+      .given()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body(is(expected));
+  }
+
+  @Test
+  public void testSecureGetAccountInvalidToken(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true) + "001")
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Failed to validate access token", error.message);
+    assertEquals(400, error.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccountMissingTenant(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true) + "001")
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Missing tenant id", error.message);
+    assertEquals(400, error.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccountMissingToken(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Missing access token", error.message);
+    assertEquals(400, error.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccountMissingKeycloakPublicKey(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TENANT, "test")
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Failed to validate access token", error.message);
+    assertEquals(400, error.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccountWithMissingClaims(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TENANT, "diku")
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken())
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Token doesn't contain required claims", error.message);
+    assertEquals(400, error.httpStatusCode);
+  }
+
+  @Test
+  public void testSecureGetAccountWithPatronNotVip(TestContext context) throws Exception {
+    var resp = RestAssured
+      .given()
+      .header(X_OKAPI_TENANT, "diku")
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, false))
+      .get(String.format("/patron/account?apikey=%s", apiKey))
+      .then()
+      .statusCode(401)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var error = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Access Denied", error.message);
+    assertEquals(401, error.httpStatusCode);
   }
 
   @Test
@@ -781,6 +907,28 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testSecurePlaceInstanceHoldSuccess(TestContext context) throws Exception {
+    Hold hold = PatronMockOkapi.getHold(instanceId);
+
+    final Response resp = RestAssured
+      .with()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .body(hold.toJson())
+      .contentType(APPLICATION_JSON)
+      .post(
+        String.format("/patron/account/instance/%s/hold?apikey=%s", instanceId, apiKey))
+      .then()
+      .statusCode(201)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getPlacedHoldJson(hold));
+    Hold actual = Hold.fromJson(resp.body().asString());
+    validateHolds(expected, actual);
+  }
+
+  @Test
   public void testPlaceInstanceHoldPatronNotFound(TestContext context) throws Exception {
     logger.info("=== Test place instance hold w/ patron not found ===");
 
@@ -1277,6 +1425,28 @@ public class MainVerticleTest {
     JsonObject actual = new JsonObject(resp.body().asString());
     assertEquals(expected, actual);
   }
+
+  @Test
+  public void testSecureAllowedServicePointsSuccess(TestContext context) {
+
+    final Response resp = RestAssured
+      .with()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account/instance/%s/allowed-service-points?apikey=%s",
+        instanceId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_mod_patron_expected_response.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
+
   @Test
   public void testAllowedServicePointsForItemError(TestContext context) throws Exception {
     logger.info("=== Test validation error during allowed service points request ===");
@@ -1329,6 +1499,35 @@ public class MainVerticleTest {
       .body(cancedHoldJson)
       .post(
         String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, holdCancellationHoldId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    Hold expected = Hold.fromJson(PatronMockOkapi.getRemovedHoldJson(holdCancellationHoldId));
+    Hold actual = Hold.fromJson(resp.body().asString());
+
+    assertEquals(expected, actual);
+    assertEquals(holdCancellationHoldId, expected.requestId);
+    assertEquals(PatronMockOkapi.holdCancellationReasonId, actual.cancellationReasonId);
+    assertEquals(Hold.Status.CLOSED_CANCELED, actual.status);
+    assertEquals(0, actual.queuePosition);
+    assertEquals(expected.canceledByUserId, actual.canceledByUserId);
+  }
+
+  @Test
+  public void testSecureCancelHoldSuccess(TestContext context) throws Exception {
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
+
+    final Response resp = RestAssured
+      .with()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .contentType(APPLICATION_JSON)
+      .body(cancedHoldJson)
+      .post(
+        String.format("/patron/account/hold/%s/cancel?apikey=%s", holdCancellationHoldId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

@@ -177,7 +177,7 @@ public class PatronOkapiClient extends OkapiClient {
 
   public void putPatron(String externalSystemId, String requestBody,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
-    post(
+    put(
       format("%s/patron/%s", okapiURL, externalSystemId),
       tenant,
       requestBody,

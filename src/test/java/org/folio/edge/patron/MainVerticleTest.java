@@ -81,6 +81,7 @@ public class MainVerticleTest {
   private static final String itemId = UUID.randomUUID().toString();
   private static final String instanceId = UUID.randomUUID().toString();
   private static final String holdId = UUID.randomUUID().toString();
+  private static final String externalSystemId = UUID.randomUUID().toString();
   private static final String apiKey = ApiKeyUtils.generateApiKey(10, "diku", "diku");
   private static final String badApiKey = apiKey + "0000";
   private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");
@@ -969,6 +970,23 @@ public class MainVerticleTest {
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
   }
+
+  @Test
+  public void testPutPatron_200(TestContext context) {
+    logger.info("=== testPutPatron_200 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_200");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+  }
+
 
   @Test
   public void testPostPatron_200(TestContext context) {

@@ -3,25 +3,7 @@ package org.folio.edge.patron;
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.X_OKAPI_TENANT;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.EXTERNAL_SYSTEM_ID_CLAIM;
-import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
-import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
-import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
-import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_LIMIT;
-import static org.folio.edge.patron.Constants.PARAM_OFFSET;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
-import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
-import static org.folio.edge.patron.Constants.VIP_CLAIM;
+import static org.folio.edge.patron.Constants.*;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
 import com.amazonaws.util.StringUtils;
@@ -226,6 +208,36 @@ public class PatronHandler extends Handler {
         t -> handleProxyException(ctx, t));
     });
   }
+
+  public void handlePutPatronRequest(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      logger.warn("handlePutPatronRequest:: missing body found");
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
+      return;
+    }
+    String externalSystemId = ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID);
+    if(StringUtils.isNullOrEmpty(externalSystemId)) {
+      logger.warn("handlePutPatronRequest:: Missing or empty externalSystemId");
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(getErrorMsg("EXTERNAL_SYSTEM_ID_NOT_PROVIDED", "externalSystemId is missing in the request"));
+      return;
+    }
+
+    final String body = String.valueOf(ctx.body().asJsonObject());
+    super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
+      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
+      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
+      patronClient.putPatron(externalSystemId, body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t));
+    });
+  }
+
 
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());

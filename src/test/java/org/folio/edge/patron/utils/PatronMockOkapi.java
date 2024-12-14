@@ -147,6 +147,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST, "/patron")
       .handler(this::postPatronMock);
 
+    router.route(HttpMethod.PUT, "/patron/:externalSystemId")
+      .handler(this::putPatronMock);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
 
@@ -439,6 +442,42 @@ public class PatronMockOkapi extends MockOkapi {
         .end("Bad Request: " + e.toString());
     }
   }
+
+  public void putPatronMock(RoutingContext ctx) {
+    try {
+      String firstName = ctx.body().asJsonObject().getJsonObject("generalInfo").getString("firstName");
+      String mockResponseBody = readMockFile("/staging-users-put-response.json");
+      String mockResponse422ErrorBody = readMockFile("/staging-users-put-error-response.json");
+      if ("TEST_STATUS_CODE_200".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(200)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponseBody);
+      } else if ("TEST_STATUS_CODE_400".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(400)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("A bad exception occurred");
+      } else if ("TEST_STATUS_CODE_422".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(422)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponse422ErrorBody);
+      } else if ("TEST_STATUS_CODE_500".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(500)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Server exception occurred");
+      }
+    } catch (Exception e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request: " + e.toString());
+    }
+  }
+
 
   public void getRequestHandler(RoutingContext ctx) {
     String requestId = ctx.request().getParam(PARAM_REQUEST_ID);

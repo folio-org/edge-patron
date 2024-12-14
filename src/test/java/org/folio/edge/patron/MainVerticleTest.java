@@ -81,7 +81,7 @@ public class MainVerticleTest {
   private static final String itemId = UUID.randomUUID().toString();
   private static final String instanceId = UUID.randomUUID().toString();
   private static final String holdId = UUID.randomUUID().toString();
-  private static final String externalSystemId = UUID.randomUUID().toString();
+  private static final String EXTERNAL_SYSTEM_ID = UUID.randomUUID().toString();
   private static final String apiKey = ApiKeyUtils.generateApiKey(10, "diku", "diku");
   private static final String badApiKey = apiKey + "0000";
   private static final String unknownTenantApiKey = ApiKeyUtils.generateApiKey(10, "bogus", "diku");
@@ -981,7 +981,7 @@ public class MainVerticleTest {
       .body(jsonObject.encode())
       .contentType(APPLICATION_JSON)
       .put(
-        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+        String.format("/patron/%s?apikey=%s", EXTERNAL_SYSTEM_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
@@ -1032,7 +1032,7 @@ public class MainVerticleTest {
       .body(jsonObject.encode())
       .contentType(APPLICATION_JSON)
       .put(
-        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+        String.format("/patron/%s?apikey=%s", EXTERNAL_SYSTEM_ID, apiKey))
       .then()
       .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1069,7 +1069,7 @@ public class MainVerticleTest {
       .body(jsonObject.encode())
       .contentType(APPLICATION_JSON)
       .put(
-        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+        String.format("/patron/%s?apikey=%s", EXTERNAL_SYSTEM_ID, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1120,7 +1120,7 @@ public class MainVerticleTest {
       .body(jsonObject.encode())
       .contentType(APPLICATION_JSON)
       .put(
-        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+        String.format("/patron/%s?apikey=%s", EXTERNAL_SYSTEM_ID, apiKey))
       .then()
       .statusCode(500)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1135,7 +1135,7 @@ public class MainVerticleTest {
       .with()
       .contentType(APPLICATION_JSON)
       .put(
-        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+        String.format("/patron/%s?apikey=%s", EXTERNAL_SYSTEM_ID, apiKey))
       .then()
       .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

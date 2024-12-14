@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -189,13 +190,13 @@ public class PatronHandler extends Handler {
     handleSecureCommon(ctx, this::handlePlaceItemHold);
   }
 
-  public void handlePostPatronRequest(RoutingContext ctx) {
+  public void handlePatronRequest(RoutingContext ctx, BiConsumer<PatronOkapiClient, String> patronAction) {
     if (ctx.body().asJsonObject() == null) {
-      logger.warn("handlePostPatronRequest:: missing body found");
+      logger.warn("handlePatronRequest:: missing body found");
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
+        .end(getErrorMsg("MISSING_BODY", "Request body must not be null"));
       return;
     }
 
@@ -203,30 +204,22 @@ public class PatronHandler extends Handler {
     super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.postPatron(body,
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t));
+      patronAction.accept(patronClient, body);
     });
   }
 
-  public void handlePutPatronRequest(RoutingContext ctx) {
-    if (ctx.body().asJsonObject() == null) {
-      logger.warn("handlePutPatronRequest:: missing body found");
-      ctx.response()
-        .setStatusCode(400)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
-      return;
-    }
+  public void handlePostPatronRequest(RoutingContext ctx) {
+    handlePatronRequest(ctx, (patronClient, body) ->
+      patronClient.postPatron(body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
 
-    final String body = String.valueOf(ctx.body().asJsonObject());
-    super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
-      String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
-      final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
+  public void handlePutPatronRequest(RoutingContext ctx) {
+    handlePatronRequest(ctx, (patronClient, body) ->
       patronClient.putPatron(ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID), body,
         resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t));
-    });
+        t -> handleProxyException(ctx, t)));
   }
 
 

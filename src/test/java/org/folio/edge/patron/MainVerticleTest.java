@@ -1106,7 +1106,7 @@ public class MainVerticleTest {
       .then()
       .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .body("errorMessage", is("Request body must not null"))
+      .body("errorMessage", is("Request body must not be null"))
       .body("code", is("MISSING_BODY"));
   }
 
@@ -1139,7 +1139,7 @@ public class MainVerticleTest {
       .then()
       .statusCode(400)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-      .body("errorMessage", is("Request body must not null"))
+      .body("errorMessage", is("Request body must not be null"))
       .body("code", is("MISSING_BODY"));
   }
 

@@ -1023,6 +1023,25 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testPutPatron_400(TestContext context) {
+    logger.info("=== testPutPatron_400 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_400");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("A bad exception occurred"))
+      .body("code", is(400));
+  }
+
+
+  @Test
   public void testPostPatron_422(TestContext context) {
     logger.info("=== testPostPatron_422 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
@@ -1033,6 +1052,24 @@ public class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .post(
         String.format("/patron?apikey=%s", apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("ABC is required"))
+      .body("code", is(422));
+  }
+
+  @Test
+  public void testPutPatron_422(TestContext context) {
+    logger.info("=== testPutPatron_422 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_422");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1071,6 +1108,54 @@ public class MainVerticleTest {
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .body("errorMessage", is("Request body must not null"))
       .body("code", is("MISSING_BODY"));
+  }
+
+  @Test
+  public void testPutPatron_500(TestContext context) {
+    logger.info("=== testPutPatron_500 ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_500");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+      .then()
+      .statusCode(500)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("Server exception occurred"))
+      .body("code", is(500));
+  }
+
+  @Test
+  public void testPutPatron_NoRequestBody(TestContext context) {
+    logger.info("=== testPutPatron_NoRequestBody ===");
+    RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", externalSystemId, apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .body("errorMessage", is("Request body must not null"))
+      .body("code", is("MISSING_BODY"));
+  }
+
+  @Test
+  public void testPutPatron_NoParam(TestContext context) {
+    logger.info("=== testPutPatron_NoParam ===");
+    JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
+    jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_405");
+    RestAssured
+      .with()
+      .body(jsonObject.encode())
+      .contentType(APPLICATION_JSON)
+      .put(
+        String.format("/patron/%s?apikey=%s", "", apiKey))
+      .then()
+      .statusCode(405);
   }
 
   @Test

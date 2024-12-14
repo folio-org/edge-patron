@@ -218,21 +218,12 @@ public class PatronHandler extends Handler {
         .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
       return;
     }
-    String externalSystemId = ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID);
-    if(StringUtils.isNullOrEmpty(externalSystemId)) {
-      logger.warn("handlePutPatronRequest:: Missing or empty externalSystemId");
-      ctx.response()
-        .setStatusCode(400)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("EXTERNAL_SYSTEM_ID_NOT_PROVIDED", "externalSystemId is missing in the request"));
-      return;
-    }
 
     final String body = String.valueOf(ctx.body().asJsonObject());
     super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.putPatron(externalSystemId, body,
+      patronClient.putPatron(ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID), body,
         resp -> handleProxyResponse(ctx, resp),
         t -> handleProxyException(ctx, t));
     });

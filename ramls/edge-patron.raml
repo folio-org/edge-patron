@@ -87,6 +87,71 @@ types:
         body:
           text/plain:
             example: internal server error, contact administrator
+  put:
+    description: |
+      Update a staging user based on external system Id.
+    /{externalSystemId}:
+        uriParameters:
+          externalSystemId:
+            description: The UUID of a FOLIO user
+            type: string
+            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        queryParameters:
+          apikey:
+            description: "API Key"
+            type: string
+    body:
+      application/json:
+        type: staging_user
+        example: !include examples/staging_user.json
+    responses:
+      200:
+        description: |
+          staging user updated successfully
+        body:
+          application/json:
+            type: staging_user
+            example: !include examples/staging_user.json
+      201:
+        description: |
+          staging user created successfully
+        body:
+          application/json:
+            type: staging_user
+            example: !include examples/staging_user.json
+      400:
+        description: Bad request
+        body:
+          text/plain:
+            example: unable to process request
+      401:
+        description: Not authorized to perform requested action
+        body:
+          text/plain:
+            example: unable to create request
+      403:
+        description: Access Denied
+        body:
+          text/plain:
+            example: Access Denied
+      422:
+        description: Validation error
+        body:
+          text/plain:
+            example: Validation error
+      500:
+        description: |
+          Internal server error, e.g. due to misconfiguration
+        body:
+          text/plain:
+            example: internal server error, contact administrator
+      404:
+        description: Item with a given ID not found
+        body:
+          application/json:
+            type: external_patron_error_404
+            example: !include examples/external_patron_error.json
+
   /account:
     post:
       description: |

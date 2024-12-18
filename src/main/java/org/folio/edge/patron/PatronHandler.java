@@ -218,7 +218,7 @@ public class PatronHandler extends Handler {
   public void handlePutPatronRequest(RoutingContext ctx) {
     handlePatronRequest(ctx, (patronClient, body) ->
       patronClient.putPatron(ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID), body,
-        resp -> handleProxyResponse(ctx, resp),
+        resp -> handlePutPatronResponse(ctx, resp),
         t -> handleProxyException(ctx, t)));
   }
 
@@ -421,6 +421,33 @@ public class PatronHandler extends Handler {
       serverResponse.end(errorMsg);
     }
   }
+
+  protected void handlePutPatronResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    HttpServerResponse serverResponse = ctx.response();
+
+    int statusCode = resp.statusCode();
+    serverResponse.setStatusCode(statusCode);
+
+    String respBody = resp.bodyAsString();
+    if (logger.isDebugEnabled() ) {
+      logger.debug("handlePutPatronResponse:: response {} ", respBody);
+    }
+
+    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+
+    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+      setContentType(serverResponse, contentType);
+      serverResponse.end(respBody);  //not an error case, pass on the response body as received
+    }
+    else {
+      String errorMsg = (statusCode == 404 || statusCode == 400)
+        ? getFormattedErrorMsg(statusCode, respBody)
+        : getErrorMessage(statusCode, respBody);
+      setContentType(serverResponse, APPLICATION_JSON);
+      serverResponse.end(errorMsg);
+    }
+  }
+
 
   @Override
   protected void handleProxyException(RoutingContext ctx, Throwable t) {

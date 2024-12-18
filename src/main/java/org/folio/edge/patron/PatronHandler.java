@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -396,56 +398,38 @@ public class PatronHandler extends Handler {
     }
   }
 
-  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+  protected void handleResponse(RoutingContext ctx, HttpResponse<Buffer> resp, String logPrefix,
+                                Function<String, String> errorMessageFunction) {
     HttpServerResponse serverResponse = ctx.response();
 
     int statusCode = resp.statusCode();
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("handleRegistrationStatusResponse:: response {} ", respBody);
+    if (logger.isDebugEnabled()) {
+      logger.debug("{}:: response {}", logPrefix, respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+    if (statusCode < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
+      serverResponse.end(respBody);  // Not an error case, pass on the response body as received
+    } else {
       String errorMsg = (statusCode == 404 || statusCode == 400)
         ? getFormattedErrorMsg(statusCode, respBody)
-        : getStructuredErrorMessage(statusCode, respBody);
+        : errorMessageFunction.apply(respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
     }
   }
 
+  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    handleResponse(ctx, resp, "handleRegistrationStatusResponse", body -> getStructuredErrorMessage(resp.statusCode(), body));
+  }
+
   protected void handlePutPatronResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
-    HttpServerResponse serverResponse = ctx.response();
-
-    int statusCode = resp.statusCode();
-    serverResponse.setStatusCode(statusCode);
-
-    String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("handlePutPatronResponse:: response {} ", respBody);
-    }
-
-    String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
-
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
-      setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
-      String errorMsg = (statusCode == 404 || statusCode == 400)
-        ? getFormattedErrorMsg(statusCode, respBody)
-        : getErrorMessage(statusCode, respBody);
-      setContentType(serverResponse, APPLICATION_JSON);
-      serverResponse.end(errorMsg);
-    }
+    handleResponse(ctx, resp, "handlePutPatronResponse", body -> getErrorMessage(resp.statusCode(), body));
   }
 
 

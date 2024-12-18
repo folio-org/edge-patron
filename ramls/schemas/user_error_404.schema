@@ -9,7 +9,8 @@
       "description": "Error code",
       "examples": [
         "USER_ACCOUNT_INACTIVE",
-        "USER_NOT_FOUND"
+        "USER_NOT_FOUND",
+        STAGING_USER_NOT_FOUND
       ]
     },
     "errorMessage": {

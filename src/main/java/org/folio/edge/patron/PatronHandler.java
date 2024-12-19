@@ -3,25 +3,7 @@ package org.folio.edge.patron;
 import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.X_OKAPI_TENANT;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.EXTERNAL_SYSTEM_ID_CLAIM;
-import static org.folio.edge.patron.Constants.FIELD_EXPIRATION_DATE;
-import static org.folio.edge.patron.Constants.FIELD_REQUEST_DATE;
-import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
-import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
-import static org.folio.edge.patron.Constants.MSG_INTERNAL_SERVER_ERROR;
-import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_LIMIT;
-import static org.folio.edge.patron.Constants.PARAM_OFFSET;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
-import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
-import static org.folio.edge.patron.Constants.VIP_CLAIM;
+import static org.folio.edge.patron.Constants.*;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
 import com.amazonaws.util.StringUtils;
@@ -41,7 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -207,13 +192,13 @@ public class PatronHandler extends Handler {
     handleSecureCommon(ctx, this::handlePlaceItemHold);
   }
 
-  public void handlePostPatronRequest(RoutingContext ctx) {
+  public void handlePatronRequest(RoutingContext ctx, BiConsumer<PatronOkapiClient, String> patronAction) {
     if (ctx.body().asJsonObject() == null) {
-      logger.warn("handlePostPatronRequest:: missing body found");
+      logger.warn("handlePatronRequest:: missing body found");
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("MISSING_BODY", "Request body must not null"));
+        .end(getErrorMsg("MISSING_BODY", "Request body must not be null"));
       return;
     }
 
@@ -221,11 +206,24 @@ public class PatronHandler extends Handler {
     super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.postPatron(body,
-        resp -> handleProxyResponse(ctx, resp),
-        t -> handleProxyException(ctx, t));
+      patronAction.accept(patronClient, body);
     });
   }
+
+  public void handlePostPatronRequest(RoutingContext ctx) {
+    handlePatronRequest(ctx, (patronClient, body) ->
+      patronClient.postPatron(body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+  public void handlePutPatronRequest(RoutingContext ctx) {
+    handlePatronRequest(ctx, (patronClient, body) ->
+      patronClient.putPatron(ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID), body,
+        resp -> handlePutPatronResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
 
   public void handleCancelHold(RoutingContext ctx) {
     String validationResult = validateCancelHoldRequest(ctx.body().asJsonObject());
@@ -400,31 +398,40 @@ public class PatronHandler extends Handler {
     }
   }
 
-  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+  protected void handleResponse(RoutingContext ctx, HttpResponse<Buffer> resp, String logPrefix,
+                                UnaryOperator<String> errorMessageFunction) {
     HttpServerResponse serverResponse = ctx.response();
 
     int statusCode = resp.statusCode();
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("handleRegistrationStatusResponse:: response {} ", respBody);
+    if (logger.isDebugEnabled()) {
+      logger.debug("{}:: response {}", logPrefix, respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
 
-    if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
+    if (statusCode < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
-      serverResponse.end(respBody);  //not an error case, pass on the response body as received
-    }
-    else {
+      serverResponse.end(respBody);  // Not an error case, pass on the response body as received
+    } else {
       String errorMsg = (statusCode == 404 || statusCode == 400)
         ? getFormattedErrorMsg(statusCode, respBody)
-        : getStructuredErrorMessage(statusCode, respBody);
+        : errorMessageFunction.apply(respBody);
       setContentType(serverResponse, APPLICATION_JSON);
       serverResponse.end(errorMsg);
     }
   }
+
+  protected void handleRegistrationStatusResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    handleResponse(ctx, resp, "handleRegistrationStatusResponse", body -> getStructuredErrorMessage(resp.statusCode(), body));
+  }
+
+  protected void handlePutPatronResponse(RoutingContext ctx, HttpResponse<Buffer> resp) {
+    handleResponse(ctx, resp, "handlePutPatronResponse", body -> getErrorMessage(resp.statusCode(), body));
+  }
+
 
   @Override
   protected void handleProxyException(RoutingContext ctx, Throwable t) {

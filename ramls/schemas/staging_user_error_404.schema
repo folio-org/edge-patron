@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "code": {
-      "type": "integer",
+      "type": "string",
       "description": "Error code"
     },
     "errorMessage": {

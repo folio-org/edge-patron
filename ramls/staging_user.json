@@ -13,6 +13,10 @@
       "type": "string",
       "enum": ["TIER-1", "TIER-2"]
     },
+    "externalSystemId": {
+      "description": "A unique ID (UUID) that corresponds to an external authority",
+      "type": "string"
+    },
     "generalInfo": {
       "type": "object",
       "description": "General info of external patron",

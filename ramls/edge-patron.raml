@@ -25,6 +25,7 @@ types:
   hold-cancellation: !include hold-cancellation.json
   errors: !include raml-util/schemas/errors.schema
   external_patron_error_404: !include schemas/external_patron_error_404.schema
+  staging_user_error_404: !include schemas/staging_user_error_404.schema
   external_patron_error_get_422: !include schemas/external_patron_error_get_422.schema
   external_patron_error_post_422: !include schemas/external_patron_error_post_422.schema
   external_patron_error_put_422: !include schemas/external_patron_error_put_422.schema
@@ -91,7 +92,7 @@ types:
   /{externalSystemId}:
     uriParameters:
       externalSystemId:
-        description: The UUID of a FOLIO user
+        description: The UUID of a staging user
         type: string
         pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
     put:
@@ -109,13 +110,6 @@ types:
         200:
           description: |
             staging user updated successfully
-          body:
-            application/json:
-              type: staging_user
-              example: !include examples/staging_user.json
-        201:
-          description: |
-            staging user created successfully
           body:
             application/json:
               type: staging_user
@@ -147,11 +141,11 @@ types:
             text/plain:
               example: internal server error, contact administrator
         404:
-          description: Item with a given ID not found
+          description: Staging user with a given external system Id not found
           body:
             application/json:
-              type: external_patron_error_404
-              example: !include examples/external_patron_error.json
+              type: staging_user_error_404
+              example: !include examples/staging_user_error.json
 
 
   /account:

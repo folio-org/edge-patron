@@ -1,4 +1,4 @@
 {
-  "code": "STAGING_USER_NOT_FOUND",
+  "code": "404",
   "errorMessage": "Staging user does not exist"
 }

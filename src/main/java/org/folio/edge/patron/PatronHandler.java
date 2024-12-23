@@ -308,23 +308,31 @@ public class PatronHandler extends Handler {
 
   public void handleGetPatronRegistrationStatus(RoutingContext ctx) {
     logger.debug("handleGetPatronRegistrationStatus:: Fetching patron registration");
+
     String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
-    if(StringUtils.isNullOrEmpty(emailId)) {
-      logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId");
+    String externalSystemId = ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID);
+
+    if (StringUtils.isNullOrEmpty(emailId) && StringUtils.isNullOrEmpty(externalSystemId)) {
+      logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId and externalSystemId");
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("EMAIL_NOT_PROVIDED", "emailId is missing in the request"));
+        .end(getErrorMsg("IDENTIFIERS_NOT_PROVIDED", "Either emailId or externalSystemId must be provided in the request"));
       return;
     }
+
     super.handleCommon(ctx, new String[]{}, new String[]{}, (client, params) -> {
       String alternateTenantId = ctx.request().getParam("alternateTenantId", client.tenant);
       final PatronOkapiClient patronClient = new PatronOkapiClient(client, alternateTenantId);
-      patronClient.getPatronRegistrationStatus(emailId,
+
+      patronClient.getPatronRegistrationStatus(
+        emailId != null ? emailId : externalSystemId,
         resp -> handleRegistrationStatusResponse(ctx, resp),
-        t -> handleProxyException(ctx, t));
+        t -> handleProxyException(ctx, t)
+      );
     });
   }
+
 
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {

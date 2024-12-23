@@ -1036,7 +1036,7 @@ types:
                       example: internal server error, contact administrator
   /registration-status:
     get:
-      description: Get the patron details by email ID
+      description: Get the patron details by email ID or externalSystemId
       queryParameters:
         apikey:
           description: "API Key"
@@ -1044,7 +1044,9 @@ types:
         emailId:
           description: The email ID of the patron.
           type: string
-          required: true
+        externalSystemId:
+          description: The external system ID of the patron.
+          type: string
       responses:
         200:
           description: patron information retrieved successfully

@@ -1045,8 +1045,9 @@ types:
           description: The email ID of the patron.
           type: string
         externalSystemId:
-          description: The external system ID of the patron.
+          description: The UUID of a staging user
           type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
       responses:
         200:
           description: patron information retrieved successfully

@@ -393,8 +393,8 @@ public class MainVerticleTest {
       .response();
 
     var jsonResponse = new JsonObject(response.body().asString());
-    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
-    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+    assertEquals("IDENTIFIERS_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("Either emailId or externalSystemId must be provided in the request", jsonResponse.getString("errorMessage"));
 
     response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "", apiKey))
@@ -405,8 +405,8 @@ public class MainVerticleTest {
       .response();
 
     jsonResponse = new JsonObject(response.body().asString());
-    assertEquals("EMAIL_NOT_PROVIDED", jsonResponse.getString("code"));
-    assertEquals("emailId is missing in the request", jsonResponse.getString("errorMessage"));
+    assertEquals("IDENTIFIERS_NOT_PROVIDED", jsonResponse.getString("code"));
+    assertEquals("Either emailId or externalSystemId must be provided in the request", jsonResponse.getString("errorMessage"));
   }
 
   @Test
@@ -414,6 +414,23 @@ public class MainVerticleTest {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "active@folio.com", apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var expected = new JsonObject(readMockFile(
+      "/user_active.json"));
+    var actual = new JsonObject(response.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithExternalSystemId(TestContext context) {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?externalSystemId=%s&apikey=%s", "9eb67301-6f6e-468f-9b1a-6134dc39a699", apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -441,6 +458,23 @@ public class MainVerticleTest {
     assertEquals("USER_NOT_FOUND", jsonResponse.getString("code"));
     assertEquals("User does not exist", jsonResponse.getString("errorMessage"));
   }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithInvalidExternalSystemId() {
+
+    final var response = RestAssured
+      .get(String.format("/patron/registration-status?externalSystemId=%s&apikey=%s", "9eb67301-6f6e-468f-9b1a-6134dc39a700", apiKey))
+      .then()
+      .statusCode(404)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("USER_NOT_FOUND", jsonResponse.getString("code"));
+    assertEquals("User does not exist", jsonResponse.getString("errorMessage"));
+  }
+
 
   @Test
   public void testGetPatronRegistrationStatusWithMultipleUserEmail() {

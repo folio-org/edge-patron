@@ -5,18 +5,7 @@ import static org.folio.edge.core.Constants.APPLICATION_JSON;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.core.Constants.TEXT_PLAIN;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_LIMIT;
-import static org.folio.edge.patron.Constants.PARAM_OFFSET;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
-import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
-import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
+import static org.folio.edge.patron.Constants.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.http.HttpHeaders;
@@ -277,22 +266,34 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(403)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Access requires permission: patron.account.get");
-    } else if(emailId.equals("active@folio.com")) {
+    } else if(emailId!=null && emailId.equals("active@folio.com")) {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/user_active.json"));
-    } else if(emailId.equals("multipleuser@folio.com")) {
+    } else if(emailId!=null && emailId.equals("9eb67301-6f6e-468f-9b1a-6134dc39a699")) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_active.json"));
+    } else if(emailId!=null && emailId.equals("multipleuser@folio.com")) {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/multiple_user_error.json"));
-    } else if(emailId.equals("usernotfound@folio.com")) {
+    } else if(emailId!=null && emailId.equals("usernotfound@folio.com")) {
       ctx.response()
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/user_not_found_error.json"));
-    } else if(emailId.equals("invalid@folio.com")) {
+    }
+    else if(emailId!=null && emailId.equals("9eb67301-6f6e-468f-9b1a-6134dc39a700")) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_not_found_error.json"));
+    }
+    else if(emailId!=null && emailId.equals("invalid@folio.com")) {
       ctx.response()
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)

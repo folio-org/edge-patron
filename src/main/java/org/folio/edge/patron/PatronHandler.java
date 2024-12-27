@@ -314,7 +314,6 @@ public class PatronHandler extends Handler {
 
     String validationError = validateIdentifiers(emailId, externalSystemId);
     if (validationError != null) {
-      logger.warn("handleGetPatronRegistrationStatus:: " + validationError);
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)

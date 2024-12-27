@@ -312,12 +312,13 @@ public class PatronHandler extends Handler {
     String emailId = ctx.request().getParam(PARAM_EMAIL_ID);
     String externalSystemId = ctx.request().getParam(PARAM_EXTERNAL_SYSTEM_ID);
 
-    if (StringUtils.isNullOrEmpty(emailId) && StringUtils.isNullOrEmpty(externalSystemId)) {
-      logger.warn("handleGetPatronRegistrationStatus:: Missing or empty emailId and externalSystemId");
+    String validationError = validateIdentifiers(emailId, externalSystemId);
+    if (validationError != null) {
+      logger.warn("handleGetPatronRegistrationStatus:: " + validationError);
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getErrorMsg("IDENTIFIERS_NOT_PROVIDED", "Either emailId or externalSystemId must be provided in the request"));
+        .end(getErrorMsg("INVALID_IDENTIFIERS", validationError));
       return;
     }
 
@@ -332,6 +333,19 @@ public class PatronHandler extends Handler {
       );
     });
   }
+
+  private String validateIdentifiers(String emailId, String externalSystemId) {
+    if (StringUtils.isNullOrEmpty(emailId) && StringUtils.isNullOrEmpty(externalSystemId)) {
+      return "Either emailId or externalSystemId must be provided in the request.";
+    }
+
+    if (!StringUtils.isNullOrEmpty(emailId) && !StringUtils.isNullOrEmpty(externalSystemId)) {
+      return "Provide either emailId or externalSystemId, not both.";
+    }
+
+    return null;
+  }
+
 
 
   @Override

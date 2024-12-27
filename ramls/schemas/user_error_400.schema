@@ -9,7 +9,8 @@
       "description": "Error code",
       "examples": [
         "MULTIPLE_USER_WITH_EMAIL",
-        "EMAIL_NOT_PROVIDED"
+        "EMAIL_NOT_PROVIDED",
+        "INVALID_IDENTIFIERS"
       ]
     },
     "errorMessage": {
@@ -17,7 +18,9 @@
       "description": "Error code description",
       "examples": [
         "Multiple users found with the same email",
-        "emailId is missing in the request"
+        "emailId is missing in the request",
+        "Either emailId or externalSystemId must be provided in the request.",
+        Provide either emailId or externalSystemId, not both.
       ]
     }
   },

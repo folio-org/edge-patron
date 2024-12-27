@@ -20,7 +20,7 @@
         "Multiple users found with the same email",
         "emailId is missing in the request",
         "Either emailId or externalSystemId must be provided in the request.",
-        Provide either emailId or externalSystemId, not both.
+        "Provide either emailId or externalSystemId, not both."
       ]
     }
   },

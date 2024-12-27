@@ -346,8 +346,6 @@ public class PatronHandler extends Handler {
     return null;
   }
 
-
-
   @Override
   protected void invalidApiKey(RoutingContext ctx, String msg) {
     accessDenied(ctx, msg);

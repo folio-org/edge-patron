@@ -393,8 +393,8 @@ public class MainVerticleTest {
       .response();
 
     var jsonResponse = new JsonObject(response.body().asString());
-    assertEquals("IDENTIFIERS_NOT_PROVIDED", jsonResponse.getString("code"));
-    assertEquals("Either emailId or externalSystemId must be provided in the request", jsonResponse.getString("errorMessage"));
+    assertEquals("INVALID_IDENTIFIERS", jsonResponse.getString("code"));
+    assertEquals("Either emailId or externalSystemId must be provided in the request.", jsonResponse.getString("errorMessage"));
 
     response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "", apiKey))
@@ -405,9 +405,27 @@ public class MainVerticleTest {
       .response();
 
     jsonResponse = new JsonObject(response.body().asString());
-    assertEquals("IDENTIFIERS_NOT_PROVIDED", jsonResponse.getString("code"));
-    assertEquals("Either emailId or externalSystemId must be provided in the request", jsonResponse.getString("errorMessage"));
+    assertEquals("INVALID_IDENTIFIERS", jsonResponse.getString("code"));
+    assertEquals("Either emailId or externalSystemId must be provided in the request.", jsonResponse.getString("errorMessage"));
   }
+
+  @Test
+  public void testGetPatronRegistrationStatusWithEmailAndESID(TestContext context) {
+
+    var response = RestAssured
+      .get(String.format("/patron/registration-status?emailId=%s&externalSystemId=%s&apikey=%s", "abc@abc.com", "9eb67301-6f6e-468f-9b1a-6134dc39a670", apiKey))
+      .then()
+      .statusCode(400)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var jsonResponse = new JsonObject(response.body().asString());
+    assertEquals("INVALID_IDENTIFIERS", jsonResponse.getString("code"));
+    assertEquals("Provide either emailId or externalSystemId, not both.", jsonResponse.getString("errorMessage"));
+
+  }
+
 
   @Test
   public void testGetPatronRegistrationStatusWithActiveEmail(TestContext context) {

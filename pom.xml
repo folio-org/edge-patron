@@ -17,7 +17,7 @@
     <url>https://github.com/folio-org/edge-patron.git</url>
     <connection>scm:git:git://github.com/folio-org/edge-paton.git</connection>
     <developerConnection>scm:git:git@github.com:folio-org/edge-patron.git</developerConnection>
-    <tag>v5.2.0</tag>
+    <tag>head</tag>
   </scm>
 
   <licenses>

@@ -175,6 +175,17 @@ public class PatronOkapiClient extends OkapiClient {
       exceptionHandler);
   }
 
+  public void putPatron(String externalSystemId, String requestBody,
+                         Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+    put(
+      format("%s/patron/%s", okapiURL, externalSystemId),
+      tenant,
+      requestBody,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void cancelHold(String patronId, String holdId, JsonObject holdCancellationRequest,
                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
     getRequest(holdId,
@@ -240,11 +251,11 @@ public class PatronOkapiClient extends OkapiClient {
         exceptionHandler);
   }
 
-  public void getPatronRegistrationStatus(String emailId,
-                                      Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+  public void getPatronRegistrationStatus(String identifier,
+                                          Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 
     get(format("%s/patron/registration-status/%s", okapiURL,
-      emailId), tenant, null, responseHandler, exceptionHandler);
+      identifier), tenant, null, responseHandler, exceptionHandler);
   }
 
   private Hold createCancellationHoldRequest(JsonObject cancellationRequest, JsonObject baseRequest, String patronId) {

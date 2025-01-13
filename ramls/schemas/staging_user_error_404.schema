@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "external_patron_error.schema",
+  "description": "An external_patron user error",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Error code"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message text",
+      "examples": [
+       {
+         "code": "STAGING_USER_NOT_FOUND",
+         "errorMessage": "Staging user does not exist"
+       }
+      ]
+    }
+  },
+  "required": [
+    "code",
+    "errorMessage"
+  ]
+}

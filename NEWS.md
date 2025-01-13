@@ -1,3 +1,9 @@
+## 5.2.1 2025-01-13
+
+* Implement secure endpoints to support congressional loans ([EDGPATRON-157](https://issues.folio.org/browse/EDGPATRON-157))
+* Add put API for /patron/{externalSystemId} ([EDGPATRON-160](https://issues.folio.org/browse/EDGPATRON-160))
+* Extend get API for /patron/registration-status with externalSystemId ([EDGPATRON-161](https://issues.folio.org/browse/EDGPATRON-161))
+
 ## 5.2.0 2024-10-31
 
 * Add new API contract for POST and GET API of LC User registration ([EDGPATRON-151](https://issues.folio.org/browse/EDGPATRON-151))

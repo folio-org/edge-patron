@@ -1,5 +1,12 @@
 package org.folio.edge.patron.utils;
 
+import static java.util.Collections.singletonList;
+import static org.folio.edge.core.Constants.APPLICATION_JSON;
+import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
+import static org.folio.edge.core.Constants.TEXT_PLAIN;
+import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
+import static org.folio.edge.patron.Constants.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -7,6 +14,16 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,35 +36,6 @@ import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.Item;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.Money;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import static java.util.Collections.singletonList;
-import static org.folio.edge.core.Constants.APPLICATION_JSON;
-import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
-import static org.folio.edge.core.Constants.TEXT_PLAIN;
-import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
-import static org.folio.edge.patron.Constants.PARAM_EMAIL_ID;
-import static org.folio.edge.patron.Constants.PARAM_HOLD_ID;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_CHARGES;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_HOLDS;
-import static org.folio.edge.patron.Constants.PARAM_INCLUDE_LOANS;
-import static org.folio.edge.patron.Constants.PARAM_INSTANCE_ID;
-import static org.folio.edge.patron.Constants.PARAM_ITEM_ID;
-import static org.folio.edge.patron.Constants.PARAM_LIMIT;
-import static org.folio.edge.patron.Constants.PARAM_OFFSET;
-import static org.folio.edge.patron.Constants.PARAM_PATRON_ID;
-import static org.folio.edge.patron.Constants.PARAM_REQUEST_ID;
-import static org.folio.edge.patron.Constants.PARAM_SORT_BY;
 
 public class PatronMockOkapi extends MockOkapi {
 
@@ -148,6 +136,9 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST, "/patron")
       .handler(this::postPatronMock);
 
+    router.route(HttpMethod.PUT, "/patron/:externalSystemId")
+      .handler(this::putPatronMock);
+
     router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/hold")
       .handler(this::placeInstanceHoldHandler);
 
@@ -168,7 +159,17 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/patron/registration-status/:emailId")
       .handler(this::getRegistrationStatusHandler);
 
+    router.route(HttpMethod.GET, "/realms/diku/protocol/openid-connect/certs")
+      .handler(this::getKeycloakPublicKeysHandler);
+
     return router;
+  }
+
+  public void getKeycloakPublicKeysHandler(RoutingContext ctx) {
+    ctx.response()
+      .setStatusCode(200)
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(readMockFile("/keycloak_certs_response.json"));
   }
 
   public void getPatronHandler(RoutingContext ctx) {
@@ -265,22 +266,34 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(403)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Access requires permission: patron.account.get");
-    } else if(emailId.equals("active@folio.com")) {
+    } else if(emailId!=null && emailId.equals("active@folio.com")) {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/user_active.json"));
-    } else if(emailId.equals("multipleuser@folio.com")) {
+    } else if(emailId!=null && emailId.equals("9eb67301-6f6e-468f-9b1a-6134dc39a699")) {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_active.json"));
+    } else if(emailId!=null && emailId.equals("multipleuser@folio.com")) {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/multiple_user_error.json"));
-    } else if(emailId.equals("usernotfound@folio.com")) {
+    } else if(emailId!=null && emailId.equals("usernotfound@folio.com")) {
       ctx.response()
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/user_not_found_error.json"));
-    } else if(emailId.equals("invalid@folio.com")) {
+    }
+    else if(emailId!=null && emailId.equals("9eb67301-6f6e-468f-9b1a-6134dc39a700")) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/user_not_found_error.json"));
+    }
+    else if(emailId!=null && emailId.equals("invalid@folio.com")) {
       ctx.response()
         .setStatusCode(404)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
@@ -430,6 +443,42 @@ public class PatronMockOkapi extends MockOkapi {
         .end("Bad Request: " + e.toString());
     }
   }
+
+  public void putPatronMock(RoutingContext ctx) {
+    try {
+      String firstName = ctx.body().asJsonObject().getJsonObject("generalInfo").getString("firstName");
+      String mockResponseBody = readMockFile("/staging-users-put-response.json");
+      String mockResponse422ErrorBody = readMockFile("/staging-users-put-error-response.json");
+      if ("TEST_STATUS_CODE_200".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(200)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponseBody);
+      } else if ("TEST_STATUS_CODE_400".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(400)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("A bad exception occurred");
+      } else if ("TEST_STATUS_CODE_422".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(422)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(mockResponse422ErrorBody);
+      } else if ("TEST_STATUS_CODE_500".equals(firstName)) {
+        ctx.response()
+          .setStatusCode(500)
+          .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+          .end("Server exception occurred");
+      }
+    } catch (Exception e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request: " + e.toString());
+    }
+  }
+
 
   public void getRequestHandler(RoutingContext ctx) {
     String requestId = ctx.request().getParam(PARAM_REQUEST_ID);

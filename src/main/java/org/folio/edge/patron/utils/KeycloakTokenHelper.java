@@ -29,6 +29,7 @@ public class KeycloakTokenHelper {
         var claims = parser.parseSignedClaims(accessToken).getPayload();
         promise.complete(claims);
       } catch (Exception ex) {
+        logger.error("Failed parsing claims:", ex);
         promise.fail(ex);
       }
     }).onFailure(ex -> {

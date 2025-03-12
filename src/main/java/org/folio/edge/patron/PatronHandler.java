@@ -6,7 +6,6 @@ import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.*;
 import static org.folio.edge.patron.model.HoldCancellationValidator.validateCancelHoldRequest;
 
-import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -27,6 +26,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.Handler;
@@ -334,11 +334,11 @@ public class PatronHandler extends Handler {
   }
 
   private String validateIdentifiers(String emailId, String externalSystemId) {
-    if (StringUtils.isNullOrEmpty(emailId) && StringUtils.isNullOrEmpty(externalSystemId)) {
+    if (StringUtils.isEmpty(emailId) && StringUtils.isEmpty(externalSystemId)) {
       return "Either emailId or externalSystemId must be provided in the request.";
     }
 
-    if (!StringUtils.isNullOrEmpty(emailId) && !StringUtils.isNullOrEmpty(externalSystemId)) {
+    if (!StringUtils.isEmpty(emailId) && !StringUtils.isEmpty(externalSystemId)) {
       return "Provide either emailId or externalSystemId, not both.";
     }
 

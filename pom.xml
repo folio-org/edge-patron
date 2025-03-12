@@ -73,6 +73,16 @@
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.17.0</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.10.9</version>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
     </dependency>
@@ -105,14 +115,14 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>4.7.1</version>
+      <version>4.9.0</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-ssm</artifactId>
-      <version>1.12.246</version>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>ssm</artifactId>
+      <version>2.30.36</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>

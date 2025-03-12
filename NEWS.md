@@ -1,5 +1,6 @@
-## 5.2.1 2025-01-13
-
+## 5.3.0 2025-03-12
+* Migrate AWS SDK for Java from 1.x to 2.x ([EDGPATRON-156](https://issues.folio.org/browse/EDGPATRON-156))
+* Update edge-patron from Java 17 to Java 21 ([EDGPATRON-182](https://issues.folio.org/browse/EDGPATRON-182))
 * Implement secure endpoints to support congressional loans ([EDGPATRON-157](https://issues.folio.org/browse/EDGPATRON-157))
 * Add put API for /patron/{externalSystemId} ([EDGPATRON-160](https://issues.folio.org/browse/EDGPATRON-160))
 * Extend get API for /patron/registration-status with externalSystemId ([EDGPATRON-161](https://issues.folio.org/browse/EDGPATRON-161))

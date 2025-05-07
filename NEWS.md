@@ -1,3 +1,7 @@
+## 5.2.2 2025-05-07
+
+* [LOC Locate requirement] Allowed Service points should return discovery display name. ([EDGPATRON-184](https://folio-org.atlassian.net/browse/EDGPATRON-184))
+
 ## 5.2.1 2025-01-13
 
 * Implement secure endpoints to support congressional loans ([EDGPATRON-157](https://issues.folio.org/browse/EDGPATRON-157))

@@ -1,3 +1,6 @@
+## 5.4.0 2025-XX-XX
+* Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property. ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))
+
 ## 5.3.0 2025-03-12
 * Migrate AWS SDK for Java from 1.x to 2.x ([EDGPATRON-156](https://issues.folio.org/browse/EDGPATRON-156))
 * Update edge-patron from Java 17 to Java 21 ([EDGPATRON-182](https://issues.folio.org/browse/EDGPATRON-182))

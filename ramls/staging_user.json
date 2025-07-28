@@ -8,6 +8,10 @@
       "description": "A boolean flag that indicates whether the patron has completed email verification. If this value is not provided when creating a new record, it will default to false. However, for Kiosk user registrations, this value should be sent false.",
       "type": "boolean"
     },
+    "minor": {
+      "description": "An optional flag If true, the user will be assigned to the 'Basic -- Minor (INTERNAL)' patron group upon creation; otherwise if false or null, the 'Remote Non-circulating' group is assigned.",
+      "type": "boolean"
+    },
     "status": {
       "description": "Represents the patron's tier status, which can be either TIER-1 or TIER-2. If this value is not provided when creating a new record, the default status will be set to TIER-1.",
       "type": "string",

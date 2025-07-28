@@ -5,7 +5,7 @@
   "requires": [
     {
       "id": "patron",
-      "version": "6.3"
+      "version": "6.5"
     },
     {
       "id": "circulation",

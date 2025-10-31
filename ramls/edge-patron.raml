@@ -500,14 +500,13 @@ types:
         /batch-request:
           displayName: Multi-Item Request
           description: Services that provide multi-item request management
-          queryParameters:
-            apikey:
-              description: "API Key"
-              type: string
           post:
             description: |
               (Secure) Submits a batch multi-item request for a particular patron and instance's items
-            is: [ validate ]
+            queryParameters:
+              apikey:
+                description: "API Key"
+                type: string
             body:
               application/json:
                 type: batchRequest
@@ -1124,14 +1123,13 @@ types:
           /batch-request:
             displayName: Multi-Item Request
             description: Services that provide multi-item request management
-            queryParameters:
-              apikey:
-                description: "API Key"
-                type: string
             post:
               description: |
                 Submits a batch multi-item request for a particular patron and instance's items
-              is: [ validate ]
+              queryParameters:
+                apikey:
+                  description: "API Key"
+                  type: string
               body:
                 application/json:
                   type: batchRequest

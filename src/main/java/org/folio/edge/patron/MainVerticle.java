@@ -134,6 +134,24 @@ public class MainVerticle extends EdgeVerticleHttp {
     router.route(HttpMethod.GET, "/patron/registration-status")
       .handler(patronHandler::handleGetPatronRegistrationStatus);
 
+    router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/allowed-service-points-multi-item")
+      .handler(patronHandler::handleGetMultiItemAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.POST, "/patron/account/instance/:instanceId/allowed-service-points-multi-item")
+      .handler(patronHandler::handleSecureGetMultiItemAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.POST, "/patron/account/:patronId/instance/:instanceId/batch-request")
+      .handler(patronHandler::handlePostMultiItemBatchRequest);
+
+    router.route(HttpMethod.POST, "/patron/account/instance/:instanceId/batch-request")
+      .handler(patronHandler::handleSecurePostMultiItemBatchRequest);
+
+    router.route(HttpMethod.GET, "/patron/account/:patronId/instance/:instanceId/batch-request/:batchRequestId/status")
+      .handler(patronHandler::handleGetMultiItemBatchRequestStatus);
+
+    router.route(HttpMethod.GET, "/patron/account/instance/:instanceId/batch-request/:batchRequestId/status")
+      .handler(patronHandler::handleSecureGetMultiItemBatchRequestStatus);
+
     return router;
   }
 

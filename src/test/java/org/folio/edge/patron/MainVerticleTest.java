@@ -1643,6 +1643,125 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testMultiItemAllowedServicePointsForInstanceError(TestContext context) {
+    logger.info("=== Test validation error during multi-item allowed service points request ===");
+
+    var request = new JsonObject(readMockFile("/allowed_service_points_for_items_request.json")).encodePrettily();
+
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(request)
+      .post(String.format("/patron/account/%s/instance/%s/allowed-service-points-multi-item?apikey=%s",
+        patronId, instanceId_notFound, apiKey))
+      .then()
+      .statusCode(422)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/allowed_sp_error_edge_patron.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testMultiItemAllowedServicePointsForInstanceSuccess(TestContext context) {
+    logger.info("=== Test multi-item allowed service points request ===");
+
+    var request = new JsonObject(readMockFile("/allowed_service_points_for_items_request.json")).encodePrettily();
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(request)
+      .post(String.format("/patron/account/%s/instance/%s/allowed-service-points-multi-item?apikey=%s",
+        patronId, instanceId, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/multi_item_allowed_sp_mod_patron_expected_response.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testPostMultiItemBatchRequestPatronNotFoundError(TestContext context) throws IOException {
+    logger.info("=== Test patron not found error during post multi-item batch request ===");
+
+    var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
+
+    var expectedStatusCode = 404;
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(request)
+      .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
+        PatronMockOkapi.extPatronId_notFound, instanceId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testPostMultiItemBatchRequestInstanceNotFoundError(TestContext context) throws IOException {
+    logger.info("=== Test instance not found error during post multi-item batch request ===");
+
+    var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
+
+    var expectedStatusCode = 404;
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(request)
+      .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
+        patronId, instanceId_notFound, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Instance '" + instanceId_notFound + "' isn't found", msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  public void testPostMultiItemBatchRequestSuccess(TestContext context) {
+    logger.info("=== Test post multi-item batch request ===");
+
+    var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
+
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .body(request)
+      .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
+        patronId, instanceId, apiKey))
+      .then()
+      .statusCode(201)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    JsonObject expected = new JsonObject(readMockFile(
+      "/batch_request_expected_response.json"));
+    JsonObject actual = new JsonObject(resp.body().asString());
+    assertEquals(expected, actual);
+  }
+
+  @Test
   public void testCancelHoldSuccess(TestContext context) throws Exception {
     logger.info("=== Test cancel hold success ===");
 

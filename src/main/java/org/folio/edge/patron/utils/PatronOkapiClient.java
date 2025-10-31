@@ -220,6 +220,41 @@ public class PatronOkapiClient extends OkapiClient {
       patronId, instanceId), tenant, null, responseHandler, exceptionHandler);
   }
 
+  public void postMultiItemAllowedServicePointsForInstance(String patronId, String instanceId, String requestBody,
+                                                           Handler<HttpResponse<Buffer>> responseHandler,
+                                                           Handler<Throwable> exceptionHandler) {
+    post(
+      format("%s/patron/account/%s/instance/%s/allowed-service-points-multi-item", okapiURL, patronId, instanceId),
+      tenant,
+      requestBody,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
+  public void postMultiItemBatchRequest(String patronId, String instanceId, String requestBody,
+                                        Handler<HttpResponse<Buffer>> responseHandler,
+                                        Handler<Throwable> exceptionHandler) {
+    post(
+      format("%s/patron/account/%s/instance/%s/batch-request", okapiURL, patronId, instanceId),
+      tenant,
+      requestBody,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
+  public void getMultiItemBatchRequestStatus(String patronId, String instanceId, String batchId,
+                                             Handler<HttpResponse<Buffer>> responseHandler,
+                                             Handler<Throwable> exceptionHandler) {
+    get(
+      format("%s/patron/account/%s/instance/%s/batch-request/%s/status", okapiURL, patronId, instanceId, batchId),
+      tenant,
+      null,
+      responseHandler,
+      exceptionHandler);
+  }
+
   public void getAllowedServicePointsForItem(String patronId, String itemId,
     Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 

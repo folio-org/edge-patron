@@ -162,6 +162,14 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.GET, "/realms/diku/protocol/openid-connect/certs")
       .handler(this::getKeycloakPublicKeysHandler);
 
+    router.route(HttpMethod.POST,
+        "/patron/account/:patronId/instance/:instanceId/allowed-service-points-multi-item")
+      .handler(this::getMultiItemAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.POST,
+        "/patron/account/:patronId/instance/:instanceId/batch-request")
+      .handler(this::placeBatchRequest);
+
     return router;
   }
 
@@ -609,6 +617,69 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/allowed_sp_mod_patron_expected_response.json"));
+    }
+  }
+
+  public void getMultiItemAllowedServicePointsForInstance(RoutingContext ctx) {
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_error_mod_patron.json"));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/multi_item_allowed_sp_mod_patron_expected_response.json"));
+    }
+  }
+
+  public void placeBatchRequest(RoutingContext ctx) {
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    String body = ctx.getBodyAsString();
+
+    try {
+      new JsonObject(body);
+    } catch (Exception e) {
+      logger.error("Exception parsing request payload", e);
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Bad Request");
+      return;
+    }
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Patron '%s' isn't found", patronId));
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Instance '%s' isn't found", instanceId));
+    } else {
+      ctx.response()
+        .setStatusCode(201)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/batch_request_expected_response.json"));
     }
   }
 

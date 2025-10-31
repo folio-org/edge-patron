@@ -290,6 +290,64 @@ public class PatronHandler extends Handler {
     handleSecureCommon(ctx, this::handleGetAllowedServicePointsForInstance);
   }
 
+  public void handleGetMultiItemAllowedServicePointsForInstance(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      badRequest(ctx, MSG_ITEMS_NOBODY);
+      return;
+    }
+    final String body = ctx.body().asJsonObject().encodePrettily();
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).postMultiItemAllowedServicePointsForInstance(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_INSTANCE_ID),
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecureGetMultiItemAllowedServicePointsForInstance(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleGetMultiItemAllowedServicePointsForInstance);
+  }
+
+  public void handlePostMultiItemBatchRequest(RoutingContext ctx) {
+    if (ctx.body().asJsonObject() == null) {
+      badRequest(ctx, MSG_BATCH_REQUEST_NOBODY);
+      return;
+    }
+    final String body = ctx.body().asJsonObject().encodePrettily();
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).postMultiItemBatchRequest(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_INSTANCE_ID),
+        body,
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecurePostMultiItemBatchRequest(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handlePostMultiItemBatchRequest);
+  }
+
+  public void handleGetMultiItemBatchRequestStatus(RoutingContext ctx) {
+    handleCommon(ctx,
+      new String[] { PARAM_PATRON_ID, PARAM_INSTANCE_ID, PARAM_BATCH_REQUEST_ID },
+      new String[] {},
+      (client, params) -> ((PatronOkapiClient) client).getMultiItemBatchRequestStatus(
+        params.get(PARAM_PATRON_ID),
+        params.get(PARAM_INSTANCE_ID),
+        params.get(PARAM_BATCH_REQUEST_ID),
+        resp -> handleProxyResponse(ctx, resp),
+        t -> handleProxyException(ctx, t)));
+  }
+
+  public void handleSecureGetMultiItemBatchRequestStatus(RoutingContext ctx) {
+    handleSecureCommon(ctx, this::handleGetMultiItemBatchRequestStatus);
+  }
+
 
   public void handleGetAllowedServicePointsForItem(RoutingContext ctx) {
     handleCommon(ctx,

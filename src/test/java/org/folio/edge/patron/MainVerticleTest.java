@@ -13,8 +13,12 @@ import static org.folio.edge.core.Constants.X_OKAPI_TENANT;
 import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.KEYCLOAK_URL;
 import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
+import static org.folio.edge.patron.Constants.MSG_BATCH_REQUEST_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
+import static org.folio.edge.patron.utils.PatronMockOkapi.batchRequestId;
+import static org.folio.edge.patron.utils.PatronMockOkapi.batchRequestId_notFound;
+import static org.folio.edge.patron.utils.PatronMockOkapi.extPatronId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqTs;
@@ -28,9 +32,10 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.readMockFile;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
@@ -43,8 +48,6 @@ import io.restassured.response.Response;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -53,6 +56,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
+
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
@@ -65,15 +73,18 @@ import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.utils.JwtTokenUtil;
 import org.folio.edge.patron.utils.PatronMockOkapi;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(VertxUnitRunner.class)
-public class MainVerticleTest {
+
+@ExtendWith({VertxExtension.class})
+class MainVerticleTest {
 
   private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
   private static final String extPatronId = PatronMockOkapi.extPatronId;
@@ -92,8 +103,8 @@ public class MainVerticleTest {
   private static PatronMockOkapi mockOkapi;
   private static JwtTokenUtil jwtTokenUtil;
 
-  @BeforeClass
-  public static void setUpOnce(TestContext context) throws Exception {
+  @BeforeAll
+  static void setUpOnce(VertxTestContext context) throws Exception {
     int okapiPort = TestUtils.getPort();
     int serverPort = TestUtils.getPort();
 
@@ -111,35 +122,42 @@ public class MainVerticleTest {
     System.setProperty(SYS_REQUEST_TIMEOUT_MS, String.valueOf(requestTimeoutMs));
     System.setProperty(KEYCLOAK_URL, "http://localhost:" + okapiPort);
 
+    final Checkpoint verticleStarted = context.checkpoint(1);
     mockOkapi = spy(new PatronMockOkapi(okapiPort, knownTenants));
     mockOkapi.start()
     .compose(x -> {
       final DeploymentOptions opt = new DeploymentOptions();
       return vertx.deployVerticle(MainVerticle.class.getName(), opt);
     })
-    .onComplete(context.asyncAssertSuccess());
+    .onComplete(context.succeeding(id -> verticleStarted.flag()));
 
     RestAssured.baseURI = "http://localhost:" + serverPort;
     RestAssured.port = serverPort;
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
   }
 
-  @AfterClass
-  public static void tearDownOnce(TestContext context) {
+  @AfterAll
+  static void tearDownOnce(VertxTestContext context) {
     logger.info("Shutting down server");
     mockOkapi.close()
     .compose(x -> vertx.close())
-    .onSuccess(x -> logger.info("Successfully shut down mock Okapi and edge-patron server"))
-    .onComplete(context.asyncAssertSuccess());
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          logger.info("Successfully shut down mock Okapi and edge-patron server");
+          context.completeNow();
+        } else {
+          context.failNow(ar.cause());
+        }
+      });
   }
 
-  @After
+  @AfterEach
   public void after() {
     mockOkapi.setDelay(0);
   }
 
   @Test
-  public void testAdminHealth(TestContext context) {
+  void testAdminHealth() {
     logger.info("=== Test the health check endpoint ===");
 
     final Response resp = RestAssured
@@ -155,7 +173,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountUnknownApiKey(TestContext context) throws Exception {
+  void testGetAccountUnknownApiKey() throws Exception {
     logger.info("=== Test getAccount with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
@@ -174,7 +192,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountBadApiKey(TestContext context) throws Exception {
+  void testGetAccountBadApiKey() throws Exception {
     logger.info("=== Test getAccount with malformed apiKey ===");
 
     int expectedStatusCode = 401;
@@ -194,7 +212,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFound(TestContext context) throws Exception {
+  void testGetAccountPatronFound() {
     logger.info("=== Test request where patron is found ===");
 
     final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
@@ -208,7 +226,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundGzip(TestContext context) throws Exception {
+  void testGetAccountPatronFoundGzip() {
     logger.info("=== Patron in GZip compression ===");
 
     final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
@@ -225,7 +243,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundDeflate(TestContext context) throws Exception {
+  void testGetAccountPatronFoundDeflate() {
     logger.info("=== Patron in Deflate compression ===");
 
     final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
@@ -242,13 +260,13 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronNotFound(TestContext context) throws Exception {
+  void testGetAccountPatronNotFound() throws IOException {
     logger.info("=== Test request where patron isn't found ===");
 
     int expectedStatusCode = 404;
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", PatronMockOkapi.extPatronId_notFound, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", extPatronId_notFound, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -257,12 +275,12 @@ public class MainVerticleTest {
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testSecureGetAccount(TestContext context) {
+  void testSecureGetAccount() {
     final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
     RestAssured
       .given()
@@ -276,7 +294,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountInvalidToken(TestContext context) throws Exception {
+  void testSecureGetAccountInvalidToken() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true) + "001")
@@ -294,7 +312,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountMissingTenant(TestContext context) throws Exception {
+  void testSecureGetAccountMissingTenant() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true) + "001")
@@ -311,7 +329,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountMissingToken(TestContext context) throws Exception {
+  void testSecureGetAccountMissingToken() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TENANT, "diku")
@@ -328,7 +346,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountMissingKeycloakPublicKey(TestContext context) throws Exception {
+  void testSecureGetAccountMissingKeycloakPublicKey() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TENANT, "test")
@@ -346,7 +364,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountWithMissingClaims(TestContext context) throws Exception {
+  void testSecureGetAccountWithMissingClaims() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TENANT, "diku")
@@ -364,7 +382,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureGetAccountWithPatronNotVip(TestContext context) throws Exception {
+  void testSecureGetAccountWithPatronNotVip() throws Exception {
     var resp = RestAssured
       .given()
       .header(X_OKAPI_TENANT, "diku")
@@ -382,7 +400,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithoutEmail(TestContext context) {
+  void testGetPatronRegistrationStatusWithoutEmail() {
 
     var response = RestAssured
       .get(String.format("/patron/registration-status?apikey=%s", apiKey))
@@ -410,7 +428,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithEmailAndESID(TestContext context) {
+  void testGetPatronRegistrationStatusWithEmailAndESID() {
 
     var response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&externalSystemId=%s&apikey=%s", "abc@abc.com", "9eb67301-6f6e-468f-9b1a-6134dc39a670", apiKey))
@@ -428,7 +446,7 @@ public class MainVerticleTest {
 
 
   @Test
-  public void testGetPatronRegistrationStatusWithActiveEmail(TestContext context) {
+  void testGetPatronRegistrationStatusWithActiveEmail() {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "active@folio.com", apiKey))
@@ -445,7 +463,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithExternalSystemId(TestContext context) {
+  void testGetPatronRegistrationStatusWithExternalSystemId() {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?externalSystemId=%s&apikey=%s", "9eb67301-6f6e-468f-9b1a-6134dc39a699", apiKey))
@@ -462,7 +480,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithInvalidEmail() {
+  void testGetPatronRegistrationStatusWithInvalidEmail() {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "usernotfound@folio.com", apiKey))
@@ -478,7 +496,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithInvalidExternalSystemId() {
+  void testGetPatronRegistrationStatusWithInvalidExternalSystemId() {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?externalSystemId=%s&apikey=%s", "9eb67301-6f6e-468f-9b1a-6134dc39a700", apiKey))
@@ -495,7 +513,7 @@ public class MainVerticleTest {
 
 
   @Test
-  public void testGetPatronRegistrationStatusWithMultipleUserEmail() {
+  void testGetPatronRegistrationStatusWithMultipleUserEmail() {
 
     final var response = RestAssured
       .get(String.format("/patron/registration-status?emailId=%s&apikey=%s", "multipleuser@folio.com", apiKey))
@@ -511,7 +529,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetPatronRegistrationStatusWithInvalidScenarios() {
+  void testGetPatronRegistrationStatusWithInvalidScenarios() {
 
     // when we are getting 404, we converted it to Errors.class. But there are cases where we get text/plain errors.
     // In that case, code will return the error as it is.
@@ -541,7 +559,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountNoApiKey(TestContext context) throws Exception {
+  void testGetAccountNoApiKey() throws Exception {
     logger.info("=== Test request with malformed apiKey ===");
 
     int expectedStatusCode = 401;
@@ -561,7 +579,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeLoans(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeLoans() {
     logger.info("=== Test getAccount/includeLoans ===");
 
     final Response resp = RestAssured
@@ -579,7 +597,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeCharges(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeCharges() {
     logger.info("=== Test getAccount/includeCharges ===");
 
     final Response resp = RestAssured
@@ -597,7 +615,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeHolds(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeHolds() {
     logger.info("=== Test getAccount/includeHolds ===");
 
     final Response resp = RestAssured
@@ -615,7 +633,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeAll(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeAll() {
     logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds ===");
 
     final Response resp = RestAssured
@@ -634,7 +652,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne() {
     logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds & limit=1 ===");
 
     final Response resp = RestAssured
@@ -653,7 +671,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit(TestContext context) throws Exception {
+  void testGetAccountPatronFoundIncludeLoansAndSortByAndNegativeLimit() throws Exception {
     logger.info("=== Test getAccount/includeLoans & sortBy & negative limit ===");
 
     int expectedStatusCode = 400;
@@ -671,7 +689,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountOffsetIsNegative(TestContext context) throws Exception {
+  void testGetAccountOffsetIsNegative() throws Exception {
     logger.info("=== Test getAccount offset is negative ===");
 
     int expectedStatusCode = 400;
@@ -689,7 +707,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountOffsetIsNotNumber(TestContext context) throws Exception {
+  void testGetAccountOffsetIsNotNumber() throws Exception {
     logger.info("=== Test getAccount offset is not a number ===");
 
     int expectedStatusCode = 400;
@@ -707,7 +725,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountLimitIsNotNumber(TestContext context) throws Exception {
+  void testGetAccountLimitIsNotNumber() throws Exception {
     logger.info("=== Test getAccount limit is not a number ===");
 
     int expectedStatusCode = 400;
@@ -725,7 +743,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountEmptyQueryArgs(TestContext context) throws Exception {
+  void testGetAccountEmptyQueryArgs() {
     logger.info("=== Test getAccount with empty query args ===");
 
     final Response resp = RestAssured
@@ -744,7 +762,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetAccountRequestTimeout(TestContext context) throws Exception {
+  void testGetAccountRequestTimeout() {
     logger.info("=== Test getAccount request timeout ===");
 
     mockOkapi.setDelay(requestTimeoutMs * 3);
@@ -758,7 +776,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewSuccess(TestContext context) throws Exception {
+  void testRenewSuccess() throws Exception {
     logger.info("=== Test successfulrenewal ===");
 
     final Response resp = RestAssured
@@ -777,14 +795,14 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewPatronNotFound(TestContext context) throws Exception {
+  void testRenewPatronNotFound() throws Exception {
     logger.info("=== Test renew w/ patron not found ===");
 
     int expectedStatusCode = 404;
 
     final Response resp = RestAssured
       .post(
-          String.format("/patron/account/%s/item/%s/renew?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
+          String.format("/patron/account/%s/item/%s/renew?apikey=%s", extPatronId_notFound, itemId,
               apiKey))
       .then()
       .statusCode(expectedStatusCode)
@@ -793,12 +811,12 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testRenewItemNotFound(TestContext context) throws Exception {
+  void testRenewItemNotFound() throws Exception {
     logger.info("=== Test renew w/ item not found ===");
 
     int expectedStatusCode = 404;
@@ -819,7 +837,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewUnknownApiKey(TestContext context) throws Exception {
+  void testRenewUnknownApiKey() throws Exception {
     logger.info("=== Test renew with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
@@ -839,7 +857,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewBadApiKey(TestContext context) throws Exception {
+  void testRenewBadApiKey() throws Exception {
     logger.info("=== Test renew with malformed apiKey ===");
 
     final Response resp = RestAssured
@@ -857,7 +875,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewRequestTimeout(TestContext context) throws Exception {
+  void testRenewRequestTimeout() {
     logger.info("=== Test renew request timeout ===");
 
     mockOkapi.setDelay(requestTimeoutMs * 3);
@@ -872,7 +890,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewRequesMaxRenewal(TestContext context) throws Exception {
+  void testRenewRequesMaxRenewal() throws Exception {
       logger.info("=== Test MAX Renewal ===");
 
       int expectedStatusCode = 422;
@@ -894,7 +912,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewRequesMaxRenewalWithEmptyErrors(TestContext context) throws Exception {
+  void testRenewRequesMaxRenewalWithEmptyErrors() throws Exception {
       logger.info("=== Test MAX Renewal With Empty Errors ===");
 
       int expectedStatusCode = 422;
@@ -916,7 +934,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testRenewRequesMaxRenewalWithBadJson(TestContext context) throws Exception {
+  void testRenewRequesMaxRenewalWithBadJson() throws Exception {
       logger.info("=== Test MAX Renewal With Bad Json ===");
 
       int expectedStatusCode = 422;
@@ -938,7 +956,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldSuccess(TestContext context) throws Exception {
+  void testPlaceInstanceHoldSuccess() throws Exception {
     logger.info("=== Test place instance hold success ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
@@ -960,7 +978,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecurePlaceInstanceHoldSuccess(TestContext context) throws Exception {
+  void testSecurePlaceInstanceHoldSuccess() throws Exception {
     Hold hold = PatronMockOkapi.getHold(instanceId);
 
     final Response resp = RestAssured
@@ -982,7 +1000,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldPatronNotFound(TestContext context) throws Exception {
+  void testPlaceInstanceHoldPatronNotFound() throws Exception {
     logger.info("=== Test place instance hold w/ patron not found ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
@@ -993,7 +1011,7 @@ public class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound,
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", extPatronId_notFound,
               instanceId,
               apiKey))
       .then()
@@ -1003,12 +1021,12 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testPostPatron_201(TestContext context) {
+  void testPostPatron_201() {
     logger.info("=== testPostPatron_201 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_201");
@@ -1024,7 +1042,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_200(TestContext context) {
+  void testPutPatron_200() {
     logger.info("=== testPutPatron_200 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_200");
@@ -1041,7 +1059,7 @@ public class MainVerticleTest {
 
 
   @Test
-  public void testPostPatron_200(TestContext context) {
+  void testPostPatron_200() {
     logger.info("=== testPostPatron_200 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_200");
@@ -1057,7 +1075,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_400(TestContext context) {
+  void testPostPatron_400() {
     logger.info("=== testPostPatron_400 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_400");
@@ -1075,7 +1093,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_400(TestContext context) {
+  void testPutPatron_400() {
     logger.info("=== testPutPatron_400 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_400");
@@ -1094,7 +1112,7 @@ public class MainVerticleTest {
 
 
   @Test
-  public void testPostPatron_422(TestContext context) {
+  void testPostPatron_422() {
     logger.info("=== testPostPatron_422 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_422");
@@ -1112,7 +1130,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_422(TestContext context) {
+  void testPutPatron_422() {
     logger.info("=== testPutPatron_422 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_422");
@@ -1130,7 +1148,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_500(TestContext context) {
+  void testPostPatron_500() {
     logger.info("=== testPostPatron_500 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-post-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_500");
@@ -1148,7 +1166,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostPatron_NoRequestBody(TestContext context) {
+  void testPostPatron_NoRequestBody() {
     logger.info("=== testPostPatron_NoRequestBody ===");
     RestAssured
       .with()
@@ -1163,7 +1181,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_500(TestContext context) {
+  void testPutPatron_500() {
     logger.info("=== testPutPatron_500 ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_500");
@@ -1181,7 +1199,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_NoRequestBody(TestContext context) {
+  void testPutPatron_NoRequestBody() {
     logger.info("=== testPutPatron_NoRequestBody ===");
     RestAssured
       .with()
@@ -1196,7 +1214,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPutPatron_NoParam(TestContext context) {
+  void testPutPatron_NoParam() {
     logger.info("=== testPutPatron_NoParam ===");
     JsonObject jsonObject = new JsonObject(readMockFile("/staging-users-put-request.json"));
     jsonObject.getJsonObject("generalInfo").put("firstName", "TEST_STATUS_CODE_405");
@@ -1211,7 +1229,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldInstanceNotFound(TestContext context) throws Exception {
+  void testPlaceInstanceHoldInstanceNotFound() throws Exception {
     logger.info("=== Test place instance hold w/ instance not found ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.instanceId_notFound);
@@ -1235,7 +1253,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldUnknownApiKey(TestContext context) throws Exception {
+  void testPlaceInstanceHoldUnknownApiKey() throws Exception {
     logger.info("=== Test place instance hold with unknown apiKey (tenant) ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
@@ -1259,7 +1277,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldBadApiKey(TestContext context) throws Exception {
+  void testPlaceInstanceHoldBadApiKey() throws Exception {
     logger.info("=== Test place instance hold with malformed apiKey ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
@@ -1284,7 +1302,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldRequestTimeout(TestContext context) throws Exception {
+  void testPlaceInstanceHoldRequestTimeout() throws Exception {
     logger.info("=== Test place instance hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(instanceId);
@@ -1305,7 +1323,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceInstanceHoldNoBody(TestContext context) throws Exception {
+  void testPlaceInstanceHoldNoBody() {
     logger.info("=== Test place instance hold request with no request body ===");
 
     mockOkapi.setDelay(requestTimeoutMs * 3);
@@ -1323,7 +1341,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldSuccess(TestContext context) throws Exception {
+  void testPlaceItemHoldSuccess() throws Exception {
     logger.info("=== Test successful item hold ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId, new Date(holdReqTs));
@@ -1346,7 +1364,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldWithoutRequestDateSuccess(TestContext context) throws Exception {
+  void testPlaceItemHoldWithoutRequestDateSuccess() throws Exception {
     logger.info("=== Test successful item hold ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId, null);
@@ -1369,7 +1387,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldWithInvalidExpirationDateSuccess(TestContext context) throws Exception {
+  void testPlaceItemHoldWithInvalidExpirationDateSuccess() throws Exception {
     logger.info("=== Test successful item hold ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1397,7 +1415,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldWithValidExpirationDateSuccess(TestContext context) throws Exception {
+  void testPlaceItemHoldWithValidExpirationDateSuccess() throws Exception {
     logger.info("=== Test successful item hold ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1425,7 +1443,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldPatronNotFound(TestContext context) throws Exception {
+  void testPlaceItemHoldPatronNotFound() throws Exception {
     logger.info("=== Test place item hold w/ patron not found ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1436,7 +1454,7 @@ public class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PatronMockOkapi.extPatronId_notFound, itemId,
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", extPatronId_notFound, itemId,
               apiKey))
       .then()
       .statusCode(expectedStatusCode)
@@ -1445,12 +1463,12 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testPlaceItemHoldItemNotFound(TestContext context) throws Exception {
+  void testPlaceItemHoldItemNotFound() throws Exception {
     logger.info("=== Test place item hold w/ item not found ===");
 
     Hold hold = PatronMockOkapi.getHold(PatronMockOkapi.itemId_notFound);
@@ -1474,7 +1492,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldUnknownApiKey(TestContext context) throws Exception {
+  void testPlaceItemHoldUnknownApiKey() throws Exception {
     logger.info("=== Test place item hold with unknown apiKey (tenant) ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1499,7 +1517,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldBadApiKey(TestContext context) throws Exception {
+  void testPlaceItemHoldBadApiKey() throws Exception {
     logger.info("=== Test place item hold with malformed apiKey ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1524,7 +1542,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldRequestTimeout(TestContext context) throws Exception {
+  void testPlaceItemHoldRequestTimeout() throws Exception {
     logger.info("=== Test place item hold request timeout ===");
 
     Hold hold = PatronMockOkapi.getHold(itemId);
@@ -1545,7 +1563,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPlaceItemHoldRequestNoBody(TestContext context) throws Exception {
+  void testPlaceItemHoldRequestNoBody() {
     logger.info("=== Test place item hold request with no request body ===");
 
     RestAssured
@@ -1562,7 +1580,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testAllowedServicePointsSuccess(TestContext context) throws Exception {
+  void testAllowedServicePointsSuccess() {
     logger.info("=== Test successful allowed service points request ===");
 
     final Response resp = RestAssured
@@ -1582,7 +1600,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureAllowedServicePointsSuccess(TestContext context) {
+  void testSecureAllowedServicePointsSuccess() {
 
     final Response resp = RestAssured
       .with()
@@ -1603,7 +1621,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testAllowedServicePointsForItemError(TestContext context) throws Exception {
+  void testAllowedServicePointsForItemError() {
     logger.info("=== Test validation error during allowed service points request ===");
 
     final Response resp = RestAssured
@@ -1623,7 +1641,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testAllowedServicePointsForInstanceError(TestContext context) throws Exception {
+  void testAllowedServicePointsForInstanceError() {
     logger.info("=== Test validation error during allowed service points request ===");
 
     final Response resp = RestAssured
@@ -1643,7 +1661,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testMultiItemAllowedServicePointsForInstanceError(TestContext context) {
+  void testMultiItemAllowedServicePointsForInstanceError() {
     logger.info("=== Test validation error during multi-item allowed service points request ===");
 
     var request = new JsonObject(readMockFile("/allowed_service_points_for_items_request.json")).encodePrettily();
@@ -1667,7 +1685,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testMultiItemAllowedServicePointsForInstanceSuccess(TestContext context) {
+  void testMultiItemAllowedServicePointsForInstanceSuccess() {
     logger.info("=== Test multi-item allowed service points request ===");
 
     var request = new JsonObject(readMockFile("/allowed_service_points_for_items_request.json")).encodePrettily();
@@ -1683,14 +1701,14 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    JsonObject expected = new JsonObject(readMockFile(
+    var expected = new JsonObject(readMockFile(
       "/multi_item_allowed_sp_mod_patron_expected_response.json"));
     JsonObject actual = new JsonObject(resp.body().asString());
     assertEquals(expected, actual);
   }
 
   @Test
-  public void testPostMultiItemBatchRequestPatronNotFoundError(TestContext context) throws IOException {
+  void testPostMultiItemBatchRequestPatronNotFoundError() throws IOException {
     logger.info("=== Test patron not found error during post multi-item batch request ===");
 
     var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
@@ -1701,20 +1719,20 @@ public class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(request)
       .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
-        PatronMockOkapi.extPatronId_notFound, instanceId, apiKey))
+        extPatronId_notFound, instanceId, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    var msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testPostMultiItemBatchRequestInstanceNotFoundError(TestContext context) throws IOException {
+  void testPostMultiItemBatchRequestInstanceNotFoundError() throws IOException {
     logger.info("=== Test instance not found error during post multi-item batch request ===");
 
     var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
@@ -1732,13 +1750,34 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    var msg = ErrorMessage.fromJson(resp.body().asString());
     assertEquals("Instance '" + instanceId_notFound + "' isn't found", msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testPostMultiItemBatchRequestSuccess(TestContext context) {
+  void testPostMultiItemBatchRequestInvalidBodyError() throws IOException {
+    logger.info("=== Test invalid body error during post multi-item batch request ===");
+
+    var expectedStatusCode = 400;
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
+        patronId, instanceId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(MSG_BATCH_REQUEST_NOBODY, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  @Test
+  void testPostMultiItemBatchRequestSuccess() {
     logger.info("=== Test post multi-item batch request ===");
 
     var request = new JsonObject(readMockFile("/batch_request.json")).encodePrettily();
@@ -1755,14 +1794,43 @@ public class MainVerticleTest {
       .extract()
       .response();
 
-    JsonObject expected = new JsonObject(readMockFile(
-      "/batch_request_expected_response.json"));
-    JsonObject actual = new JsonObject(resp.body().asString());
+    var expected = new JsonObject(readMockFile("/batch_request_expected_response.json"));
+    var actual = new JsonObject(resp.body().asString());
     assertEquals(expected, actual);
   }
 
+  @ParameterizedTest
+  @MethodSource("batchRequestStatusNotFoundErrorParams")
+  void testGetMultiItemBatchRequestStatusBatchRequestNotFoundError(String patronId, String instanceId, String batchId,
+                                                                   String expectedMessage) throws IOException {
+    logger.info("=== Test not found error during get multi-item batch request status ===");
+
+    var expectedStatusCode = 404;
+    final Response resp = RestAssured
+      .with()
+      .contentType(APPLICATION_JSON)
+      .get(String.format("/patron/account/%s/instance/%s/batch-request/%s/status?apikey=%s",
+        patronId, instanceId, batchId, apiKey))
+      .then()
+      .statusCode(expectedStatusCode)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .extract()
+      .response();
+
+    var msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(expectedMessage, msg.message);
+    assertEquals(expectedStatusCode, msg.httpStatusCode);
+  }
+
+  static Stream<Arguments> batchRequestStatusNotFoundErrorParams() {
+    return Stream.of(
+      Arguments.of(extPatronId_notFound, instanceId, batchRequestId, "Unable to find patron " + extPatronId_notFound),
+      Arguments.of(patronId, instanceId_notFound, batchRequestId, "Instance '" + instanceId_notFound + "' isn't found"),
+      Arguments.of(patronId, instanceId, batchRequestId_notFound, "Multi-Item Batch request '" + batchRequestId_notFound + "' isn't found"));
+  }
+
   @Test
-  public void testCancelHoldSuccess(TestContext context) throws Exception {
+  void testCancelHoldSuccess() throws Exception {
     logger.info("=== Test cancel hold success ===");
 
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
@@ -1791,7 +1859,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testSecureCancelHoldSuccess(TestContext context) throws Exception {
+  void testSecureCancelHoldSuccess() throws Exception {
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
 
     final Response resp = RestAssured
@@ -1820,7 +1888,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldSuccessWithNonUUIDCanceledById(TestContext context) throws Exception {
+  void testCancelHoldSuccessWithNonUUIDCanceledById() throws Exception {
     logger.info("=== Test cancel hold success ===");
 
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(
@@ -1850,7 +1918,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldPatronInvalidRequest(TestContext context) throws Exception {
+  void testCancelHoldPatronInvalidRequest() throws Exception {
     logger.info("=== Test cancel hold w/invalid cancellation request ===");
     int statusCode = 422;
 
@@ -1876,17 +1944,17 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldPatronNotFound(TestContext context) throws Exception {
+  void testCancelHoldPatronNotFound() throws Exception {
     logger.info("=== Test cancel hold w/ patron not found ===");
     int statusCode = 404;
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PatronMockOkapi.extPatronId_notFound);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId_notFound);
 
     final Response resp = RestAssured
       .with()
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(
-          String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PatronMockOkapi.extPatronId_notFound, holdCancellationHoldId, apiKey))
+          String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId_notFound, holdCancellationHoldId, apiKey))
       .then()
       .statusCode(statusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1896,11 +1964,11 @@ public class MainVerticleTest {
       ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
 
       assertEquals(statusCode, msg.httpStatusCode);
-      assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+      assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
   }
 
   @Test
-  public void testCancelHoldHoldNotFound(TestContext context) throws Exception {
+  void testCancelHoldHoldNotFound() throws Exception {
     logger.info("=== Test cancel hold w/ hold not found ===");
 
     int expectedStatusCode = 404;
@@ -1927,7 +1995,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldUnknownApiKey(TestContext context) throws Exception {
+  void testCancelHoldUnknownApiKey() throws Exception {
     logger.info("=== Test cancel hold with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
@@ -1955,7 +2023,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldBadApiKey(TestContext context) throws Exception {
+  void testCancelHoldBadApiKey() {
     logger.info("=== Test cancel hold with malformed apiKey ===");
 
     int expectedStatusCode = 401;
@@ -1979,12 +2047,12 @@ public class MainVerticleTest {
         assertEquals(expectedStatusCode,  msg.httpStatusCode);
     }
     catch(IOException ex){
-        Assert.fail("Exception threw: " + ex.getMessage());
+        fail("Exception threw: " + ex.getMessage());
     }
   }
 
   @Test
-  public void testCancelHoldRequestTimeout(TestContext context) throws Exception {
+  void testCancelHoldRequestTimeout() {
     logger.info("=== Test cancel hold request timeout ===");
 
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId);
@@ -2004,7 +2072,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCancelHoldWithMalformedJsonRequest(TestContext context) throws Exception {
+  void testCancelHoldWithMalformedJsonRequest() {
     logger.info("=== Test cancel hold with malformed JSON Request (from mod-circ) ===");
 
     String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId, patronId);
@@ -2025,18 +2093,18 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testEditHoldPatronNotFound(TestContext context) throws Exception {
+  void testEditHoldPatronNotFound() throws Exception {
     logger.info("=== Test edit hold w/ patron not found ===");
 
     int expectedStatusCode = 404;
-    String canceledHold = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PatronMockOkapi.extPatronId_notFound);
+    String canceledHold = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, extPatronId_notFound);
 
     final Response resp = RestAssured
       .with()
       .contentType(APPLICATION_JSON)
       .body(canceledHold)
       .post(
-          String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PatronMockOkapi.extPatronId_notFound,
+          String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", extPatronId_notFound,
               holdCancellationHoldId,
               apiKey))
       .then()
@@ -2046,12 +2114,12 @@ public class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals("Unable to find patron " + PatronMockOkapi.extPatronId_notFound, msg.message);
+    assertEquals("Unable to find patron " + extPatronId_notFound, msg.message);
     assertEquals(expectedStatusCode, msg.httpStatusCode);
   }
 
   @Test
-  public void testEditHoldNotFound(TestContext context) throws Exception {
+  void testEditHoldNotFound() throws Exception {
     logger.info("=== Test edit hold w/hold not found ===");
     int expectedStatusCode = 404;
     String expectedErrorMsg = "request record with ID \"" + holdReqId_notFound + "\" cannot be found";
@@ -2076,7 +2144,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testEditHoldUnknownApiKey(TestContext context) throws Exception {
+  void testEditHoldUnknownApiKey() throws Exception {
     logger.info("=== Test edit hold with unknown apiKey (tenant) ===");
 
     int expectedStatusCode = 401;
@@ -2101,7 +2169,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testEditHoldBadApiKey(TestContext context) throws Exception {
+  void testEditHoldBadApiKey() throws Exception {
     logger.info("=== Test edit hold with malformed apiKey ===");
 
     int expectedStatusCode = 401;
@@ -2125,7 +2193,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testEditHoldRequestTimeout(TestContext context) throws Exception {
+  void testEditHoldRequestTimeout() {
     logger.info("=== Test edit hold request timeout ===");
 
     String canceledHold = PatronMockOkapi.getHoldCancellation(holdReqId_notFound, extPatronId);
@@ -2144,7 +2212,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testCachedToken(TestContext context) throws Exception {
+  void testCachedToken() throws Exception {
     logger.info("=== Test the tokens are cached and reused ===");
 
     Account expected = Account.fromJson(PatronMockOkapi.getAccountJson(patronId, false, false, false));

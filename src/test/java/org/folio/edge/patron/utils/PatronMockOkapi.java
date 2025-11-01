@@ -72,6 +72,8 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String wrongIntegerParamMessage = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
   public static final String offset_param = "offset";
   public static final String limit_param = "limit";
+  public static final String batchRequestId = "5203c035-005e-4a70-b555-ddaa3094c51c";
+  public static final String batchRequestId_notFound = UUID.randomUUID().toString();
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -169,6 +171,10 @@ public class PatronMockOkapi extends MockOkapi {
     router.route(HttpMethod.POST,
         "/patron/account/:patronId/instance/:instanceId/batch-request")
       .handler(this::placeBatchRequest);
+
+    router.route(HttpMethod.GET,
+        "/patron/account/:patronId/instance/:instanceId/batch-request/:batchRequestId/status")
+      .handler(this::getBatchRequestStatus);
 
     return router;
   }
@@ -448,7 +454,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request: " + e.toString());
+        .end("Bad Request: " + e);
     }
   }
 
@@ -483,7 +489,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request: " + e.toString());
+        .end("Bad Request: " + e);
     }
   }
 
@@ -518,7 +524,6 @@ public class PatronMockOkapi extends MockOkapi {
     String patronId = ctx.request().getParam(PARAM_PATRON_ID);
     String holdId = ctx.request().getParam(PARAM_HOLD_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-    String body = ctx.getBodyAsString();
 
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
@@ -647,19 +652,6 @@ public class PatronMockOkapi extends MockOkapi {
     String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
-    String body = ctx.getBodyAsString();
-
-    try {
-      new JsonObject(body);
-    } catch (Exception e) {
-      logger.error("Exception parsing request payload", e);
-      ctx.response()
-        .setStatusCode(400)
-        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request");
-      return;
-    }
-
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
         .setStatusCode(403)
@@ -680,6 +672,40 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(201)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         .end(readMockFile("/batch_request_expected_response.json"));
+    }
+  }
+
+  public void getBatchRequestStatus(RoutingContext ctx) {
+    var patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    var instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    var token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    var batchId = ctx.request().getParam(PARAM_BATCH_REQUEST_ID);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Patron '%s' isn't found", patronId));
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Instance '%s' isn't found", instanceId));
+    } else if (batchId.equals(batchRequestId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Multi-Item Batch request '%s' isn't found", batchRequestId_notFound));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/batch_request_status_expected_response.json"));
     }
   }
 

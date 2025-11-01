@@ -44,7 +44,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String PARAM_QUERY = "query";
 
   public static final String isbn = "0008675309";
-  public static final String instanceId = UUID.randomUUID().toString();
+  public static final String INSTANCE_ID = UUID.randomUUID().toString();
   public static final String instanceId_notFound = UUID.randomUUID().toString();
   public static final String holdReqId = UUID.randomUUID().toString();
   public static final String holdReqId_notFound = UUID.randomUUID().toString();
@@ -52,7 +52,7 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String itemId_overdue = UUID.randomUUID().toString();
   public static final String itemId = UUID.randomUUID().toString();
   public static final String itemId_notFound = UUID.randomUUID().toString();
-  public static final String patronId = UUID.randomUUID().toString();
+  public static final String PATRON_ID = UUID.randomUUID().toString();
   public static final String patronId_notFound = UUID.randomUUID().toString();
   public static final String extPatronId = UUID.randomUUID().toString();
   public static final String extPatronId_notFound = UUID.randomUUID().toString();
@@ -72,6 +72,8 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String wrongIntegerParamMessage = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
   public static final String offset_param = "offset";
   public static final String limit_param = "limit";
+  public static final String BATCH_REQUEST_ID = "5203c035-005e-4a70-b555-ddaa3094c51c";
+  public static final String BATCH_REQUEST_ID_NOT_FOUND = UUID.randomUUID().toString();
 
   public static final long checkedOutTs = System.currentTimeMillis() - (34 * DAY_IN_MILLIS);
   public static final long dueDateTs = checkedOutTs + (20 * DAY_IN_MILLIS);
@@ -161,6 +163,18 @@ public class PatronMockOkapi extends MockOkapi {
 
     router.route(HttpMethod.GET, "/realms/diku/protocol/openid-connect/certs")
       .handler(this::getKeycloakPublicKeysHandler);
+
+    router.route(HttpMethod.POST,
+        "/patron/account/:patronId/instance/:instanceId/allowed-service-points-multi-item")
+      .handler(this::getMultiItemAllowedServicePointsForInstance);
+
+    router.route(HttpMethod.POST,
+        "/patron/account/:patronId/instance/:instanceId/batch-request")
+      .handler(this::placeBatchRequest);
+
+    router.route(HttpMethod.GET,
+        "/patron/account/:patronId/instance/:instanceId/batch-request/:batchRequestId/status")
+      .handler(this::getBatchRequestStatus);
 
     return router;
   }
@@ -440,7 +454,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request: " + e.toString());
+        .end("Bad Request: " + e);
     }
   }
 
@@ -475,7 +489,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(400)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
-        .end("Bad Request: " + e.toString());
+        .end("Bad Request: " + e);
     }
   }
 
@@ -510,7 +524,6 @@ public class PatronMockOkapi extends MockOkapi {
     String patronId = ctx.request().getParam(PARAM_PATRON_ID);
     String holdId = ctx.request().getParam(PARAM_HOLD_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
-    String body = ctx.getBodyAsString();
 
     if (token == null || !token.equals(MOCK_TOKEN)) {
       ctx.response()
@@ -612,6 +625,90 @@ public class PatronMockOkapi extends MockOkapi {
     }
   }
 
+  public void getMultiItemAllowedServicePointsForInstance(RoutingContext ctx) {
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(422)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/allowed_sp_error_mod_patron.json"));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/multi_item_allowed_sp_mod_patron_expected_response.json"));
+    }
+  }
+
+  public void placeBatchRequest(RoutingContext ctx) {
+    String patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    String token = ctx.request().getHeader(X_OKAPI_TOKEN);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Patron '%s' isn't found", patronId));
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Instance '%s' isn't found", instanceId));
+    } else {
+      ctx.response()
+        .setStatusCode(201)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/batch_request_expected_response.json"));
+    }
+  }
+
+  public void getBatchRequestStatus(RoutingContext ctx) {
+    var patronId = ctx.request().getParam(PARAM_PATRON_ID);
+    var instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
+    var token = ctx.request().getHeader(X_OKAPI_TOKEN);
+    var batchId = ctx.request().getParam(PARAM_BATCH_REQUEST_ID);
+
+    if (token == null || !token.equals(MOCK_TOKEN)) {
+      ctx.response()
+        .setStatusCode(403)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Access requires permission: patron.instance.hold.post");
+    } else if (patronId.equals(patronId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Patron '%s' isn't found", patronId));
+    } else if (instanceId.equals(instanceId_notFound)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Instance '%s' isn't found", instanceId));
+    } else if (batchId.equals(BATCH_REQUEST_ID_NOT_FOUND)) {
+      ctx.response()
+        .setStatusCode(404)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end(String.format("Multi-Item Batch request '%s' isn't found", BATCH_REQUEST_ID_NOT_FOUND));
+    } else {
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(readMockFile("/batch_request_status_expected_response.json"));
+    }
+  }
+
   public void getAllowedServicePointsForItem(RoutingContext ctx) {
     String itemId = ctx.request().getParam(PARAM_ITEM_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
@@ -643,7 +740,7 @@ public class PatronMockOkapi extends MockOkapi {
     if (!(secure ? secureNonexistent : nonSecureNonexistent).contains(patronId)) {
       users.add(new JsonObject()
         .put("externalSystemId", patronId)
-        .put("id", PatronMockOkapi.patronId));
+        .put("id", PatronMockOkapi.PATRON_ID));
     }
 
     JsonObject json = new JsonObject()
@@ -731,7 +828,7 @@ public class PatronMockOkapi extends MockOkapi {
       .itemId(itemId)
       .title("The Stars My Destination")
       .author("Bester, Alfred")
-      .instanceId(instanceId)
+      .instanceId(INSTANCE_ID)
       .isbn(isbn)
       .build();
   }
@@ -746,7 +843,7 @@ public class PatronMockOkapi extends MockOkapi {
       holdStatus = Status.CLOSED_CANCELED;
       queuePosition = 0;
       cancellationReasonId = holdCancellationReasonId;
-      canceledByUserId = patronId;
+      canceledByUserId = PATRON_ID;
     }
 
     return Hold.builder()

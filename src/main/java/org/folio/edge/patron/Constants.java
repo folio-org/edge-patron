@@ -11,7 +11,6 @@ public class Constants {
   public static final String SYS_KEYCLOAK_KEY_CACHE_TTL_MS = "keycloak_key_cache_ttl_ms";
   public static final String SYS_NULL_KEYCLOAK_KEY_CACHE_TTL_MS = "null_keycloak_key_cache_ttl_ms";
   public static final String SYS_KEYCLOAK_KEY_CACHE_CAPACITY = "keycloak_key_cache_capacity";
-  public static final String PARAM_EXPIRED = "expired";
   public static final String VIP_CLAIM = "vip";
   public static final String EXTERNAL_SYSTEM_ID_CLAIM = "externalSystemId";
 
@@ -36,12 +35,14 @@ public class Constants {
   public static final String PARAM_EMAIL_ID = "emailId";
   public static final String PARAM_EXTERNAL_SYSTEM_ID = "externalSystemId";
   public static final String PARAM_REQUEST_ID = "requestId";
+  public static final String PARAM_BATCH_REQUEST_ID = "batchRequestId";
 
   public static final String MSG_ACCESS_DENIED = "Access Denied";
   public static final String MSG_INTERNAL_SERVER_ERROR = "Internal Server Error";
   public static final String MSG_REQUEST_TIMEOUT = "Request to FOLIO timed out";
   public static final String MSG_HOLD_NOBODY = "No hold data provided";
-  public static final String MSG_EXTERNAL_NOBODY = "No external_patron data provided";
+  public static final String MSG_ITEMS_NOBODY = "No Item IDs provided";
+  public static final String MSG_BATCH_REQUEST_NOBODY = "No Multi-Item Batch request data provided";
 
   public static final String FIELD_EXPIRATION_DATE = "expirationDate";
   public static final String FIELD_REQUEST_DATE = "requestDate";

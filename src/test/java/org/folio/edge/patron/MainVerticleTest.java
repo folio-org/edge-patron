@@ -16,8 +16,8 @@ import static org.folio.edge.patron.Constants.MSG_ACCESS_DENIED;
 import static org.folio.edge.patron.Constants.MSG_BATCH_REQUEST_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_HOLD_NOBODY;
 import static org.folio.edge.patron.Constants.MSG_REQUEST_TIMEOUT;
-import static org.folio.edge.patron.utils.PatronMockOkapi.batchRequestId;
-import static org.folio.edge.patron.utils.PatronMockOkapi.batchRequestId_notFound;
+import static org.folio.edge.patron.utils.PatronMockOkapi.BATCH_REQUEST_ID;
+import static org.folio.edge.patron.utils.PatronMockOkapi.BATCH_REQUEST_ID_NOT_FOUND;
 import static org.folio.edge.patron.utils.PatronMockOkapi.extPatronId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdCancellationHoldId;
 import static org.folio.edge.patron.utils.PatronMockOkapi.holdReqId_notFound;
@@ -88,7 +88,7 @@ class MainVerticleTest {
 
   private static final Logger logger = LogManager.getLogger(MainVerticleTest.class);
   private static final String extPatronId = PatronMockOkapi.extPatronId;
-  private static final String patronId = PatronMockOkapi.patronId;
+  private static final String PATRON_ID = PatronMockOkapi.PATRON_ID;
   private static final String itemId = UUID.randomUUID().toString();
   private static final String instanceId = UUID.randomUUID().toString();
   private static final String holdId = UUID.randomUUID().toString();
@@ -152,7 +152,7 @@ class MainVerticleTest {
   }
 
   @AfterEach
-  public void after() {
+  void after() {
     mockOkapi.setDelay(0);
   }
 
@@ -215,7 +215,7 @@ class MainVerticleTest {
   void testGetAccountPatronFound() {
     logger.info("=== Test request where patron is found ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
 
     RestAssured
     .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
@@ -229,7 +229,7 @@ class MainVerticleTest {
   void testGetAccountPatronFoundGzip() {
     logger.info("=== Patron in GZip compression ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
 
     RestAssured.given()
       .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.GZIP)))
@@ -246,7 +246,7 @@ class MainVerticleTest {
   void testGetAccountPatronFoundDeflate() {
     logger.info("=== Patron in Deflate compression ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
 
     RestAssured.given()
       .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.DEFLATE)))
@@ -281,7 +281,7 @@ class MainVerticleTest {
 
   @Test
   void testSecureGetAccount() {
-    final String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
     RestAssured
       .given()
       .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
@@ -565,7 +565,7 @@ class MainVerticleTest {
     int expectedStatusCode = 401;
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s", patronId))
+      .get(String.format("/patron/account/%s", PATRON_ID))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -583,14 +583,14 @@ class MainVerticleTest {
     logger.info("=== Test getAccount/includeLoans ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true", PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, true, false, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, false, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -601,14 +601,14 @@ class MainVerticleTest {
     logger.info("=== Test getAccount/includeCharges ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeCharges=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeCharges=true", PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, false, true, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, true, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -619,14 +619,14 @@ class MainVerticleTest {
     logger.info("=== Test getAccount/includeHolds ===");
 
     final Response resp = RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s&includeHolds=true", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s&includeHolds=true", PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, false, false, true);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, true);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -638,14 +638,14 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true",
-          patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, true, true, true);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, true, true);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -657,14 +657,14 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=0",
-        patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true);
+    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(PATRON_ID, true, true, true);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -677,7 +677,7 @@ class MainVerticleTest {
     int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=false&includeCharges=false&sortBy=testSort&limit=-1",
-        patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .extract()
@@ -695,7 +695,7 @@ class MainVerticleTest {
     int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=-1",
-        patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .extract()
@@ -713,7 +713,7 @@ class MainVerticleTest {
     int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=1&offset=test",
-        patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .extract()
@@ -731,7 +731,7 @@ class MainVerticleTest {
     int expectedStatusCode = 400;
     final Response resp = RestAssured
       .get(String.format("/patron/account/%s?apikey=%s&includeLoans=true&includeHolds=true&includeCharges=true&limit=test",
-        patronId, apiKey))
+        PATRON_ID, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .extract()
@@ -748,14 +748,14 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .get(
-          String.format("/patron/account/%s?apikey=%s&includeCharges=&includeLoans=&includeCharges=", patronId, apiKey))
+          String.format("/patron/account/%s?apikey=%s&includeCharges=&includeLoans=&includeCharges=", PATRON_ID, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(patronId, false, false, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -767,7 +767,7 @@ class MainVerticleTest {
 
     mockOkapi.setDelay(requestTimeoutMs * 3);
     RestAssured
-      .get(String.format("/patron/account/%s?apikey=%s", patronId, apiKey))
+      .get(String.format("/patron/account/%s?apikey=%s", PATRON_ID, apiKey))
       .then()
       .contentType(APPLICATION_JSON)
       .statusCode(408)
@@ -781,14 +781,14 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .post(
-          String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId, apiKey))
+          String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, itemId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
       .extract()
       .response();
 
-    Loan expected = Loan.fromJson(PatronMockOkapi.getLoanJson(patronId, itemId));
+    Loan expected = Loan.fromJson(PatronMockOkapi.getLoanJson(PATRON_ID, itemId));
     Loan actual = Loan.fromJson(resp.body().asString());
 
     assertEquals(expected, actual);
@@ -843,7 +843,7 @@ class MainVerticleTest {
     int expectedStatusCode = 401;
 
     final Response resp = RestAssured
-      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId, unknownTenantApiKey))
+      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, itemId, unknownTenantApiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -861,7 +861,7 @@ class MainVerticleTest {
     logger.info("=== Test renew with malformed apiKey ===");
 
     final Response resp = RestAssured
-      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId, badApiKey))
+      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, itemId, badApiKey))
       .then()
       .statusCode(401)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -880,7 +880,7 @@ class MainVerticleTest {
 
     mockOkapi.setDelay(requestTimeoutMs * 3);
     RestAssured
-      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, itemId,
+      .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, itemId,
           apiKey))
       .then()
       .contentType(APPLICATION_JSON)
@@ -897,7 +897,7 @@ class MainVerticleTest {
 
       final Response resp = RestAssured
               .with()
-              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals,
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, PatronMockOkapi.itemId_reached_max_renewals,
                       apiKey))
               .then()
               .contentType(APPLICATION_JSON)
@@ -919,7 +919,7 @@ class MainVerticleTest {
 
       final Response resp = RestAssured
               .with()
-              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_empty_error_msg,
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, PatronMockOkapi.itemId_reached_max_renewals_empty_error_msg,
                       apiKey))
               .then()
               .contentType(APPLICATION_JSON)
@@ -941,7 +941,7 @@ class MainVerticleTest {
 
       final Response resp = RestAssured
               .with()
-              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", patronId, PatronMockOkapi.itemId_reached_max_renewals_bad_json_msg,
+              .post(String.format("/patron/account/%s/item/%s/renew?apikey=%s", PATRON_ID, PatronMockOkapi.itemId_reached_max_renewals_bad_json_msg,
                       apiKey))
               .then()
               .contentType(APPLICATION_JSON)
@@ -966,7 +966,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, apiKey))
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, instanceId, apiKey))
       .then()
       .statusCode(201)
       .extract()
@@ -983,7 +983,7 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .with()
-      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(PATRON_ID, true))
       .header(X_OKAPI_TENANT, "diku")
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
@@ -1240,7 +1240,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, PatronMockOkapi.instanceId_notFound,
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, PatronMockOkapi.instanceId_notFound,
               apiKey))
       .then()
       .statusCode(expectedStatusCode)
@@ -1264,7 +1264,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, unknownTenantApiKey))
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, instanceId, unknownTenantApiKey))
       .then()
       .statusCode(statusCode)
       .extract()
@@ -1288,7 +1288,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId, badApiKey))
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, instanceId, badApiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1313,7 +1313,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, instanceId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
@@ -1331,7 +1331,7 @@ class MainVerticleTest {
       .with()
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", patronId, instanceId,
+          String.format("/patron/account/%s/instance/%s/hold?apikey=%s", PATRON_ID, instanceId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
@@ -1351,7 +1351,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1374,7 +1374,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1400,7 +1400,7 @@ class MainVerticleTest {
       .body(holdJson)
       .contentType(APPLICATION_JSON)
       .post(
-        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1428,7 +1428,7 @@ class MainVerticleTest {
       .body(holdJson)
       .contentType(APPLICATION_JSON)
       .post(
-        String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, apiKey))
+        String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1479,7 +1479,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, PatronMockOkapi.itemId_notFound, apiKey))
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, PatronMockOkapi.itemId_notFound, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1503,7 +1503,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, unknownTenantApiKey))
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, unknownTenantApiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1528,7 +1528,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId, badApiKey))
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId, badApiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1553,7 +1553,7 @@ class MainVerticleTest {
       .body(hold.toJson())
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
@@ -1570,7 +1570,7 @@ class MainVerticleTest {
       .with()
       .contentType(APPLICATION_JSON)
       .post(
-          String.format("/patron/account/%s/item/%s/hold?apikey=%s", patronId, itemId,
+          String.format("/patron/account/%s/item/%s/hold?apikey=%s", PATRON_ID, itemId,
               apiKey))
       .then()
       .contentType(APPLICATION_JSON)
@@ -1586,7 +1586,7 @@ class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .get(String.format("/patron/account/%s/instance/%s/allowed-service-points?apikey=%s",
-        patronId, instanceId, apiKey))
+        PATRON_ID, instanceId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1604,7 +1604,7 @@ class MainVerticleTest {
 
     final Response resp = RestAssured
       .with()
-      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(PATRON_ID, true))
       .header(X_OKAPI_TENANT, "diku")
       .get(String.format("/patron/account/instance/%s/allowed-service-points?apikey=%s",
         instanceId, apiKey))
@@ -1627,7 +1627,7 @@ class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .get(String.format("/patron/account/%s/item/%s/allowed-service-points?apikey=%s",
-        patronId, itemId_notFound, apiKey))
+        PATRON_ID, itemId_notFound, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1647,7 +1647,7 @@ class MainVerticleTest {
     final Response resp = RestAssured
       .with()
       .get(String.format("/patron/account/%s/instance/%s/allowed-service-points?apikey=%s",
-        patronId, instanceId_notFound, apiKey))
+        PATRON_ID, instanceId_notFound, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1671,7 +1671,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(request)
       .post(String.format("/patron/account/%s/instance/%s/allowed-service-points-multi-item?apikey=%s",
-        patronId, instanceId_notFound, apiKey))
+        PATRON_ID, instanceId_notFound, apiKey))
       .then()
       .statusCode(422)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1694,7 +1694,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(request)
       .post(String.format("/patron/account/%s/instance/%s/allowed-service-points-multi-item?apikey=%s",
-        patronId, instanceId, apiKey))
+        PATRON_ID, instanceId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1743,7 +1743,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(request)
       .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
-        patronId, instanceId_notFound, apiKey))
+        PATRON_ID, instanceId_notFound, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1764,7 +1764,7 @@ class MainVerticleTest {
       .with()
       .contentType(APPLICATION_JSON)
       .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
-        patronId, instanceId, apiKey))
+        PATRON_ID, instanceId, apiKey))
       .then()
       .statusCode(expectedStatusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1787,7 +1787,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(request)
       .post(String.format("/patron/account/%s/instance/%s/batch-request?apikey=%s",
-        patronId, instanceId, apiKey))
+        PATRON_ID, instanceId, apiKey))
       .then()
       .statusCode(201)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1824,23 +1824,23 @@ class MainVerticleTest {
 
   static Stream<Arguments> batchRequestStatusNotFoundErrorParams() {
     return Stream.of(
-      Arguments.of(extPatronId_notFound, instanceId, batchRequestId, "Unable to find patron " + extPatronId_notFound),
-      Arguments.of(patronId, instanceId_notFound, batchRequestId, "Instance '" + instanceId_notFound + "' isn't found"),
-      Arguments.of(patronId, instanceId, batchRequestId_notFound, "Multi-Item Batch request '" + batchRequestId_notFound + "' isn't found"));
+      Arguments.of(extPatronId_notFound, instanceId, BATCH_REQUEST_ID, "Unable to find patron " + extPatronId_notFound),
+      Arguments.of(PATRON_ID, instanceId_notFound, BATCH_REQUEST_ID, "Instance '" + instanceId_notFound + "' isn't found"),
+      Arguments.of(PATRON_ID, instanceId, BATCH_REQUEST_ID_NOT_FOUND, "Multi-Item Batch request '" + BATCH_REQUEST_ID_NOT_FOUND + "' isn't found"));
   }
 
   @Test
   void testCancelHoldSuccess() throws Exception {
     logger.info("=== Test cancel hold success ===");
 
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PATRON_ID);
 
     final Response resp = RestAssured
       .with()
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(
-        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, holdCancellationHoldId, apiKey))
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PATRON_ID, holdCancellationHoldId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1860,11 +1860,11 @@ class MainVerticleTest {
 
   @Test
   void testSecureCancelHoldSuccess() throws Exception {
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, patronId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(holdCancellationHoldId, PATRON_ID);
 
     final Response resp = RestAssured
       .with()
-      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(patronId, true))
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(PATRON_ID, true))
       .header(X_OKAPI_TENANT, "diku")
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
@@ -1900,7 +1900,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(
-        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, holdCancellationHoldId, apiKey))
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PATRON_ID, holdCancellationHoldId, apiKey))
       .then()
       .statusCode(200)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -1930,7 +1930,7 @@ class MainVerticleTest {
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(
-        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, invalidHoldCancellationdHoldId, apiKey))
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PATRON_ID, invalidHoldCancellationdHoldId, apiKey))
       .then()
       .statusCode(statusCode)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -2075,14 +2075,14 @@ class MainVerticleTest {
   void testCancelHoldWithMalformedJsonRequest() {
     logger.info("=== Test cancel hold with malformed JSON Request (from mod-circ) ===");
 
-    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId, patronId);
+    String cancedHoldJson = PatronMockOkapi.getHoldCancellation(malformedHoldCancellationHoldId, PATRON_ID);
 
     final Response resp = RestAssured
       .with()
       .contentType(APPLICATION_JSON)
       .body(cancedHoldJson)
       .post(
-        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", patronId, malformedHoldCancellationHoldId, apiKey))
+        String.format("/patron/account/%s/hold/%s/cancel?apikey=%s", PATRON_ID, malformedHoldCancellationHoldId, apiKey))
       .then()
       .statusCode(500)
       .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
@@ -2215,7 +2215,7 @@ class MainVerticleTest {
   void testCachedToken() throws Exception {
     logger.info("=== Test the tokens are cached and reused ===");
 
-    Account expected = Account.fromJson(PatronMockOkapi.getAccountJson(patronId, false, false, false));
+    Account expected = Account.fromJson(PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false));
     int iters = 5;
 
     for (int i = 0; i < iters; i++) {

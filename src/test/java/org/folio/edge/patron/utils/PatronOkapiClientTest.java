@@ -73,7 +73,7 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
     client.getPatron(PatronMockOkapi.extPatronId)
-    .onComplete(context.asyncAssertSuccess(patronId -> assertEquals(PatronMockOkapi.patronId, patronId)));
+    .onComplete(context.asyncAssertSuccess(patronId -> assertEquals(PatronMockOkapi.PATRON_ID, patronId)));
   }
 
   @Test
@@ -101,7 +101,7 @@ public class PatronOkapiClientTest {
     when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
     client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID)
       .onComplete(context.asyncAssertSuccess(
-        actualPatronId -> assertEquals(PatronMockOkapi.patronId, actualPatronId)));
+        actualPatronId -> assertEquals(PatronMockOkapi.PATRON_ID, actualPatronId)));
   }
 
   @Test
@@ -234,7 +234,7 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(PatronMockOkapi.patronId,
+      client.getAccount(PatronMockOkapi.PATRON_ID,
         true,
         true,
         true,
@@ -259,7 +259,7 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(PatronMockOkapi.patronId,
+      client.getAccount(PatronMockOkapi.PATRON_ID,
         true,
         true,
         true,

@@ -139,6 +139,7 @@ public class PatronHandler extends Handler {
           boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
           boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
           boolean includeHolds = Boolean.parseBoolean(params.get(PARAM_INCLUDE_HOLDS));
+          boolean includeBatches = Boolean.parseBoolean(params.get(PARAM_INCLUDE_BATCHES));
           String sortBy = params.get(PARAM_SORT_BY);
           String limit = params.get(PARAM_LIMIT);
           String offset = params.get(PARAM_OFFSET);
@@ -147,6 +148,7 @@ public class PatronHandler extends Handler {
               includeLoans,
               includeCharges,
               includeHolds,
+              includeBatches,
               sortBy,
               limit,
               offset,

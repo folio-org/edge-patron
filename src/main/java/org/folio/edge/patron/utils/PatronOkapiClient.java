@@ -115,15 +115,16 @@ public class PatronOkapiClient extends OkapiClient {
       System.getenv().getOrDefault(SECURE_TENANT_ID, null));
   }
 
-  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,
+  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds, boolean includeBatches,
       String sortBy, String limit, String offset, Handler<HttpResponse<Buffer>> responseHandler,
       Handler<Throwable> exceptionHandler) {
-    String url = format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
+    String url = format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s&includeBatches=%s",
       okapiURL,
       patronId,
       includeLoans,
       includeCharges,
-      includeHolds);
+      includeHolds,
+      includeBatches);
     if (null != sortBy) {
       url = format(url + "&sortBy=%s", sortBy);
     }

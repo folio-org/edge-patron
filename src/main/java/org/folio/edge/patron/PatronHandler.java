@@ -133,7 +133,7 @@ public class PatronHandler extends Handler {
   public void handleGetAccount(RoutingContext ctx) {
     handleCommon(ctx,
         new String[] {},
-        new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_SORT_BY, PARAM_LIMIT,
+        new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_INCLUDE_BATCHES, PARAM_SORT_BY, PARAM_LIMIT,
         PARAM_OFFSET},
         (client, params) -> {
           boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));

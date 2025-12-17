@@ -137,12 +137,10 @@ public class Batch {
   @JsonPropertyDescription("Collection of processed and created items requests details")
   private List<ItemsRequestedDetail> itemsRequestedDetails;
 
-  //@JsonProperty("batchRequestId")
   public String getBatchRequestId() {
     return batchRequestId;
   }
 
-  //@JsonProperty("batchRequestId")
   public void setBatchRequestId(String batchRequestId) {
     this.batchRequestId = batchRequestId;
   }
@@ -152,12 +150,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("status")
   public Batch.Status getStatus() {
     return status;
   }
 
-  //@JsonProperty("status")
   public void setStatus(Batch.Status status) {
     this.status = status;
   }
@@ -167,12 +163,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("submittedAt")
   public Date getSubmittedAt() {
     return submittedAt;
   }
 
-  //@JsonProperty("submittedAt")
   public void setSubmittedAt(Date submittedAt) {
     this.submittedAt = submittedAt;
   }
@@ -182,12 +176,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("completedAt")
   public Date getCompletedAt() {
     return completedAt;
   }
 
-  //@JsonProperty("completedAt")
   public void setCompletedAt(Date completedAt) {
     this.completedAt = completedAt;
   }
@@ -197,12 +189,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsTotal")
   public Integer getItemsTotal() {
     return itemsTotal;
   }
 
-  //@JsonProperty("itemsTotal")
   public void setItemsTotal(Integer itemsTotal) {
     this.itemsTotal = itemsTotal;
   }
@@ -212,12 +202,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsRequested")
   public Integer getItemsRequested() {
     return itemsRequested;
   }
 
-  //@JsonProperty("itemsRequested")
   public void setItemsRequested(Integer itemsRequested) {
     this.itemsRequested = itemsRequested;
   }
@@ -227,12 +215,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsPending")
   public Integer getItemsPending() {
     return itemsPending;
   }
 
-  //@JsonProperty("itemsPending")
   public void setItemsPending(Integer itemsPending) {
     this.itemsPending = itemsPending;
   }
@@ -242,12 +228,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsFailed")
   public Integer getItemsFailed() {
     return itemsFailed;
   }
 
-  //@JsonProperty("itemsFailed")
   public void setItemsFailed(Integer itemsFailed) {
     this.itemsFailed = itemsFailed;
   }
@@ -257,12 +241,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsPendingDetails")
   public List<ItemsPendingDetail> getItemsPendingDetails() {
     return itemsPendingDetails;
   }
 
-  //@JsonProperty("itemsPendingDetails")
   public void setItemsPendingDetails(List<ItemsPendingDetail> itemsPendingDetails) {
     this.itemsPendingDetails = itemsPendingDetails;
   }
@@ -272,12 +254,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsFailedDetails")
   public List<ItemsFailedDetail> getItemsFailedDetails() {
     return itemsFailedDetails;
   }
 
-  //@JsonProperty("itemsFailedDetails")
   public void setItemsFailedDetails(List<ItemsFailedDetail> itemsFailedDetails) {
     this.itemsFailedDetails = itemsFailedDetails;
   }
@@ -287,12 +267,10 @@ public class Batch {
     return this;
   }
 
-  //@JsonProperty("itemsRequestedDetails")
   public List<ItemsRequestedDetail> getItemsRequestedDetails() {
     return itemsRequestedDetails;
   }
 
-  //@JsonProperty("itemsRequestedDetails")
   public void setItemsRequestedDetails(List<ItemsRequestedDetail> itemsRequestedDetails) {
     this.itemsRequestedDetails = itemsRequestedDetails;
   }

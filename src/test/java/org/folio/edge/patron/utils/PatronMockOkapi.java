@@ -38,6 +38,7 @@ import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.Item;
 import org.folio.edge.patron.model.ItemsFailedDetail;
 import org.folio.edge.patron.model.ItemsPendingDetail;
+import org.folio.edge.patron.model.ItemsRequestedDetail;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.Money;
 
@@ -884,7 +885,7 @@ public class PatronMockOkapi extends MockOkapi {
       .withBatchRequestId(BATCH_REQUEST_ID)
       .withStatus(Batch.Status.IN_PROGRESS)
       .withSubmittedAt(Date.from(Instant.parse("2025-09-08T12:27:33.822+00:00")))
-      .withItemsTotal(2)
+      .withItemsTotal(3)
       .withItemsFailed(1)
       .withItemsPending(1)
       .withItemsPendingDetails(List.of(
@@ -893,7 +894,11 @@ public class PatronMockOkapi extends MockOkapi {
       ))
       .withItemsFailedDetails(List.of(
         new ItemsFailedDetail("f39fd3ca-e3fb-4cd9-8cf9-48e7e2c494e5", itemId, "100 banned books",
-          "ebab9ccc-4ece-4f35-bc82-01f3325abed8", null, "Failed due to some internal issue")
+          "ebab9ccc-4ece-4f35-bc82-01f3325abed8", "system_error", "Failed due to some internal issue")
+      ))
+      .withItemsRequestedDetails(List.of(
+        new ItemsRequestedDetail("f39fd3ca-e3fb-4cd9-8cf9-48e7e2c494e5", itemId, "100 banned books",
+          "ebab9ccc-4ece-4f35-bc82-01f3325abed8", "ebab9ccc-4ece-4f35-bc82-01f3325abed9")
       ));
 
   }

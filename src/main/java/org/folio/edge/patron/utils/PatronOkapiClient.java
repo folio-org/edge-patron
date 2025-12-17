@@ -115,23 +115,23 @@ public class PatronOkapiClient extends OkapiClient {
       System.getenv().getOrDefault(SECURE_TENANT_ID, null));
   }
 
-  public void getAccount(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds,
-      String sortBy, String limit, String offset, Handler<HttpResponse<Buffer>> responseHandler,
-      Handler<Throwable> exceptionHandler) {
-    String url = format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s",
+  public void getAccount(PatronAccountRequestParams requestParams,
+                         Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
+    String url = format("%s/patron/account/%s?includeLoans=%s&includeCharges=%s&includeHolds=%s&includeBatches=%s",
       okapiURL,
-      patronId,
-      includeLoans,
-      includeCharges,
-      includeHolds);
-    if (null != sortBy) {
-      url = format(url + "&sortBy=%s", sortBy);
+      requestParams.patronId(),
+      requestParams.includeLoans(),
+      requestParams.includeCharges(),
+      requestParams.includeHolds(),
+      requestParams.includeBatches());
+    if (null != requestParams.sortBy()) {
+      url = format("%s&sortBy=%s", url, requestParams.sortBy());
     }
-    if (null != limit) {
-      url = format(url + "&limit=%s", limit);
+    if (null != requestParams.limit()) {
+      url = format("%s&limit=%s", url, requestParams.limit());
     }
-    if (null != offset) {
-      url = format(url + "&offset=%s", offset);
+    if (null != requestParams.offset()) {
+      url = format("%s&offset=%s", url, requestParams.offset());
     }
 
     get(

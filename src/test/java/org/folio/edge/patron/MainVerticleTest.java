@@ -215,7 +215,7 @@ class MainVerticleTest {
   void testGetAccountPatronFound() {
     logger.info("=== Test request where patron is found ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false);
 
     RestAssured
     .get(String.format("/patron/account/%s?apikey=%s", extPatronId, apiKey))
@@ -229,7 +229,7 @@ class MainVerticleTest {
   void testGetAccountPatronFoundGzip() {
     logger.info("=== Patron in GZip compression ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false);
 
     RestAssured.given()
       .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.GZIP)))
@@ -246,7 +246,7 @@ class MainVerticleTest {
   void testGetAccountPatronFoundDeflate() {
     logger.info("=== Patron in Deflate compression ===");
 
-    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false);
 
     RestAssured.given()
       .config(RestAssured.config().decoderConfig(new DecoderConfig(ContentDecoder.DEFLATE)))
@@ -281,7 +281,7 @@ class MainVerticleTest {
 
   @Test
   void testSecureGetAccount() {
-    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
+    final String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false);
     RestAssured
       .given()
       .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
@@ -590,7 +590,7 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, false, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, false, false, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -608,7 +608,7 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, true, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, true, false, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -626,7 +626,7 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, true);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, true, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -645,14 +645,14 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, true, true);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, true, true, true, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
   }
 
   @Test
-  void testGetAccountPatronFoundIncludeAllAndLimitEqualsToOne() {
+  void testGetAccountPatronFoundIncludeAllButBatchesAndLimitEqualsToOne() {
     logger.info("=== Test getAccount/includeLoans,includeCharges,includeHolds & limit=1 ===");
 
     final Response resp = RestAssured
@@ -664,7 +664,7 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(PATRON_ID, true, true, true);
+    String expected = PatronMockOkapi.getAccountWithSingleItemsJson(PATRON_ID, true, true, true, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -755,7 +755,7 @@ class MainVerticleTest {
       .extract()
       .response();
 
-    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false);
+    String expected = PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false);
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
@@ -2215,7 +2215,7 @@ class MainVerticleTest {
   void testCachedToken() throws Exception {
     logger.info("=== Test the tokens are cached and reused ===");
 
-    Account expected = Account.fromJson(PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false));
+    Account expected = Account.fromJson(PatronMockOkapi.getAccountJson(PATRON_ID, false, false, false, false));
     int iters = 5;
 
     for (int i = 0; i < iters; i++) {

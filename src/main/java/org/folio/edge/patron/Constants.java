@@ -28,6 +28,7 @@ public class Constants {
   public static final String PARAM_INCLUDE_LOANS = "includeLoans";
   public static final String PARAM_INCLUDE_CHARGES = "includeCharges";
   public static final String PARAM_INCLUDE_HOLDS = "includeHolds";
+  public static final String PARAM_INCLUDE_BATCHES = "includeBatches";
   public static final String PARAM_PATRON_ID = "patronId";
   public static final String PARAM_ITEM_ID = "itemId";
   public static final String PARAM_INSTANCE_ID = "instanceId";

@@ -1,8 +1,10 @@
 package org.folio.edge.patron.utils;
 
 import static org.folio.edge.core.utils.test.MockOkapi.MOCK_TOKEN;
+import static org.folio.edge.patron.utils.PatronMockOkapi.PATRON_ID;
 import static org.folio.edge.patron.utils.PatronMockOkapi.limit_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
+import static org.folio.edge.patron.utils.PatronMockOkapi.patronId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.OkapiClientFactory;
@@ -73,7 +77,7 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").get();
     assertEquals(MOCK_TOKEN, client.getToken());
     client.getPatron(PatronMockOkapi.extPatronId)
-    .onComplete(context.asyncAssertSuccess(patronId -> assertEquals(PatronMockOkapi.PATRON_ID, patronId)));
+      .onComplete(context.asyncAssertSuccess(pId -> assertEquals(PATRON_ID, pId)));
   }
 
   @Test
@@ -101,7 +105,7 @@ public class PatronOkapiClientTest {
     when(client.isSecureRequestsFeatureEnabled()).thenReturn(true);
     client.getPatron(PatronMockOkapi.EXT_SECURE_PATRON_ID)
       .onComplete(context.asyncAssertSuccess(
-        actualPatronId -> assertEquals(PatronMockOkapi.PATRON_ID, actualPatronId)));
+        actualPatronId -> assertEquals(PATRON_ID, actualPatronId)));
   }
 
   @Test
@@ -133,24 +137,19 @@ public class PatronOkapiClientTest {
   }
 
   @Test
-  public void testGetAccountWithAll(TestContext context) throws Exception {
+  public void testGetAccountWithAllButBatches(TestContext context) throws Exception {
     logger.info("=== Test successful getAccount request w/ all data ===");
 
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-          true,
-          true,
-          true,
-          null,
-          null,
-          null,
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, null, null);
+      client.getAccount(params,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             String accountResponse = resp.bodyAsString();
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, true), accountResponse);
+            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, true, false), accountResponse);
             try {
               verifyAccountItemsSize(accountResponse, 2);
             } catch (IOException e) {
@@ -164,6 +163,32 @@ public class PatronOkapiClientTest {
   }
 
   @Test
+  public void testGetAccountWithAll(TestContext context) throws Exception {
+    logger.info("=== Test successful getAccount request w/ all data ===");
+
+    Async async = context.async();
+    client.login("admin", "password").thenAcceptAsync(v -> {
+      assertEquals(MOCK_TOKEN, client.getToken());
+
+      var params = new PatronAccountRequestParams(patronId, true, true, true, true, null, null, null);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          String accountResponse = resp.bodyAsString();
+          context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, true, true), accountResponse);
+          try {
+            verifyAccountItemsSize(accountResponse, 2);
+          } catch (IOException e) {
+            logger.error(e.getMessage());
+            context.fail(e);
+          }
+          async.complete();
+        },
+        context::fail);
+    });
+  }
+
+  @Test
   public void testGetAccountWithSortedLoans(TestContext context) throws Exception {
     logger.info("=== Test successful getAccount request w/ sorted loans data ===");
 
@@ -171,15 +196,10 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-        true,
-        true,
-        true,
-        "testSort",
-        null,
-        null,
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, "testSort", null, null);
+      client.getAccount(params,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           try {
             String accountResponse = resp.bodyAsString();
             Account account = Account.fromJson(accountResponse);
@@ -203,17 +223,12 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-        true,
-        true,
-        true,
-        null,
-        "1",
-        null,
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, "1", null);
+      client.getAccount(params,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           String accountResponse = resp.bodyAsString();
-          context.assertEquals(PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true), accountResponse);
+          context.assertEquals(PatronMockOkapi.getAccountWithSingleItemsJson(patronId, true, true, true, false), accountResponse);
           try {
             verifyAccountItemsSize(accountResponse, 1);
           } catch (IOException e) {
@@ -234,15 +249,10 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(PatronMockOkapi.PATRON_ID,
-        true,
-        true,
-        true,
-        null,
-        null,
-        "-1",
+      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, null, "-1");
+      client.getAccount(params,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           context.assertEquals(400, resp.statusCode());
           context.assertEquals(String.format(wrongIntegerParamMessage, offset_param, "-1"), resp.bodyAsString());
           async.complete();
@@ -259,15 +269,10 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(PatronMockOkapi.PATRON_ID,
-        true,
-        true,
-        true,
-        null,
-        "-1",
-        null,
+      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, "-1", null);
+      client.getAccount(params,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           context.assertEquals(400, resp.statusCode());
           context.assertEquals(String.format(wrongIntegerParamMessage, limit_param, "-1"), resp.bodyAsString());
           async.complete();
@@ -284,18 +289,13 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(PatronMockOkapi.patronId_notFound,
-          true,
-          true,
-          true,
-          null,
-          null,
-          null,
-          resp -> {
-            logger.info("mod-patron response body: " + resp.body());
-            context.assertEquals(404, resp.statusCode());
-            async.complete();
-          },
+      var params = new PatronAccountRequestParams(patronId_notFound, true, true, true, false, null, null, null);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          context.assertEquals(404, resp.statusCode());
+          async.complete();
+        },
         context::fail);
     });
   }
@@ -308,18 +308,13 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-          true,
-          true,
-          false,
-          null,
-          null,
-          null,
-          resp -> {
-            logger.info("mod-patron response body: " + resp.body());
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, false), resp.bodyAsString());
-            async.complete();
-          },
+      var params = new PatronAccountRequestParams(patronId, true, true, false, false, null, null, null);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, true, false, false), resp.bodyAsString());
+          async.complete();
+        },
         context::fail);
     });
   }
@@ -332,18 +327,13 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-          true,
-          false,
-          true,
-          null,
-          null,
-          null,
-          resp -> {
-            logger.info("mod-patron response body: " + resp.body());
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, false, true), resp.bodyAsString());
-            async.complete();
-          },
+      var params = new PatronAccountRequestParams(patronId, true, false, true, false, null, null, null);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          context.assertEquals(PatronMockOkapi.getAccountJson(patronId, true, false, true, false), resp.bodyAsString());
+          async.complete();
+        },
         context::fail);
     });
   }
@@ -356,18 +346,13 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-          false,
-          true,
-          true,
-          null,
-          null,
-          null,
-          resp -> {
-            logger.info("mod-patron response body: " + resp.body());
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, true, true), resp.bodyAsString());
-            async.complete();
-          },
+      var params = new PatronAccountRequestParams(patronId, false, true, true, false, null, null, null);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, true, true, false), resp.bodyAsString());
+          async.complete();
+        },
         context::fail);
     });
   }
@@ -380,18 +365,13 @@ public class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      client.getAccount(patronId,
-          false,
-          false,
-          false,
-          null,
-          null,
-          null,
-          resp -> {
-            logger.info("mod-patron response body: " + resp.body());
-            context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, false, false), resp.bodyAsString());
-            async.complete();
-          },
+      var params = PatronAccountRequestParams.defaultParams(patronId);
+      client.getAccount(params,
+        resp -> {
+          logResponseBody(resp);
+          context.assertEquals(PatronMockOkapi.getAccountJson(patronId, false, false, false, false), resp.bodyAsString());
+          async.complete();
+        },
         context::fail);
     });
   }
@@ -401,19 +381,15 @@ public class PatronOkapiClientTest {
     logger.info("=== Test getAccount w/o a token ===");
 
     Async async = context.async();
-    client.getAccount(patronId,
-        false,
-        false,
-        false,
-        null,
-        null,
-        null,
-        resp -> {
-          logger.info("mod-patron response body: " + resp.body());
-          context.assertEquals(403, resp.statusCode());
-          async.complete();
-        },
-        context::fail);
+    var params = PatronAccountRequestParams.defaultParams(patronId);
+    client.getAccount(params,
+      resp -> {
+        logResponseBody(resp);
+        context.assertEquals(403, resp.statusCode());
+        async.complete();
+      },
+      context::fail
+    );
   }
 
   @Test
@@ -426,7 +402,7 @@ public class PatronOkapiClientTest {
       client.renewItem(patronId,
           itemId,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(201, resp.statusCode());
             async.complete();
           },
@@ -444,7 +420,7 @@ public class PatronOkapiClientTest {
       client.renewItem(patronId,
           PatronMockOkapi.itemId_notFound,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -459,10 +435,10 @@ public class PatronOkapiClientTest {
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
-      client.renewItem(PatronMockOkapi.patronId_notFound,
+      client.renewItem(patronId_notFound,
           itemId,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -484,7 +460,7 @@ public class PatronOkapiClientTest {
           itemId,
           holdJSON,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(201, resp.statusCode());
             async.complete();
           },
@@ -506,7 +482,7 @@ public class PatronOkapiClientTest {
           PatronMockOkapi.itemId_notFound,
           holdJSON,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -524,11 +500,11 @@ public class PatronOkapiClientTest {
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
-      client.placeItemHold(PatronMockOkapi.patronId_notFound,
+      client.placeItemHold(patronId_notFound,
           itemId,
           holdJSON,
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -550,7 +526,7 @@ public class PatronOkapiClientTest {
           hold.requestId,
           new JsonObject(holdCancellation),
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(200, resp.statusCode());
             try {
               context.assertEquals(hold, Hold.fromJson(resp.bodyAsString()));
@@ -572,11 +548,11 @@ public class PatronOkapiClientTest {
     Async async = context.async();
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
-      client.cancelHold(PatronMockOkapi.patronId_notFound,
+      client.cancelHold(patronId_notFound,
           hold.requestId,
-          new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId, PatronMockOkapi.patronId_notFound)),
+          new JsonObject(PatronMockOkapi.getHoldCancellation(hold.requestId, patronId_notFound)),
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -595,7 +571,7 @@ public class PatronOkapiClientTest {
           PatronMockOkapi.holdReqId_notFound,
           new JsonObject(PatronMockOkapi.getHoldCancellation(PatronMockOkapi.holdReqId_notFound, patronId)),
           resp -> {
-            logger.info("mod-patron response body: " + resp.body());
+            logResponseBody(resp);
             context.assertEquals(404, resp.statusCode());
             async.complete();
           },
@@ -613,7 +589,7 @@ public class PatronOkapiClientTest {
 
       client.getRequest(PatronMockOkapi.holdCancellationHoldId,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           context.assertEquals(PatronMockOkapi.getRequest(PatronMockOkapi.holdCancellationHoldId), resp.bodyAsString());
           async.complete();
         },
@@ -633,13 +609,17 @@ public class PatronOkapiClientTest {
 
       client.getRequest(PatronMockOkapi.holdReqId_notFound,
         resp -> {
-          logger.info("mod-patron response body: " + resp.body());
+          logResponseBody(resp);
           context.assertEquals(404, resp.statusCode());
           context.assertEquals(expectedResponse, resp.bodyAsString());
           async.complete();
         },
         context::fail);
     });
+  }
+
+  private void logResponseBody(HttpResponse<Buffer> response) {
+    logger.info("mod-patron response body: {}", response.body());
   }
 
   private void verifyAccountItemsSize(String accountString, int itemsSize) throws IOException {

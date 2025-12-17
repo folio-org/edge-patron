@@ -207,7 +207,7 @@ public final class Account {
 
   public String toJson(boolean includeLoans, boolean includeCharges, boolean includeHolds, boolean includeBatches)
       throws JsonProcessingException {
-    if (includeCharges && includeHolds && includeLoans) {
+    if (includeCharges && includeHolds && includeLoans && includeBatches) {
       return toJson();
     } else {
       return new Account(this, includeCharges, includeHolds, includeLoans, includeBatches).toJson();

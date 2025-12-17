@@ -3,6 +3,7 @@ package org.folio.edge.patron.model;
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.patron.utils.PatronMockOkapi.getBatch;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -226,29 +227,42 @@ public class AccountTest {
 
   @Test
   public void testNoLoans() throws Exception {
-    String json = account.toJson(false, true, true, false);
+    String json = account.toJson(false, true, true, true);
     logger.info(json);
     assertTrue(Account.fromJson(json).loans.isEmpty());
-    assertTrue(!Account.fromJson(json).charges.isEmpty());
-    assertTrue(!Account.fromJson(json).holds.isEmpty());
+    assertFalse(Account.fromJson(json).charges.isEmpty());
+    assertFalse(Account.fromJson(json).holds.isEmpty());
+    assertFalse(Account.fromJson(json).batches.isEmpty());
   }
 
   @Test
   public void testNoCharges() throws Exception {
-    String json = account.toJson(true, false, true, false);
+    String json = account.toJson(true, false, true, true);
     logger.info(json);
-    assertTrue(!Account.fromJson(json).loans.isEmpty());
+    assertFalse(Account.fromJson(json).loans.isEmpty());
     assertTrue(Account.fromJson(json).charges.isEmpty());
-    assertTrue(!Account.fromJson(json).holds.isEmpty());
+    assertFalse(Account.fromJson(json).holds.isEmpty());
+    assertFalse(Account.fromJson(json).batches.isEmpty());
   }
 
   @Test
   public void testNoHolds() throws Exception {
-    String json = account.toJson(true, true, false, false);
+    String json = account.toJson(true, true, false, true);
     logger.info(json);
     assertTrue(!Account.fromJson(json).loans.isEmpty());
     assertTrue(!Account.fromJson(json).charges.isEmpty());
     assertTrue(Account.fromJson(json).holds.isEmpty());
+    assertTrue(!Account.fromJson(json).batches.isEmpty());
+  }
+
+  @Test
+  public void testNoBatches() throws Exception {
+    String json = account.toJson(true, true, true, false);
+    logger.info(json);
+    assertTrue(!Account.fromJson(json).loans.isEmpty());
+    assertTrue(!Account.fromJson(json).charges.isEmpty());
+    assertTrue(!Account.fromJson(json).holds.isEmpty());
+    assertTrue(Account.fromJson(json).batches.isEmpty());
   }
 
   @Test

@@ -21,35 +21,7 @@ import org.folio.edge.core.utils.Mappers;
     "errorCode",
     "errorDetails"
 })
-public class ItemsFailedDetail {
-  /**
-   * The UUID id of the instance
-   *
-   */
-  @JsonProperty("instanceId")
-  @JsonPropertyDescription("The UUID id of the instance")
-  private String instanceId;
-  /**
-   * UUID of the item
-   *
-   */
-  @JsonProperty("itemId")
-  @JsonPropertyDescription("UUID of the item")
-  private String itemId;
-  /**
-   * Title of the item
-   *
-   */
-  @JsonProperty("title")
-  @JsonPropertyDescription("Title of the item")
-  private String title;
-  /**
-   * UUID of the pickup location
-   *
-   */
-  @JsonProperty("pickUpLocationId")
-  @JsonPropertyDescription("UUID of the pickup location")
-  private String pickUpLocationId;
+public class ItemsFailedDetail extends BaseItemsDetail {
   /**
    * Error code indicating the reason for failure
    *
@@ -68,50 +40,9 @@ public class ItemsFailedDetail {
   public ItemsFailedDetail() {}
 
   public ItemsFailedDetail(String instanceId, String itemId, String title, String pickUpLocationId, String errorCode, String errorDetails) {
-    this.instanceId = instanceId;
-    this.itemId = itemId;
-    this.title = title;
-    this.pickUpLocationId = pickUpLocationId;
+    super(instanceId, itemId, title, pickUpLocationId);
     this.errorCode = errorCode;
     this.errorDetails = errorDetails;
-  }
-
-
-
-  /**
-   * The UUID id of the instance
-   *
-   */
-  @JsonProperty("instanceId")
-  public String getInstanceId() {
-      return instanceId;
-  }
-
-  /**
-   * UUID of the item
-   *
-   */
-  @JsonProperty("itemId")
-  public String getItemId() {
-      return itemId;
-  }
-
-  /**
-   * Title of the item
-   *
-   */
-  @JsonProperty("title")
-  public String getTitle() {
-      return title;
-  }
-
-  /**
-   * UUID of the pickup location
-   *
-   */
-  @JsonProperty("pickUpLocationId")
-  public String getPickUpLocationId() {
-      return pickUpLocationId;
   }
 
   /**
@@ -135,13 +66,14 @@ public class ItemsFailedDetail {
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
     ItemsFailedDetail that = (ItemsFailedDetail) o;
-    return Objects.equals(instanceId, that.instanceId) && Objects.equals(itemId, that.itemId) && Objects.equals(title, that.title) && Objects.equals(pickUpLocationId, that.pickUpLocationId) && Objects.equals(errorCode, that.errorCode) && Objects.equals(errorDetails, that.errorDetails);
+    return Objects.equals(errorCode, that.errorCode) && Objects.equals(errorDetails, that.errorDetails);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(instanceId, itemId, title, pickUpLocationId, errorCode, errorDetails);
+    return Objects.hash(super.hashCode(), errorCode, errorDetails);
   }
 
   public String toXml() throws JsonProcessingException {

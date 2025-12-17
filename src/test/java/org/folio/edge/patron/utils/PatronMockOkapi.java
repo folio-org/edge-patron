@@ -19,6 +19,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
@@ -29,11 +30,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.utils.test.MockOkapi;
 import org.folio.edge.patron.model.Account;
+import org.folio.edge.patron.model.Batch;
 import org.folio.edge.patron.model.Charge;
 import org.folio.edge.patron.model.Hold;
 import org.folio.edge.patron.model.Hold.Status;
 import org.folio.edge.patron.model.HoldCancellation;
 import org.folio.edge.patron.model.Item;
+import org.folio.edge.patron.model.ItemsFailedDetail;
+import org.folio.edge.patron.model.ItemsPendingDetail;
 import org.folio.edge.patron.model.Loan;
 import org.folio.edge.patron.model.Money;
 
@@ -228,6 +232,7 @@ public class PatronMockOkapi extends MockOkapi {
     boolean includeLoans = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_LOANS));
     boolean includeCharges = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_CHARGES));
     boolean includeHolds = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_HOLDS));
+    boolean includeBatches = Boolean.parseBoolean(ctx.request().getParam(PARAM_INCLUDE_BATCHES));
     String limit  = ctx.request().getParam(PARAM_LIMIT);
     String offset  = ctx.request().getParam(PARAM_OFFSET);
     String sortBy = ctx.request().getParam(PARAM_SORT_BY);
@@ -258,7 +263,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getAccountWithSingleItemsJson(patronId, includeLoans, includeCharges, includeHolds));
+        .end(getAccountWithSingleItemsJson(patronId, includeLoans, includeCharges, includeHolds, includeBatches));
     } else if (StringUtils.isNotEmpty(sortBy)) {
       ctx.response()
         .setStatusCode(200)
@@ -268,7 +273,7 @@ public class PatronMockOkapi extends MockOkapi {
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getAccountJson(patronId, includeLoans, includeCharges, includeHolds));
+        .end(getAccountJson(patronId, includeLoans, includeCharges, includeHolds, includeBatches));
     }
   }
 
@@ -764,9 +769,7 @@ public class PatronMockOkapi extends MockOkapi {
     return request;
   }
 
-  public static String getAccountJson(String patronId, boolean includeLoans, boolean includeCharges,
-      boolean includeHolds) {
-
+  public static String getAccountJson(String patronId, boolean includeLoans, boolean includeCharges, boolean includeHolds, boolean includeBatches) {
     Account.Builder acctBldr = Account.builder()
       .id(patronId);
 
@@ -785,11 +788,14 @@ public class PatronMockOkapi extends MockOkapi {
     loans.add(getLoan(itemId));
     acctBldr.loans(loans);
 
-    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds);
+    List<Batch> batches = List.of(getBatch(itemId));
+    acctBldr.batches(batches);
+
+    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds, includeBatches);
   }
 
   public static String getAccountWithSingleItemsJson(String patronId, boolean includeLoans, boolean includeCharges,
-    boolean includeHolds) {
+    boolean includeHolds, boolean includeBatches) {
 
     Account.Builder acctBldr = Account.builder()
       .id(patronId);
@@ -797,7 +803,7 @@ public class PatronMockOkapi extends MockOkapi {
     acctBldr.holds(singletonList(getHold(itemId)));
     acctBldr.charges(singletonList(getCharge(itemId)));
 
-    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds);
+    return builderToJson(acctBldr, includeLoans, includeCharges, includeHolds, includeBatches);
   }
 
   public static String getAccountWithSortedLoans(String patronId) {
@@ -809,14 +815,14 @@ public class PatronMockOkapi extends MockOkapi {
     loans.add(getLoan(itemId_overdue));
     acctBldr.loans(loans);
 
-    return builderToJson(acctBldr, true, false, false);
+    return builderToJson(acctBldr, true, false, false, false);
   }
 
   private static String builderToJson(Account.Builder acctBldr, boolean includeLoans, boolean includeCharges,
-    boolean includeHolds) {
+    boolean includeHolds, boolean includeBatches) {
     String ret = null;
     try {
-      ret = acctBldr.build().toJson(includeLoans, includeCharges, includeHolds);
+      ret = acctBldr.build().toJson(includeLoans, includeCharges, includeHolds, includeBatches);
     } catch (JsonProcessingException e) {
       logger.warn("Failed to generate Account JSON", e);
     }
@@ -871,6 +877,25 @@ public class PatronMockOkapi extends MockOkapi {
       .status(Status.OPEN_NOT_YET_FILLED)
       .patronComments(patronComments)
       .build();
+  }
+
+  public static Batch getBatch(String itemId) {
+    return new Batch()
+      .withBatchRequestId(BATCH_REQUEST_ID)
+      .withStatus(Batch.Status.IN_PROGRESS)
+      .withSubmittedAt(Date.from(Instant.parse("2025-09-08T12:27:33.822+00:00")))
+      .withItemsTotal(2)
+      .withItemsFailed(1)
+      .withItemsPending(1)
+      .withItemsPendingDetails(List.of(
+        new ItemsPendingDetail("f39fd3ca-e3fb-4cd9-8cf9-48e7e2c494e5", itemId, "100 banned books",
+          "ebab9ccc-4ece-4f35-bc82-01f3325abed8")
+      ))
+      .withItemsFailedDetails(List.of(
+        new ItemsFailedDetail("f39fd3ca-e3fb-4cd9-8cf9-48e7e2c494e5", itemId, "100 banned books",
+          "ebab9ccc-4ece-4f35-bc82-01f3325abed8", null, "Failed due to some internal issue")
+      ));
+
   }
 
   public static Charge getCharge(String itemId) {

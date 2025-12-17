@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.folio.edge.core.utils.Mappers;
 
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     "totalHolds",
     "charges",
     "holds",
+    "batches",
     "loans"
 })
 public final class Account {
@@ -62,8 +64,13 @@ public final class Account {
   @JacksonXmlElementWrapper(localName = "loans")
   public final List<Loan> loans;
 
+  @JsonProperty("batches")
+  @JacksonXmlProperty(localName = "batch")
+  @JacksonXmlElementWrapper(localName = "batches")
+  public final List<Batch> batches;
+
   // (internal) copy constructor to help with conditionally marshaled fields
-  private Account(Account other, boolean includeCharges, boolean includeHolds, boolean includeLoans) {
+  private Account(Account other, boolean includeCharges, boolean includeHolds, boolean includeLoans, boolean includeBatches) {
     this.id = other.id;
 
     this.totalCharges = other.totalCharges;
@@ -71,13 +78,14 @@ public final class Account {
     this.charges = includeCharges ? other.charges : new ArrayList<>(0);
     this.holds = includeHolds ? other.holds : new ArrayList<>(0);
     this.loans = includeLoans ? other.loans : new ArrayList<>(0);
+    this.batches = includeBatches ? other.batches : new ArrayList<>(0);
 
     this.totalChargesCount = other.totalChargesCount;
     this.totalLoans = other.totalLoans;
     this.totalHolds = other.totalHolds;
   }
 
-  private Account(String id, List<Charge> charges, List<Hold> holds, List<Loan> loans) {
+  private Account(String id, List<Charge> charges, List<Hold> holds, List<Loan> loans, List<Batch> batches) {
     this.id = id;
 
     Money tc = null;
@@ -91,17 +99,10 @@ public final class Account {
     }
     totalCharges = tc;
 
-    if (charges == null) {
-      charges = new ArrayList<>(0);
-    }
-
-    if (holds == null) {
-      holds = new ArrayList<>(0);
-    }
-
-    if (loans == null) {
-      loans = new ArrayList<>(0);
-    }
+    charges = Optional.ofNullable(charges).orElse(new ArrayList<>(0));
+    holds = Optional.ofNullable(holds).orElse(new ArrayList<>(0));
+    loans = Optional.ofNullable(loans).orElse(new ArrayList<>(0));
+    batches = Optional.ofNullable(batches).orElse(new ArrayList<>(0));
 
     this.totalChargesCount = charges.size();
     this.totalLoans = loans.size();
@@ -109,6 +110,7 @@ public final class Account {
     this.charges = charges;
     this.holds = holds;
     this.loans = loans;
+    this.batches = batches;
   }
 
   public static Builder builder() {
@@ -121,6 +123,7 @@ public final class Account {
     private List<Charge> charges;
     private List<Hold> holds;
     private List<Loan> loans;
+    private List<Batch> batches;
 
     @JsonProperty("id")
     public Builder id(String id) {
@@ -146,8 +149,14 @@ public final class Account {
       return this;
     }
 
+    @JsonProperty("batches")
+    public Builder batches(List<Batch> batches) {
+      this.batches = batches;
+      return this;
+    }
+
     public Account build() {
-      return new Account(id, charges, holds, loans);
+      return new Account(id, charges, holds, loans, batches);
     }
   }
 
@@ -158,6 +167,7 @@ public final class Account {
     result = prime * result + ((charges == null) ? 0 : charges.hashCode());
     result = prime * result + ((loans == null) ? 0 : loans.hashCode());
     result = prime * result + ((holds == null) ? 0 : holds.hashCode());
+    result = prime * result + ((batches == null) ? 0 : batches.hashCode());
     result = prime * result + ((id == null) ? 0 : id.hashCode());
     result = prime * result + ((totalCharges == null) ? 0 : totalCharges.hashCode());
     result = prime * result + totalChargesCount;
@@ -178,15 +188,16 @@ public final class Account {
       Objects.equals(totalCharges, account.totalCharges) &&
       Objects.equals(charges, account.charges) &&
       Objects.equals(holds, account.holds) &&
-      Objects.equals(loans, account.loans);
+      Objects.equals(loans, account.loans) &&
+      Objects.equals(batches, account.batches);
   }
 
-  public String toXml(boolean includeLoans, boolean includeCharges, boolean includeHolds)
+  public String toXml(boolean includeLoans, boolean includeCharges, boolean includeHolds, boolean includeBatches)
       throws JsonProcessingException {
-    if (includeCharges && includeHolds && includeLoans) {
+    if (includeCharges && includeHolds && includeLoans && includeBatches) {
       return toXml();
     } else {
-      return new Account(this, includeCharges, includeHolds, includeLoans).toXml();
+      return new Account(this, includeCharges, includeHolds, includeLoans, includeBatches).toXml();
     }
   }
 
@@ -194,12 +205,12 @@ public final class Account {
     return Mappers.XML_PROLOG + Mappers.xmlMapper.writeValueAsString(this);
   }
 
-  public String toJson(boolean includeLoans, boolean includeCharges, boolean includeHolds)
+  public String toJson(boolean includeLoans, boolean includeCharges, boolean includeHolds, boolean includeBatches)
       throws JsonProcessingException {
     if (includeCharges && includeHolds && includeLoans) {
       return toJson();
     } else {
-      return new Account(this, includeCharges, includeHolds, includeLoans).toJson();
+      return new Account(this, includeCharges, includeHolds, includeLoans, includeBatches).toJson();
     }
   }
 

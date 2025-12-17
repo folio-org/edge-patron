@@ -57,7 +57,90 @@
   </xs:complexType>
 </xs:element>
 
-<xs:element name="holdCancellation">
+  <xs:element name="batch">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="batchRequestId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="status" minOccurs="0" maxOccurs="1">
+          <xs:simpleType final="restriction" >
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="In progress" />
+              <xs:enumeration value="Completed" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="submittedAt" type="requiredString" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="completedAt" type="requiredString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemsTotal" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="itemsRequested" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemsPending" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemsFailed" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+
+        <xs:element name="itemsPendingDetails" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="itemsPendingDetail" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="itemsFailedDetails" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="itemsFailedDetail" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="itemsRequestedDetails" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="itemsRequestedDetail" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="itemsPendingDetail">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="instanceId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="pickUpLocationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="itemsFailedDetail">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="instanceId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="pickUpLocationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="errorCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="errorDetails" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="itemsRequestedDetail">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="instanceId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="itemId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="pickUpLocationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="confirmedRequestId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="holdCancellation">
   <xs:complexType>
     <xs:sequence>
       <xs:element name="holdId" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -113,6 +196,13 @@
         <xs:complexType>
           <xs:sequence>
             <xs:element ref="hold" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="batches" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="batch" minOccurs="0" maxOccurs="unbounded"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>

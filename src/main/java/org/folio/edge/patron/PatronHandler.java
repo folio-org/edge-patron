@@ -39,6 +39,7 @@ import org.folio.edge.patron.model.error.ErrorMessage;
 import org.folio.edge.patron.model.error.Errors;
 import org.folio.edge.patron.utils.KeycloakClient;
 import org.folio.edge.patron.utils.KeycloakTokenHelper;
+import org.folio.edge.patron.utils.PatronAccountRequestParams;
 import org.folio.edge.patron.utils.PatronIdHelper;
 import org.folio.edge.patron.utils.PatronOkapiClient;
 
@@ -46,7 +47,7 @@ public class PatronHandler extends Handler {
 
   public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
     + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
-  private static final Logger logger = LogManager.getLogger(Handler.class);
+  private static final Logger logger = LogManager.getLogger(PatronHandler.class);
   private final KeycloakClient keycloakClient;
   public PatronHandler(SecureStore secureStore, OkapiClientFactory ocf, KeycloakClient keycloakClient) {
     super(secureStore, ocf);
@@ -144,16 +145,11 @@ public class PatronHandler extends Handler {
           String limit = params.get(PARAM_LIMIT);
           String offset = params.get(PARAM_OFFSET);
 
-          ((PatronOkapiClient) client).getAccount(params.get(PARAM_PATRON_ID),
-              includeLoans,
-              includeCharges,
-              includeHolds,
-              includeBatches,
-              sortBy,
-              limit,
-              offset,
-              resp -> handleProxyResponse(ctx, resp),
-              t -> handleProxyException(ctx, t));
+          var patronAccountRequestParams = new PatronAccountRequestParams(params.get(PARAM_PATRON_ID), includeLoans, includeCharges,
+            includeHolds, includeBatches, sortBy, limit, offset);
+          ((PatronOkapiClient) client).getAccount(patronAccountRequestParams,
+            resp -> handleProxyResponse(ctx, resp),
+            t -> handleProxyException(ctx, t));
         });
   }
 
@@ -461,7 +457,7 @@ public class PatronHandler extends Handler {
 
     String respBody = resp.bodyAsString();
     if (logger.isDebugEnabled() ) {
-      logger.debug("response: " + respBody);
+      logger.debug("response: {}", respBody);
     }
 
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
@@ -536,7 +532,7 @@ public class PatronHandler extends Handler {
           return true;
         }
       } catch (NumberFormatException nfe) {
-        logger.debug("Exception during validation of query param: " + nfe.getMessage());
+        logger.debug("Exception during validation of query param: {}", nfe.getMessage());
         return true;
       }
     }
@@ -565,7 +561,7 @@ public class PatronHandler extends Handler {
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(requestExpirationDate);
       }
     } catch (Exception parseEx) {
-      logger.debug("Exception parsing request expirationDate: " + requestExpirationDate);
+      logger.debug("Exception parsing request expirationDate: {}", requestExpirationDate);
       requestMessage.remove(FIELD_EXPIRATION_DATE);
     }
     return requestMessage;
@@ -602,7 +598,7 @@ public class PatronHandler extends Handler {
 
   private String get422ErrorMsg(int statusCode, String respBody){
 
-    logger.debug("422 message: " + respBody);
+    logger.debug("422 message: {}", respBody);
     String errorMessage = "";
 
     try {

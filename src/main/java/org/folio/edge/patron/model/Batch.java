@@ -11,19 +11,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.folio.edge.core.utils.Mappers;
-
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-
+import org.folio.edge.core.utils.Mappers;
 
 /**
  * Multi-Item Request Processing Status
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "batch")
@@ -137,25 +132,9 @@ public class Batch {
   @JsonPropertyDescription("Collection of processed and created items requests details")
   private List<ItemsRequestedDetail> itemsRequestedDetails;
 
-  public String getBatchRequestId() {
-    return batchRequestId;
-  }
-
-  public void setBatchRequestId(String batchRequestId) {
-    this.batchRequestId = batchRequestId;
-  }
-
   public Batch withBatchRequestId(String batchRequestId) {
     this.batchRequestId = batchRequestId;
     return this;
-  }
-
-  public Batch.Status getStatus() {
-    return status;
-  }
-
-  public void setStatus(Batch.Status status) {
-    this.status = status;
   }
 
   public Batch withStatus(Batch.Status status) {
@@ -163,25 +142,9 @@ public class Batch {
     return this;
   }
 
-  public Date getSubmittedAt() {
-    return submittedAt;
-  }
-
-  public void setSubmittedAt(Date submittedAt) {
-    this.submittedAt = submittedAt;
-  }
-
   public Batch withSubmittedAt(Date submittedAt) {
     this.submittedAt = submittedAt;
     return this;
-  }
-
-  public Date getCompletedAt() {
-    return completedAt;
-  }
-
-  public void setCompletedAt(Date completedAt) {
-    this.completedAt = completedAt;
   }
 
   public Batch withCompletedAt(Date completedAt) {
@@ -189,25 +152,9 @@ public class Batch {
     return this;
   }
 
-  public Integer getItemsTotal() {
-    return itemsTotal;
-  }
-
-  public void setItemsTotal(Integer itemsTotal) {
-    this.itemsTotal = itemsTotal;
-  }
-
   public Batch withItemsTotal(Integer itemsTotal) {
     this.itemsTotal = itemsTotal;
     return this;
-  }
-
-  public Integer getItemsRequested() {
-    return itemsRequested;
-  }
-
-  public void setItemsRequested(Integer itemsRequested) {
-    this.itemsRequested = itemsRequested;
   }
 
   public Batch withItemsRequested(Integer itemsRequested) {
@@ -215,25 +162,9 @@ public class Batch {
     return this;
   }
 
-  public Integer getItemsPending() {
-    return itemsPending;
-  }
-
-  public void setItemsPending(Integer itemsPending) {
-    this.itemsPending = itemsPending;
-  }
-
   public Batch withItemsPending(Integer itemsPending) {
     this.itemsPending = itemsPending;
     return this;
-  }
-
-  public Integer getItemsFailed() {
-    return itemsFailed;
-  }
-
-  public void setItemsFailed(Integer itemsFailed) {
-    this.itemsFailed = itemsFailed;
   }
 
   public Batch withItemsFailed(Integer itemsFailed) {
@@ -241,38 +172,14 @@ public class Batch {
     return this;
   }
 
-  public List<ItemsPendingDetail> getItemsPendingDetails() {
-    return itemsPendingDetails;
-  }
-
-  public void setItemsPendingDetails(List<ItemsPendingDetail> itemsPendingDetails) {
-    this.itemsPendingDetails = itemsPendingDetails;
-  }
-
   public Batch withItemsPendingDetails(List<ItemsPendingDetail> itemsPendingDetails) {
     this.itemsPendingDetails = itemsPendingDetails;
     return this;
   }
 
-  public List<ItemsFailedDetail> getItemsFailedDetails() {
-    return itemsFailedDetails;
-  }
-
-  public void setItemsFailedDetails(List<ItemsFailedDetail> itemsFailedDetails) {
-    this.itemsFailedDetails = itemsFailedDetails;
-  }
-
   public Batch withItemsFailedDetails(List<ItemsFailedDetail> itemsFailedDetails) {
     this.itemsFailedDetails = itemsFailedDetails;
     return this;
-  }
-
-  public List<ItemsRequestedDetail> getItemsRequestedDetails() {
-    return itemsRequestedDetails;
-  }
-
-  public void setItemsRequestedDetails(List<ItemsRequestedDetail> itemsRequestedDetails) {
-    this.itemsRequestedDetails = itemsRequestedDetails;
   }
 
   public Batch withItemsRequestedDetails(List<ItemsRequestedDetail> itemsRequestedDetails) {
@@ -285,13 +192,6 @@ public class Batch {
       IN_PROGRESS("In progress"),
       COMPLETED("Completed");
       private final String value;
-      private final static Map<String, Status> CONSTANTS = new HashMap<>();
-
-      static {
-          for (Status c: values()) {
-              CONSTANTS.put(c.value, c);
-          }
-      }
 
       private Status(String value) {
           this.value = value;
@@ -309,12 +209,13 @@ public class Batch {
 
       @JsonCreator
       public static Status fromValue(String value) {
-          Status constant = CONSTANTS.get(value);
-          if (constant == null) {
-              throw new IllegalArgumentException(value);
-          } else {
-              return constant;
+        for (Status c: values()) {
+          if (c.value.equals(value)) {
+            return c;
           }
+        }
+
+        throw new IllegalArgumentException(value);
       }
   }
 

@@ -45,24 +45,6 @@ public class ItemsFailedDetail extends BaseItemsDetail {
     this.errorDetails = errorDetails;
   }
 
-  /**
-   * Error code indicating the reason for failure
-   *
-   */
-  @JsonProperty("errorCode")
-  public String getErrorCode() {
-      return errorCode;
-  }
-
-  /**
-   * Detailed message describing the failure
-   *
-   */
-  @JsonProperty("errorDetails")
-  public String getErrorDetails() {
-      return errorDetails;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) return false;

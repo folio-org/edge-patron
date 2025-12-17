@@ -36,15 +36,6 @@ public class ItemsRequestedDetail extends BaseItemsDetail {
     this.confirmedRequestId = confirmedRequestId;
   }
 
-  /**
-   * The UUID id of created item request
-   *
-   */
-  @JsonProperty("confirmedRequestId")
-  public String getConfirmedRequestId() {
-      return confirmedRequestId;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) return false;

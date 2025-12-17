@@ -44,42 +44,6 @@ public class BaseItemsDetail {
     this.pickUpLocationId = pickUpLocationId;
   }
 
-  /**
-   * The UUID id of the instance
-   *
-   */
-  @JsonProperty("instanceId")
-  public String getInstanceId() {
-    return instanceId;
-  }
-
-  /**
-   * UUID of the item
-   *
-   */
-  @JsonProperty("itemId")
-  public String getItemId() {
-    return itemId;
-  }
-
-  /**
-   * Title of the item
-   *
-   */
-  @JsonProperty("title")
-  public String getTitle() {
-    return title;
-  }
-
-  /**
-   * UUID of the pickup location
-   *
-   */
-  @JsonProperty("pickUpLocationId")
-  public String getPickUpLocationId() {
-    return pickUpLocationId;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) return false;

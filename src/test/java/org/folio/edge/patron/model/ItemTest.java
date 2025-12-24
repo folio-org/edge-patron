@@ -104,7 +104,7 @@ class ItemTest {
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  void testEmpty() throws Exception {
     String xml = Item.builder().build().toXml();
     logger.info("XML: " + xml);
 

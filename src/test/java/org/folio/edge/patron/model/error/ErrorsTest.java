@@ -1,16 +1,17 @@
 package org.folio.edge.patron.model.error;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
-public class ErrorsTest {
+class ErrorsTest {
 
     @Test
-    public void withErrorsTest(){
+    void withErrorsTest(){
 
         Error error1 = new Error();
         Error error2 = new Error();
@@ -32,7 +33,7 @@ public class ErrorsTest {
     }
 
     @Test
-    public void totalRecordsTests(){
+    void totalRecordsTests(){
         Errors errors = new Errors();
         Errors returnedErrors = errors.withTotalRecords(5);
 
@@ -47,7 +48,7 @@ public class ErrorsTest {
     }
 
     @Test
-    public void additionalPropertiesTests(){
+    void additionalPropertiesTests(){
 
         Errors errors = new Errors();
 

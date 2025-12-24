@@ -1,24 +1,27 @@
 package org.folio.edge.patron.model.error;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
-public class ErrorMessageTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
+
+class ErrorMessageTest {
 
     @Test
-    public void TestErrorMessageEquals(){
+    void TestErrorMessageEquals(){
         ErrorMessage messageOne = new ErrorMessage(400, "text");
         ErrorMessage messageTwo = new ErrorMessage(400, "text");
 
         assertEquals(messageOne, messageTwo);
-        assertEquals(messageOne, messageOne);
     }
 
     @Test
-    public void TestErrorMessageNotEquals(){
+    void TestErrorMessageNotEquals(){
 
         ErrorMessage messageOne = new ErrorMessage(400, "text");
-        assertNotEquals(messageOne, null);
-        assertNotEquals(messageOne, "a string object");
+        assertNotEquals(null, messageOne);
+        assertNotEquals("a string object", messageOne);
 
 
         ErrorMessage messageTwo = new ErrorMessage(401, "text");
@@ -32,7 +35,7 @@ public class ErrorMessageTest {
     }
 
     @Test
-    public void TestErrorMessageToXml(){
+    void TestErrorMessageToXml(){
 
         ErrorMessage msg  = new ErrorMessage(400, "hi");
         String expectedXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
@@ -55,7 +58,7 @@ public class ErrorMessageTest {
     }
 
     @Test
-    public void TestErrorMessagefromXml(){
+    void TestErrorMessagefromXml(){
 
         ErrorMessage expectedMsg  = new ErrorMessage(400, "hi");
         String inputXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +

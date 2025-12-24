@@ -1,7 +1,7 @@
 package org.folio.edge.patron.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,13 +20,13 @@ import org.apache.log4j.Logger;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class MoneyTest {
+class MoneyTest {
 
   private static final Logger logger = Logger.getLogger(MoneyTest.class);
   private static final String SCHEMA = "ramls/money.json";
@@ -37,8 +37,8 @@ public class MoneyTest {
 
   private Money money;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     money = new Money(1.23f, Currency.getInstance("USD").getCurrencyCode());
 
     SchemaFactory schemaFactory = SchemaFactory
@@ -46,17 +46,17 @@ public class MoneyTest {
     Schema schema = schemaFactory.newSchema(new File(XSD));
     xmlValidator = schema.newValidator();
 
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(new File(SCHEMA))));
+    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(SCHEMA)));
     jsonValidator = SchemaLoader.load(schemaJson);
   }
 
   @Test
-  public void testEqualsContract() {
+  void testEqualsContract() {
     EqualsVerifier.forClass(Money.class).verify();
   }
 
   @Test
-  public void testToFromJson() throws IOException {
+  void testToFromJson() throws IOException {
     String json = money.toJson();
     logger.info("JSON: " + json);
 
@@ -67,7 +67,7 @@ public class MoneyTest {
   }
 
   @Test
-  public void testToFromXml() throws IOException {
+  void testToFromXml() throws IOException {
     String xml = money.toXml();
     logger.info("XML: " + xml);
 
@@ -83,7 +83,7 @@ public class MoneyTest {
   }
 
   @Test
-  public void testJsonToXml() throws IOException {
+  void testJsonToXml() throws IOException {
     String json = money.toJson();
     Money fromJson = Money.fromJson(json);
     String xml = fromJson.toXml();
@@ -97,7 +97,7 @@ public class MoneyTest {
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  void testEmpty() throws Exception {
     String xml = new Money(0f, null).toXml();
     logger.info("XML: " + xml);
 

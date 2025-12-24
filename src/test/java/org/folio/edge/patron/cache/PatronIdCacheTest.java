@@ -1,8 +1,8 @@
 package org.folio.edge.patron.cache;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.cache.Cache.CacheValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class PatronIdCacheTest {
+class PatronIdCacheTest {
 
   private static final Logger logger = LogManager.getLogger(PatronIdCacheTest.class);
 
@@ -25,21 +25,21 @@ public class PatronIdCacheTest {
   private static final String extPatronId = UUID.randomUUID().toString();
   private static final String patronId = UUID.randomUUID().toString();
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     // initialize singleton cache
     PatronIdCache.initialize(ttl, nullValueTtl, cap);
   }
 
   @Test
-  public void testReinitialize() throws Exception {
+  void testReinitialize() {
     logger.info("=== Test Reinitialize... ===");
     final CacheValue<String> cached = PatronIdCache.getInstance().put(tenant, extPatronId, patronId);
 
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(ttl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     PatronIdCache.initialize(ttl * 2, nullValueTtl, cap);
     final CacheValue<String> cached2 = PatronIdCache.getInstance().put(tenant, extPatronId, patronId);
@@ -48,11 +48,11 @@ public class PatronIdCacheTest {
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atLeast(ttl, TimeUnit.MILLISECONDS)
       .atMost(ttl * 2 + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached2.expired());
+      .until(cached2::expired);
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  void testEmpty() {
     logger.info("=== Test that a new cache is empty... ===");
 
     // empty cache...
@@ -60,7 +60,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testGetPutGet() throws Exception {
+  void testGetPutGet() {
     logger.info("=== Test basic functionality (Get, Put, Get)... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -74,7 +74,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testNoOverwrite() throws Exception {
+  void testNoOverwrite() {
     logger.info("=== Test entries aren't overwritten... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -97,7 +97,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testPruneExpires() throws Exception {
+  void testPruneExpires() {
     logger.info("=== Test pruning of expired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -107,7 +107,7 @@ public class PatronIdCacheTest {
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(ttl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     // load capacity + 1 entries triggering eviction of expired
     for (int i = 1; i <= cap; i++) {
@@ -124,7 +124,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testPruneNoExpires() throws Exception {
+  void testPruneNoExpires() {
     logger.info("=== Test pruning of unexpired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -145,7 +145,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testNullPatronIdExpires() throws Exception {
+  void testNullPatronIdExpires() {
     logger.info("=== Test expiration of null patronId entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -157,7 +157,7 @@ public class PatronIdCacheTest {
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(nullValueTtl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     assertNull(cache.get(tenant, extPatronId));
   }

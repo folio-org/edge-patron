@@ -1,16 +1,18 @@
 package org.folio.edge.patron.model.error;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
-public class ErrorTest {
+class ErrorTest {
 
     @Test
-    public void typeTests(){
+    void typeTests(){
         Error error = new Error();
 
 
@@ -25,7 +27,7 @@ public class ErrorTest {
     }
 
     @Test
-    public void codeTests(){
+    void codeTests(){
         Error error = new Error();
 
 
@@ -40,7 +42,7 @@ public class ErrorTest {
     }
 
     @Test
-    public void additionalPropertiesTests(){
+    void additionalPropertiesTests(){
 
         Error error = new Error();
 
@@ -61,7 +63,7 @@ public class ErrorTest {
     }
 
     @Test
-    public void messageTests(){
+    void messageTests(){
         Error error = new Error();
 
         error.withMessage("small message");
@@ -74,7 +76,7 @@ public class ErrorTest {
     }
 
     @Test
-    public void parameterTests(){
+    void parameterTests(){
         Error error = new Error();
 
         Parameter param1 = new Parameter();

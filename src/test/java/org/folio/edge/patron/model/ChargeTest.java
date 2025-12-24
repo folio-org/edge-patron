@@ -1,8 +1,9 @@
 package org.folio.edge.patron.model;
 
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,13 +28,13 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.core.utils.Mappers;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class ChargeTest {
+class ChargeTest {
 
   private static final Logger logger = Logger.getLogger(ChargeTest.class);
   private static final String SCHEMA = "ramls/charge.json";
@@ -44,8 +45,8 @@ public class ChargeTest {
 
   private Charge charge;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     Item item = Item.builder()
       .author("Priest, Christopher")
       .title("The Inverted World")
@@ -86,7 +87,7 @@ public class ChargeTest {
       }
     };
 
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(new File(SCHEMA))));
+    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(SCHEMA)));
     SchemaLoader schemaLoader = SchemaLoader.builder()
       .schemaJson(schemaJson)
       .addFormatValidator("date-time", formatValidator)
@@ -95,12 +96,12 @@ public class ChargeTest {
   }
 
   @Test
-  public void testEqualsContract() {
+  void testEqualsContract() {
     EqualsVerifier.forClass(Charge.class).verify();
   }
 
   @Test
-  public void testToFromJson() throws IOException {
+  void testToFromJson() throws IOException {
     String json = charge.toJson();
     logger.info("JSON: " + json);
 
@@ -111,7 +112,7 @@ public class ChargeTest {
   }
 
   @Test
-  public void testToFromXml() throws IOException {
+  void testToFromXml() throws IOException {
     String xml = charge.toXml();
     logger.info("XML: " + xml);
 
@@ -127,7 +128,7 @@ public class ChargeTest {
   }
 
   @Test
-  public void testJsonToXml() throws IOException {
+  void testJsonToXml() throws IOException {
     String json = charge.toJson();
     Charge fromJson = Charge.fromJson(json);
     String xml = fromJson.toXml();
@@ -140,13 +141,13 @@ public class ChargeTest {
     assertEquals(charge, fromXml);
   }
 
-  @Test(expected = SAXException.class)
-  public void testEmpty() throws Exception {
+  @Test
+  void testEmpty() throws Exception {
     String xml = Charge.builder().build().toXml();
     logger.info("XML: " + xml);
 
     Source source = new StreamSource(new StringReader(xml));
-    xmlValidator.validate(source);
+    assertThrows(SAXException.class, () -> xmlValidator.validate(source));
   }
 
 }

@@ -1,14 +1,16 @@
 package org.folio.edge.patron.model.error;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
-public class ParameterTest {
+class ParameterTest {
 
     @Test
-    public void set_get_AdditionalProperties(){
+    void set_get_AdditionalProperties(){
 
         Parameter param = new Parameter();
 
@@ -29,7 +31,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void valueTests()
+    void valueTests()
     {
         Parameter param = new Parameter();
         param.setValue("value1");
@@ -44,7 +46,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void keyTests()
+    void keyTests()
     {
         Parameter param = new Parameter();
         param.setKey("key1");

@@ -378,7 +378,7 @@ public class PatronMockOkapi extends MockOkapi {
     String itemId = ctx.request().getParam(PARAM_ITEM_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
-    String body = ctx.getBodyAsString();
+    String body = ctx.body().asString();
 
     Hold hold;
     try {
@@ -563,7 +563,7 @@ public class PatronMockOkapi extends MockOkapi {
     String instanceId = ctx.request().getParam(PARAM_INSTANCE_ID);
     String token = ctx.request().getHeader(X_OKAPI_TOKEN);
 
-    String body = ctx.getBodyAsString();
+    String body = ctx.body().asString();
 
     Hold hold;
     try {

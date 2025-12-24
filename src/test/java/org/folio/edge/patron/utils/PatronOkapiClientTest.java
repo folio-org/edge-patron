@@ -49,7 +49,7 @@ class PatronOkapiClientTest {
   private PatronMockOkapi mockOkapi;
 
   @BeforeEach
-  void setUp(VertxTestContext context) throws Exception {
+  void setUp(VertxTestContext context) {
     int okapiPort = TestUtils.getPort();
 
     List<String> knownTenants = new ArrayList<>();

@@ -28,7 +28,6 @@ import org.folio.edge.core.utils.Mappers;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
@@ -88,7 +87,7 @@ class HoldTest {
       }
     };
 
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(new File(SCHEMA))));
+    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(SCHEMA)));
     SchemaLoader schemaLoader = SchemaLoader.builder()
       .schemaJson(schemaJson)
       .addFormatValidator("date-time", formatValidator)

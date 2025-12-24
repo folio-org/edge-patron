@@ -20,8 +20,8 @@ class ErrorMessageTest {
     void TestErrorMessageNotEquals(){
 
         ErrorMessage messageOne = new ErrorMessage(400, "text");
-        assertNotEquals(messageOne, null);
-        assertNotEquals(messageOne, "a string object");
+        assertNotEquals(null, messageOne);
+        assertNotEquals("a string object", messageOne);
 
 
         ErrorMessage messageTwo = new ErrorMessage(401, "text");

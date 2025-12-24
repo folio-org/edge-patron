@@ -158,7 +158,7 @@ class AccountTest {
     Schema schema = schemaFactory.newSchema(new File(XSD));
     xmlValidator = schema.newValidator();
 
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(new File(SCHEMA))));
+    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(SCHEMA)));
     jsonValidator = SchemaLoader.load(schemaJson);
   }
 

@@ -82,7 +82,7 @@ class LoanTest {
       }
     };
 
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(new File(SCHEMA))));
+    JSONObject schemaJson = new JSONObject(new JSONTokener(new FileInputStream(SCHEMA)));
     SchemaLoader schemaLoader = SchemaLoader.builder()
       .schemaJson(schemaJson)
       .addFormatValidator("date-time", formatValidator)

@@ -22,14 +22,14 @@ class HoldCancellationValidatorTest {
   void validateRequiredHoldMissingCancellationFields() {
     String expectedErrorMsg = "required fields for cancelling holds are missing (holdId, cancellationReasonId)";
     String cancellationJsonMissingHoldId = "{" +
-      "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
+      "\"cancellationReasonId\" : \"" + UUID.randomUUID() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
     String result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingHoldId));
     assertEquals(expectedErrorMsg, result);
 
     String cancellationJsonMissingcancellationReasonId= "{" +
-      "\"holdId\" :  \"" + UUID.randomUUID().toString() + "\"," +
+      "\"holdId\" :  \"" + UUID.randomUUID() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"" +
       "}";
     result = HoldCancellationValidator.validateCancelHoldRequest(new JsonObject(cancellationJsonMissingcancellationReasonId));
@@ -62,8 +62,8 @@ class HoldCancellationValidatorTest {
   @Test
   void validateCancelHoldRequestValidParams() {
     String cancellationJson = "{" +
-      "\"holdId\" : \"" + UUID.randomUUID().toString() + "\"," +
-      "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
+      "\"holdId\" : \"" + UUID.randomUUID() + "\"," +
+      "\"cancellationReasonId\" : \"" + UUID.randomUUID() + "\"," +
       "\"cancellationAdditionalInformation\" : \"blablabla\"," +
       "\"canceledDate\" : \"2019-12-06T16:05:16.2165Z\"" +
       "}";

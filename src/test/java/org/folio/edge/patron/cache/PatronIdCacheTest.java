@@ -26,20 +26,20 @@ class PatronIdCacheTest {
   private static final String patronId = UUID.randomUUID().toString();
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     // initialize singleton cache
     PatronIdCache.initialize(ttl, nullValueTtl, cap);
   }
 
   @Test
-  void testReinitialize() throws Exception {
+  void testReinitialize() {
     logger.info("=== Test Reinitialize... ===");
     final CacheValue<String> cached = PatronIdCache.getInstance().put(tenant, extPatronId, patronId);
 
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(ttl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     PatronIdCache.initialize(ttl * 2, nullValueTtl, cap);
     final CacheValue<String> cached2 = PatronIdCache.getInstance().put(tenant, extPatronId, patronId);
@@ -48,11 +48,11 @@ class PatronIdCacheTest {
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atLeast(ttl, TimeUnit.MILLISECONDS)
       .atMost(ttl * 2 + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached2.expired());
+      .until(cached2::expired);
   }
 
   @Test
-  void testEmpty() throws Exception {
+  void testEmpty() {
     logger.info("=== Test that a new cache is empty... ===");
 
     // empty cache...
@@ -60,7 +60,7 @@ class PatronIdCacheTest {
   }
 
   @Test
-  void testGetPutGet() throws Exception {
+  void testGetPutGet() {
     logger.info("=== Test basic functionality (Get, Put, Get)... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -74,7 +74,7 @@ class PatronIdCacheTest {
   }
 
   @Test
-  void testNoOverwrite() throws Exception {
+  void testNoOverwrite() {
     logger.info("=== Test entries aren't overwritten... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -97,7 +97,7 @@ class PatronIdCacheTest {
   }
 
   @Test
-  void testPruneExpires() throws Exception {
+  void testPruneExpires() {
     logger.info("=== Test pruning of expired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -107,7 +107,7 @@ class PatronIdCacheTest {
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(ttl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     // load capacity + 1 entries triggering eviction of expired
     for (int i = 1; i <= cap; i++) {
@@ -124,7 +124,7 @@ class PatronIdCacheTest {
   }
 
   @Test
-  void testPruneNoExpires() throws Exception {
+  void testPruneNoExpires() {
     logger.info("=== Test pruning of unexpired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -145,7 +145,7 @@ class PatronIdCacheTest {
   }
 
   @Test
-  void testNullPatronIdExpires() throws Exception {
+  void testNullPatronIdExpires() {
     logger.info("=== Test expiration of null patronId entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -157,7 +157,7 @@ class PatronIdCacheTest {
     await().with()
       .pollInterval(20, TimeUnit.MILLISECONDS)
       .atMost(nullValueTtl + 100, TimeUnit.MILLISECONDS)
-      .until(() -> cached.expired());
+      .until(cached::expired);
 
     assertNull(cache.get(tenant, extPatronId));
   }

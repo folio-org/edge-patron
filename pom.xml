@@ -34,7 +34,7 @@
 
     <!-- the main class -->
     <exec.mainClass>org.folio.edge.patron.MainVerticle</exec.mainClass>
-    <vertx.version>4.5.13</vertx.version>
+    <vertx.version>5.0.5</vertx.version>
     <junit.version>4.13.2</junit.version>
 
     <!--Dependencies management properties-->
@@ -127,7 +127,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>edge-common</artifactId>
-      <version>4.9.0</version>
+      <version>5.0.0</version>
     </dependency>
 
     <!-- Only needed for AwsParamStore -->

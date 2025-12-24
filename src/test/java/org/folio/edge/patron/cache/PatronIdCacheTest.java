@@ -1,8 +1,8 @@
 package org.folio.edge.patron.cache;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.edge.core.cache.Cache.CacheValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class PatronIdCacheTest {
+class PatronIdCacheTest {
 
   private static final Logger logger = LogManager.getLogger(PatronIdCacheTest.class);
 
@@ -25,14 +25,14 @@ public class PatronIdCacheTest {
   private static final String extPatronId = UUID.randomUUID().toString();
   private static final String patronId = UUID.randomUUID().toString();
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     // initialize singleton cache
     PatronIdCache.initialize(ttl, nullValueTtl, cap);
   }
 
   @Test
-  public void testReinitialize() throws Exception {
+  void testReinitialize() throws Exception {
     logger.info("=== Test Reinitialize... ===");
     final CacheValue<String> cached = PatronIdCache.getInstance().put(tenant, extPatronId, patronId);
 
@@ -52,7 +52,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  void testEmpty() throws Exception {
     logger.info("=== Test that a new cache is empty... ===");
 
     // empty cache...
@@ -60,7 +60,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testGetPutGet() throws Exception {
+  void testGetPutGet() throws Exception {
     logger.info("=== Test basic functionality (Get, Put, Get)... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -74,7 +74,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testNoOverwrite() throws Exception {
+  void testNoOverwrite() throws Exception {
     logger.info("=== Test entries aren't overwritten... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -97,7 +97,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testPruneExpires() throws Exception {
+  void testPruneExpires() throws Exception {
     logger.info("=== Test pruning of expired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -124,7 +124,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testPruneNoExpires() throws Exception {
+  void testPruneNoExpires() throws Exception {
     logger.info("=== Test pruning of unexpired entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();
@@ -145,7 +145,7 @@ public class PatronIdCacheTest {
   }
 
   @Test
-  public void testNullPatronIdExpires() throws Exception {
+  void testNullPatronIdExpires() throws Exception {
     logger.info("=== Test expiration of null patronId entries... ===");
 
     PatronIdCache cache = PatronIdCache.getInstance();

@@ -1,22 +1,9 @@
 package org.folio.edge.patron.model;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import org.apache.log4j.Logger;
-import org.everit.json.schema.FormatValidator;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.folio.edge.core.utils.Mappers;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.junit.Before;
-import org.junit.Test;
-import org.xml.sax.SAXException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import javax.xml.XMLConstants;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,10 +13,27 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
-public class HoldCancellationTest {
+import org.apache.log4j.Logger;
+import org.everit.json.schema.FormatValidator;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.folio.edge.core.utils.Mappers;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
+
+class HoldCancellationTest {
 
   private static final Logger logger = Logger.getLogger(HoldCancellationTest.class);
   private static final String SCHEMA = "ramls/hold-cancellation.json";
@@ -40,8 +44,8 @@ public class HoldCancellationTest {
 
   private HoldCancellation holdCancellation;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
 
     long holdCanceledTs = System.currentTimeMillis();
 
@@ -75,12 +79,12 @@ public class HoldCancellationTest {
   }
 
   @Test
-  public void testEqualsContract() {
+  void testEqualsContract() {
     EqualsVerifier.forClass(Hold.class).verify();
   }
 
   @Test
-  public void testToFromJson() throws IOException {
+  void testToFromJson() throws IOException {
     String json = holdCancellation.toJson();
     logger.info("JSON: " + json);
 
@@ -91,7 +95,7 @@ public class HoldCancellationTest {
   }
 
   @Test
-  public void testToFromXml() throws IOException {
+  void testToFromXml() throws IOException {
     String xml = holdCancellation.toXml();
     logger.info("XML: " + xml);
 
@@ -107,7 +111,7 @@ public class HoldCancellationTest {
   }
 
   @Test
-  public void testJsonToXml() throws IOException {
+  void testJsonToXml() throws IOException {
     String json = holdCancellation.toJson();
     HoldCancellation fromJson = HoldCancellation.fromJson(json);
     String xml = fromJson.toXml();
@@ -120,12 +124,12 @@ public class HoldCancellationTest {
     assertEquals(holdCancellation, fromXml);
   }
 
-  @Test(expected = SAXException.class)
-  public void testEmpty() throws Exception {
+  @Test
+  void testEmpty() throws Exception {
     String xml = HoldCancellation.builder().build().toXml();
     logger.info("XML: " + xml);
 
     Source source = new StreamSource(new StringReader(xml));
-    xmlValidator.validate(source);
+    assertThrows(SAXException.class, () -> xmlValidator.validate(source));
   }
 }

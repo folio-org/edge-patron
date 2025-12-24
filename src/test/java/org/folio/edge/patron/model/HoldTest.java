@@ -1,8 +1,9 @@
 package org.folio.edge.patron.model;
 
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,13 +28,14 @@ import org.folio.edge.core.utils.Mappers;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class HoldTest {
+class HoldTest {
 
   private static final Logger logger = Logger.getLogger(HoldTest.class);
   private static final String SCHEMA = "ramls/hold.json";
@@ -44,8 +46,8 @@ public class HoldTest {
 
   private Hold hold;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     Item item = Item.builder()
       .author("Priest, Christopher")
       .title("The Inverted World")
@@ -95,12 +97,12 @@ public class HoldTest {
   }
 
   @Test
-  public void testEqualsContract() {
+  void testEqualsContract() {
     EqualsVerifier.forClass(Hold.class).verify();
   }
 
   @Test
-  public void testToFromJson() throws IOException {
+  void testToFromJson() throws IOException {
     String json = hold.toJson();
     logger.info("JSON: " + json);
 
@@ -111,7 +113,7 @@ public class HoldTest {
   }
 
   @Test
-  public void testToFromXml() throws IOException {
+  void testToFromXml() throws IOException {
     String xml = hold.toXml();
     logger.info("XML: " + xml);
 
@@ -127,7 +129,7 @@ public class HoldTest {
   }
 
   @Test
-  public void testJsonToXml() throws IOException {
+  void testJsonToXml() throws IOException {
     String json = hold.toJson();
     Hold fromJson = Hold.fromJson(json);
     String xml = fromJson.toXml();
@@ -140,13 +142,13 @@ public class HoldTest {
     assertEquals(hold, fromXml);
   }
 
-  @Test(expected = SAXException.class)
-  public void testEmpty() throws Exception {
+  @Test
+  void testEmpty() throws Exception {
     String xml = Hold.builder().build().toXml();
     logger.info("XML: " + xml);
 
     Source source = new StreamSource(new StringReader(xml));
-    xmlValidator.validate(source);
+    assertThrows(SAXException.class, () -> xmlValidator.validate(source));
   }
 
 }

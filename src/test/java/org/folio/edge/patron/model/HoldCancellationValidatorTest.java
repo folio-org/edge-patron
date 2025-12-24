@@ -1,24 +1,25 @@
 package org.folio.edge.patron.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.vertx.core.json.JsonObject;
-import org.junit.Test;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
-public class HoldCancellationValidatorTest {
+class HoldCancellationValidatorTest {
 
   @Test
-  public void validateCancelHoldRequestNullObject() {
+  void validateCancelHoldRequestNullObject() {
     String result = HoldCancellationValidator.validateCancelHoldRequest(null);
     assertTrue(result.contains("invalid holdCancellationRequest."));
   }
 
   @Test
-  public void validateRequiredHoldMissingCancellationFields() {
+  void validateRequiredHoldMissingCancellationFields() {
     String expectedErrorMsg = "required fields for cancelling holds are missing (holdId, cancellationReasonId)";
     String cancellationJsonMissingHoldId = "{" +
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +
@@ -36,7 +37,7 @@ public class HoldCancellationValidatorTest {
   }
 
   @Test
-  public void validateCancelHoldInvalidUUIDs() {
+  void validateCancelHoldInvalidUUIDs() {
     String validUUID = "3a40852d-49fd-4df2-a1f9-6e2641a6e91f";
     String invalidUUID = "3a40852d-g9fd-fdf2-a1f9-6e2641a6e91p";
     String expectedErrorMsg = "invalid values for one of the required fields (holdId, cancellationReasonId)";
@@ -59,7 +60,7 @@ public class HoldCancellationValidatorTest {
   }
 
   @Test
-  public void validateCancelHoldRequestValidParams() {
+  void validateCancelHoldRequestValidParams() {
     String cancellationJson = "{" +
       "\"holdId\" : \"" + UUID.randomUUID().toString() + "\"," +
       "\"cancellationReasonId\" : \"" + UUID.randomUUID().toString() + "\"," +

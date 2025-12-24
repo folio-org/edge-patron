@@ -2,10 +2,10 @@ package org.folio.edge.patron.model;
 
 import static org.folio.edge.core.Constants.DAY_IN_MILLIS;
 import static org.folio.edge.patron.utils.PatronMockOkapi.getBatch;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,13 +29,14 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.folio.edge.patron.model.Hold.Status;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class AccountTest {
+class AccountTest {
 
   private static final Logger logger = Logger.getLogger(AccountTest.class);
   private static final String SCHEMA = "ramls/account.json";
@@ -46,8 +47,8 @@ public class AccountTest {
 
   private Account account;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     Item overdueCheckedOutItem1 = Item.builder()
       .author("Priest, Christopher")
       .title("The Inverted World")
@@ -162,7 +163,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testSumCharges() {
+  void testSumCharges() {
     float total = 0f;
     for (Charge c : account.charges) {
       total += c.chargeAmount.amount;
@@ -171,12 +172,12 @@ public class AccountTest {
   }
 
   @Test
-  public void testEqualsContract() {
+  void testEqualsContract() {
     EqualsVerifier.forClass(Account.class).verify();
   }
 
   @Test
-  public void testToFromJson() throws IOException {
+  void testToFromJson() throws IOException {
     String json = account.toJson();
     logger.info("JSON: " + json);
 
@@ -187,7 +188,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testToFromXml() throws IOException {
+  void testToFromXml() throws IOException {
     String xml = account.toXml();
     logger.info("XML: " + xml);
 
@@ -203,7 +204,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testJsonToXml() throws IOException {
+  void testJsonToXml() throws IOException {
     String json = account.toJson();
     Account fromJson = Account.fromJson(json);
     String xml = fromJson.toXml();
@@ -216,17 +217,17 @@ public class AccountTest {
     assertEquals(account, fromXml);
   }
 
-  @Test(expected = SAXException.class)
-  public void testEmpty() throws Exception {
+  @Test
+  void testEmpty() throws Exception {
     String xml = Account.builder().build().toXml();
     logger.info("XML: " + xml);
 
     Source source = new StreamSource(new StringReader(xml));
-    xmlValidator.validate(source);
+    Assertions.assertThrows(SAXException.class, () -> xmlValidator.validate(source));
   }
 
   @Test
-  public void testNoLoans() throws Exception {
+  void testNoLoans() throws Exception {
     String json = account.toJson(false, true, true, true);
     logger.info(json);
     assertTrue(Account.fromJson(json).loans.isEmpty());
@@ -236,7 +237,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testNoCharges() throws Exception {
+  void testNoCharges() throws Exception {
     String json = account.toJson(true, false, true, true);
     logger.info(json);
     assertFalse(Account.fromJson(json).loans.isEmpty());
@@ -246,7 +247,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testNoHolds() throws Exception {
+  void testNoHolds() throws Exception {
     String json = account.toJson(true, true, false, true);
     logger.info(json);
     assertTrue(!Account.fromJson(json).loans.isEmpty());
@@ -256,7 +257,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testNoBatches() throws Exception {
+  void testNoBatches() throws Exception {
     String json = account.toJson(true, true, true, false);
     logger.info(json);
     assertTrue(!Account.fromJson(json).loans.isEmpty());
@@ -266,7 +267,7 @@ public class AccountTest {
   }
 
   @Test
-  public void testCountOnly() throws Exception {
+  void testCountOnly() throws Exception {
     String json = account.toJson(false, false, false, false);
     logger.info(json);
     assertTrue(Account.fromJson(json).loans.isEmpty());

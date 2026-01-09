@@ -219,12 +219,22 @@ public class PatronMockOkapi extends MockOkapi {
         .setStatusCode(403)
         .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
         .end("Access requires permission: users.collection.get");
-    } else {
-      ctx.response()
-        .setStatusCode(200)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(getPatronJson(ctx.pathParam("extPatronId"), true));
+      return;
     }
+
+    var uri = ctx.request().absoluteURI();
+    if (!uri.endsWith("/secure")) {
+      ctx.response()
+        .setStatusCode(400)
+        .putHeader(HttpHeaders.CONTENT_TYPE, TEXT_PLAIN)
+        .end("Expected tailing /{tenantId} to be /secure but found " + uri);
+      return;
+    }
+
+    ctx.response()
+      .setStatusCode(200)
+      .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+      .end(getPatronJson(ctx.pathParam("extPatronId"), true));
   }
 
   public void getAccountHandler(RoutingContext ctx) {

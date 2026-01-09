@@ -110,9 +110,8 @@ public class PatronOkapiClient extends OkapiClient {
       System.getenv().getOrDefault(SECURE_REQUESTS_FEATURE_ENABLED, FALSE.toString()));
   }
 
-  public boolean getSecureTenantId() {
-    return Boolean.parseBoolean(
-      System.getenv().getOrDefault(SECURE_TENANT_ID, null));
+  private static String getSecureTenantId() {
+    return System.getenv().getOrDefault(SECURE_TENANT_ID, "secure");
   }
 
   public void getAccount(PatronAccountRequestParams requestParams,

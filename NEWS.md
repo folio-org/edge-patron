@@ -1,3 +1,6 @@
+## 5.3.2 2026-01-20
+* Update Vert.x to 4.5.23 ([EDGPATRON-197](https://folio-org.atlassian.net/browse/EDGPATRON-197))
+
 ## 5.3.1 2025-08-28
 * Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property. ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))
 

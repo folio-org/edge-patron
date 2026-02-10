@@ -81,6 +81,18 @@ If truststore parameters need to be populated, `FOLIO_CLIENT_TLS_TRUSTSTORETYPE`
 | `FOLIO_CLIENT_TLS_TRUSTSTOREPATH`       | `NA`              | Set the location of the keystore file in the local file system                   |
 | `FOLIO_CLIENT_TLS_TRUSTSTOREPASSWORD`   | `NA`              | Set the password for the keystore                                                |
 
+### Env variables for secure requests feature 
+
+| Property                                | Default           | Description                                                                          |
+|-----------------------------------------|-------------------|--------------------------------------------------------------------------------------|
+| `SECURE_REQUESTS_FEATURE_ENABLED`       | `false`           | true to enable secure requests                                                       |
+| `SECURE_TENANT_ID`                      | `secure`          | Tenant id for GET /circulation-bff/external-users/{externalUserId}/tenant/{tenantId} |
+
+The Secure tenant is in use for Library of Congress (LoC) in order to manage Congressional patrons' User records,
+protect their User information from staff members who are active in the Fulfillment process
+but cannot see private patron User information and house Items from a collection that only Congressional requesters can borrow.
+
+This tenant also houses the Mediated requests app, which is an app used by LoC in order to triage Congressional requests prior to their confirmation as proper Requests in the Requests app.
 
 ## Patron Mapping
 

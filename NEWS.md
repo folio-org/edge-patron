@@ -1,3 +1,6 @@
+## 5.3.3 2026-02-10
+* [LOC Locate requirement] Allowed Service points should return discovery display name. ([EDGPATRON-184](https://folio-org.atlassian.net/browse/EDGPATRON-184))
+
 ## 5.3.2 2026-01-20
 * Update Vert.x to 4.5.23 ([EDGPATRON-197](https://folio-org.atlassian.net/browse/EDGPATRON-197))
 

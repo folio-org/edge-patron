@@ -456,11 +456,11 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled() ) {
-      logger.debug("response: {}", respBody);
-    }
-
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+    if (logger.isDebugEnabled() ) {
+      logger.debug("handleProxyResponse:: status={} contentType={} bodyLength={}",
+        statusCode, contentType, getBodyLength(respBody));
+    }
 
     if (resp.statusCode() < 400 && Objects.nonNull(respBody)){
       setContentType(serverResponse, contentType);
@@ -481,11 +481,11 @@ public class PatronHandler extends Handler {
     serverResponse.setStatusCode(statusCode);
 
     String respBody = resp.bodyAsString();
-    if (logger.isDebugEnabled()) {
-      logger.debug("{}:: response {}", logPrefix, respBody);
-    }
-
     String contentType = resp.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+    if (logger.isDebugEnabled()) {
+      logger.debug("{}:: status={} contentType={} bodyLength={}",
+        logPrefix, statusCode, contentType, getBodyLength(respBody));
+    }
 
     if (statusCode < 400 && Objects.nonNull(respBody)) {
       setContentType(serverResponse, contentType);
@@ -532,7 +532,7 @@ public class PatronHandler extends Handler {
           return true;
         }
       } catch (NumberFormatException nfe) {
-        logger.debug("Exception during validation of query param: {}", nfe.getMessage());
+        logger.debug("Exception during validation of query param");
         return true;
       }
     }
@@ -561,7 +561,7 @@ public class PatronHandler extends Handler {
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(requestExpirationDate);
       }
     } catch (Exception parseEx) {
-      logger.debug("Exception parsing request expirationDate: {}", requestExpirationDate);
+      logger.debug("Exception parsing request expirationDate");
       requestMessage.remove(FIELD_EXPIRATION_DATE);
     }
     return requestMessage;
@@ -598,21 +598,21 @@ public class PatronHandler extends Handler {
 
   private String get422ErrorMsg(int statusCode, String respBody){
 
-    logger.debug("422 message: {}", respBody);
+    logger.debug("422 response bodyLength={}", getBodyLength(respBody));
     String errorMessage = "";
 
     try {
       Errors err = Json.decodeValue(respBody, Errors.class);
       errorMessage = get422ErrorMsg(statusCode, err);
     } catch(Exception ex) {
-      logger.debug(ex.getMessage());
+      logger.debug("Failed to parse 422 error response", ex);
       errorMessage = getStructuredErrorMessage(statusCode, "A problem encountered when extracting error message");
     }
     return errorMessage;
   }
 
   private String getFormattedErrorMsg(int statusCode, String respBody) {
-    logger.debug("getFormattedErrorMsg:: respBody {}", respBody);
+    logger.debug("getFormattedErrorMsg:: bodyLength={}", getBodyLength(respBody));
     String errorMessage = "";
     try {
       var errors = Json.decodeValue(respBody, Errors.class).getErrors();
@@ -621,7 +621,7 @@ public class PatronHandler extends Handler {
         return getErrorMsg(error.getCode(), error.getMessage());
       }
     } catch (Exception ex) {
-      logger.warn(ex.getMessage());
+      logger.warn("Failed to parse formatted error response", ex);
       errorMessage = getStructuredErrorMessage(statusCode, respBody);
     }
     return errorMessage;
@@ -636,6 +636,10 @@ public class PatronHandler extends Handler {
     } catch (JsonProcessingException e) {
       return getStructuredErrorMessage(500, "A problem encountered when extracting error message");
     }
+  }
+
+  private static int getBodyLength(String body) {
+    return body == null ? 0 : body.length();
   }
 
   private String getErrorMessage(int statusCode, String respBody){

@@ -18,7 +18,6 @@ import org.joda.time.DateTimeZone;
 import static io.vertx.core.Future.failedFuture;
 import static java.lang.Boolean.FALSE;
 import static java.lang.String.format;
-import static org.folio.edge.core.Constants.X_OKAPI_TOKEN;
 import static org.folio.edge.patron.Constants.FIELD_CANCELED_DATE;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_ADDITIONAL_INFO;
 import static org.folio.edge.patron.Constants.FIELD_CANCELLATION_REASON_ID;
@@ -44,7 +43,7 @@ public class PatronOkapiClient extends OkapiClient {
   private void getPatronFromCirculationBff(String extPatronId,
     Handler<HttpResponse<Buffer>> responseHandler, Handler<Throwable> exceptionHandler) {
 
-    logger.info("getPatronFromCirculationBff:: extPatronId={}", extPatronId);
+    logger.info("Looking up patron in mod-circulation-bff");
 
     get(format("%s/circulation-bff/external-users/%s/tenant/%s", okapiURL, extPatronId,
         getSecureTenantId()), tenant, defaultHeaders, responseHandler, exceptionHandler);
@@ -83,7 +82,7 @@ public class PatronOkapiClient extends OkapiClient {
     return response -> {
       int status = response.statusCode();
       String bodyStr = response.bodyAsString();
-      logger.info(format("Response from %s: (%s) body: %s", moduleName, status, bodyStr));
+      logger.info("Response from {}: status={} bodyLength={}", moduleName, status, getBodyLength(bodyStr));
       if (status != 200) {
         promise.tryFail(new PatronLookupException(bodyStr));
       } else {
@@ -319,19 +318,21 @@ public class PatronOkapiClient extends OkapiClient {
 
   public void put(String url, String tenant, String payload, MultiMap headers, Handler<HttpResponse<Buffer>> responseHandler,
                   Handler<Throwable> exceptionHandler) {
-    logger.debug("put:: Trying to send request to Okapi with url: {}, payload: {}, tenant: {}", url, payload, tenant);
+    logger.debug("Sending PUT request to Okapi: tenant={} payloadLength={}", tenant, getBodyLength(payload));
     HttpRequest<Buffer> request = client.putAbs(url);
     if (headers != null) {
       request.headers().setAll(combineHeadersWithDefaults(headers));
     } else {
       request.headers().setAll(defaultHeaders);
     }
-    logger.info("PUT '{}' tenant: {} token: {}", () -> url, () -> tenant, () -> request.headers()
-      .get(X_OKAPI_TOKEN));
+    logger.info("Sending PUT request to Okapi for tenant {}", tenant);
     request.timeout(reqTimeout);
     request.sendBuffer(Buffer.buffer(payload))
       .onSuccess(responseHandler)
       .onFailure(exceptionHandler);
   }
-}
 
+  private static int getBodyLength(String body) {
+    return body == null ? 0 : body.length();
+  }
+}

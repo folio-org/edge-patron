@@ -1,6 +1,12 @@
-## 5.4.0 2025-XX-XX
-* Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property. ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))
+## 5.4.0 2026-04-16
+* Added `discoveryDisplayName` to allowed service points response ([EDGPATRON-184](https://folio-org.atlassian.net/browse/EDGPATRON-184))
+* Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))
 * Add APIs for Multi-Item Allowed Service Points and Batch request ([EDGPATRON-193](https://folio-org.atlassian.net/browse/EDGPATRON-193))
+* Upgrade to Vert.x 5.0 ([EDGPATRON-191](https://folio-org.atlassian.net/browse/EDGPATRON-191))
+* Add a missing launcher dependency
+* Document env variable SECURE_TENANT_ID in README.md ([EDGPATRON-196](https://folio-org.atlassian.net/browse/EDGPATRON-196))
+* Sensitive data in logs cleanup ([EDGPATRON-178](https://folio-org.atlassian.net/browse/EDGPATRON-178))
+* Enable GitHub workflow for maven ([EDGPATRON-203](https://folio-org.atlassian.net/browse/EDGPATRON-203))
 
 ## 5.3.0 2025-03-12
 * Migrate AWS SDK for Java from 1.x to 2.x ([EDGPATRON-156](https://issues.folio.org/browse/EDGPATRON-156))

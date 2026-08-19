@@ -1,3 +1,6 @@
+## 5.4.1 2026-08-19
+* Add missing interface dependencies ([EDGPATRON-207](https://folio-org.atlassian.net/browse/EDGPATRON-207))
+
 ## 5.4.0 2026-04-16
 * Added `discoveryDisplayName` to allowed service points response ([EDGPATRON-184](https://folio-org.atlassian.net/browse/EDGPATRON-184))
 * Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))

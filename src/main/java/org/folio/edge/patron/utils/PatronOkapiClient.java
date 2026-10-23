@@ -131,6 +131,9 @@ public class PatronOkapiClient extends OkapiClient {
     if (null != requestParams.offset()) {
       url = format("%s&offset=%s", url, requestParams.offset());
     }
+    if (null != requestParams.batchesDaysBack()) {
+      url = format("%s&batchesDaysBack=%s", url, requestParams.batchesDaysBack());
+    }
 
     get(
         url,

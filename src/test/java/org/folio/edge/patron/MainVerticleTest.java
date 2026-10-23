@@ -81,6 +81,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 
 @ExtendWith({VertxExtension.class})
@@ -649,6 +650,72 @@ class MainVerticleTest {
     String actual = resp.body().asString();
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetAccountIncludeBatchesWithBatchesDaysBack() {
+    logger.info("=== Test getAccount/includeBatches & batchesDaysBack ===");
+
+    RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeBatches=true&batchesDaysBack=7", PATRON_ID, apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+
+    assertEquals("7", mockOkapi.getLastBatchesDaysBack());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"0", "365"})
+  void testGetAccountBatchesDaysBackBoundaries(String value) {
+    RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeBatches=true&batchesDaysBack=%s", PATRON_ID, apiKey, value))
+      .then()
+      .statusCode(200);
+
+    assertEquals(value, mockOkapi.getLastBatchesDaysBack());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"-1", "366", "abc", "1.5"})
+  void testGetAccountBatchesDaysBackInvalid(String value) throws Exception {
+    final Response resp = RestAssured
+      .get(String.format("/patron/account/%s?apikey=%s&includeBatches=true&batchesDaysBack=%s", PATRON_ID, apiKey, value))
+      .then()
+      .statusCode(400)
+      .extract()
+      .response();
+
+    ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
+    assertEquals(String.format(PatronMockOkapi.wrongBatchesDaysBackMessage, PatronMockOkapi.batches_days_back_param, value),
+      msg.message);
+    assertEquals(400, msg.httpStatusCode);
+  }
+
+  @Test
+  void testSecureGetAccountWithBatchesDaysBack() {
+    RestAssured
+      .given()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account?apikey=%s&includeBatches=true&batchesDaysBack=14", apiKey))
+      .then()
+      .statusCode(200)
+      .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+
+    assertEquals("14", mockOkapi.getLastBatchesDaysBack());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"-1", "366", "abc"})
+  void testSecureGetAccountBatchesDaysBackInvalid(String value) {
+    RestAssured
+      .given()
+      .header(X_OKAPI_TOKEN, jwtTokenUtil.generateToken(extPatronId, true))
+      .header(X_OKAPI_TENANT, "diku")
+      .get(String.format("/patron/account?apikey=%s&includeBatches=true&batchesDaysBack=%s", apiKey, value))
+      .then()
+      .statusCode(400);
   }
 
   @Test

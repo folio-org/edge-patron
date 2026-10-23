@@ -47,6 +47,8 @@ public class PatronHandler extends Handler {
 
   public static final String WRONG_INTEGER_PARAM_MESSAGE = "'%s' parameter is incorrect."
     + " parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
+  public static final String WRONG_BATCHES_DAYS_BACK_MESSAGE = "'%s' parameter is incorrect."
+    + " parameter value {%s} is not valid: must be an integer between 0 and 365";
   private static final Logger logger = LogManager.getLogger(PatronHandler.class);
   private final KeycloakClient keycloakClient;
   public PatronHandler(SecureStore secureStore, OkapiClientFactory ocf, KeycloakClient keycloakClient) {
@@ -73,6 +75,12 @@ public class PatronHandler extends Handler {
     String limitValue = ctx.request().getParam(PARAM_LIMIT);
     if (isRequestIntegerParamWrong(limitValue)) {
       badRequest(ctx, String.format(String.format(WRONG_INTEGER_PARAM_MESSAGE, "limit", limitValue), limitValue));
+      return;
+    }
+
+    String batchesDaysBackValue = ctx.request().getParam(PARAM_BATCHES_DAYS_BACK);
+    if (isBatchesDaysBackWrong(batchesDaysBackValue)) {
+      badRequest(ctx, String.format(WRONG_BATCHES_DAYS_BACK_MESSAGE, PARAM_BATCHES_DAYS_BACK, batchesDaysBackValue));
       return;
     }
 
@@ -135,7 +143,7 @@ public class PatronHandler extends Handler {
     handleCommon(ctx,
         new String[] {},
         new String[]{PARAM_INCLUDE_LOANS, PARAM_INCLUDE_CHARGES, PARAM_INCLUDE_HOLDS, PARAM_INCLUDE_BATCHES, PARAM_SORT_BY, PARAM_LIMIT,
-        PARAM_OFFSET},
+        PARAM_OFFSET, PARAM_BATCHES_DAYS_BACK},
         (client, params) -> {
           boolean includeLoans = Boolean.parseBoolean(params.get(PARAM_INCLUDE_LOANS));
           boolean includeCharges = Boolean.parseBoolean(params.get(PARAM_INCLUDE_CHARGES));
@@ -144,9 +152,10 @@ public class PatronHandler extends Handler {
           String sortBy = params.get(PARAM_SORT_BY);
           String limit = params.get(PARAM_LIMIT);
           String offset = params.get(PARAM_OFFSET);
+          String batchesDaysBack = params.get(PARAM_BATCHES_DAYS_BACK);
 
           var patronAccountRequestParams = new PatronAccountRequestParams(params.get(PARAM_PATRON_ID), includeLoans, includeCharges,
-            includeHolds, includeBatches, sortBy, limit, offset);
+            includeHolds, includeBatches, sortBy, limit, offset, batchesDaysBack);
           ((PatronOkapiClient) client).getAccount(patronAccountRequestParams,
             resp -> handleProxyResponse(ctx, resp),
             t -> handleProxyException(ctx, t));
@@ -538,6 +547,19 @@ public class PatronHandler extends Handler {
     }
 
     return false;
+  }
+
+  private boolean isBatchesDaysBackWrong(String paramToValidate) {
+    if (paramToValidate == null) {
+      return false;
+    }
+    try {
+      int value = Integer.parseInt(paramToValidate);
+      return value < 0 || value > 365;
+    } catch (NumberFormatException nfe) {
+      logger.debug("Exception during validation of query param");
+      return true;
+    }
   }
 
   private static String checkDates(JsonObject requestMessage) {

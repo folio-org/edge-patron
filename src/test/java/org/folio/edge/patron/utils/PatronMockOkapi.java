@@ -77,8 +77,8 @@ public class PatronMockOkapi extends MockOkapi {
   public static final String wrongIntegerParamMessage = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer, greater than or equal to 0";
   public static final String offset_param = "offset";
   public static final String limit_param = "limit";
-  public static final String wrongBatchesDaysBackMessage = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer between 0 and 365";
-  public static final String batches_days_back_param = "batchesDaysBack";
+  public static final String WRONG_BATCHES_DAYS_BACK_MESSAGE = "'%s' parameter is incorrect. parameter value {%s} is not valid: must be an integer between 0 and 365";
+  public static final String BATCHES_DAYS_BACK_PARAM = "batchesDaysBack";
   public static final String BATCH_REQUEST_ID = "5203c035-005e-4a70-b555-ddaa3094c51c";
   public static final String BATCH_REQUEST_ID_NOT_FOUND = UUID.randomUUID().toString();
 

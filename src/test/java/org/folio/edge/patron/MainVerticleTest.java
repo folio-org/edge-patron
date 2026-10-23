@@ -687,7 +687,7 @@ class MainVerticleTest {
       .response();
 
     ErrorMessage msg = ErrorMessage.fromJson(resp.body().asString());
-    assertEquals(String.format(PatronMockOkapi.wrongBatchesDaysBackMessage, PatronMockOkapi.batches_days_back_param, value),
+    assertEquals(String.format(PatronMockOkapi.WRONG_BATCHES_DAYS_BACK_MESSAGE, PatronMockOkapi.BATCHES_DAYS_BACK_PARAM, value),
       msg.message);
     assertEquals(400, msg.httpStatusCode);
   }

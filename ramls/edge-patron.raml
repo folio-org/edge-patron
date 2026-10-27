@@ -236,6 +236,16 @@ types:
           required: false
           type: boolean
           default: false
+        batchesDaysBack:
+          description: |
+            Number of days to look back when retrieving batch requests that are pending,
+            in progress or failed and may have no open requests. Used only when includeBatches is true
+          required: false
+          type: integer
+          default: 30
+          minimum: 0
+          maximum: 365
+          example: 30
         apikey:
           description: "API Key"
           type: string
@@ -283,6 +293,14 @@ types:
           body:
             text/plain:
               example: account not found
+        422:
+          description: |
+            Returned when includeBatches is true and the isMultiItemRequestingFeatureEnabled
+            patron setting is not enabled, is missing or has an invalid value
+          body:
+            application/json:
+              example: |
+                {"code": 422, "errorMessage": "Patron setting isMultiItemRequestingFeatureEnabled is not enabled"}
         403:
           description: Access Denied
           body:
@@ -824,6 +842,16 @@ types:
             required: false
             type: boolean
             default: false
+          batchesDaysBack:
+            description: |
+              Number of days to look back when retrieving batch requests that are pending,
+              in progress or failed and may have no open requests. Used only when includeBatches is true
+            required: false
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 365
+            example: 30
           apikey:
             description: "API Key"
             type: string
@@ -871,6 +899,14 @@ types:
             body:
               text/plain:
                 example: account not found
+          422:
+            description: |
+              Returned when includeBatches is true and the isMultiItemRequestingFeatureEnabled
+              patron setting is not enabled, is missing or has an invalid value
+            body:
+              application/json:
+                example: |
+                  {"code": 422, "errorMessage": "Patron setting isMultiItemRequestingFeatureEnabled is not enabled"}
           403:
             description: Access Denied
             body:

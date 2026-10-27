@@ -1,3 +1,6 @@
+## 5.5.0 IN PROGRESS
+* Add `batchesDaysBack` query parameter to GET /patron/account and GET /patron/account/{id} ([EDGPATRON-211](https://folio-org.atlassian.net/browse/EDGPATRON-211))
+
 ## 5.4.0 2026-04-16
 * Added `discoveryDisplayName` to allowed service points response ([EDGPATRON-184](https://folio-org.atlassian.net/browse/EDGPATRON-184))
 * Extend the POST /patron and PUT /patron/{id} APIs to support an optional "minor" Boolean property ([EDGPATRON-188](https://folio-org.atlassian.net/browse/EDGPATRON-188))

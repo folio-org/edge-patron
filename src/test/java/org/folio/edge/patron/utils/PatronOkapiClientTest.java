@@ -7,6 +7,7 @@ import static org.folio.edge.patron.utils.PatronMockOkapi.offset_param;
 import static org.folio.edge.patron.utils.PatronMockOkapi.patronId_notFound;
 import static org.folio.edge.patron.utils.PatronMockOkapi.wrongIntegerParamMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -150,7 +151,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, null, null);
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, null, null, null);
       client.getAccount(params,
           resp -> {
             logResponseBody(resp);
@@ -175,7 +176,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, true, true, true, null, null, null);
+      var params = new PatronAccountRequestParams(patronId, true, true, true, true, null, null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -194,13 +195,45 @@ class PatronOkapiClientTest {
   }
 
   @Test
+  void testGetAccountWithBatchesDaysBackSendsItToModPatron(VertxTestContext context) {
+    logger.info("=== Test getAccount request forwards batchesDaysBack ===");
+
+    client.login("admin", "password").thenAcceptAsync(v -> {
+      var params = new PatronAccountRequestParams(patronId, false, false, false, true, null, null, null, "7");
+      client.getAccount(params,
+        resp -> {
+          assertEquals(200, resp.statusCode());
+          assertEquals("7", mockOkapi.getLastBatchesDaysBack());
+          context.completeNow();
+        },
+        context::failNow);
+    });
+  }
+
+  @Test
+  void testGetAccountWithoutBatchesDaysBackDoesNotSendIt(VertxTestContext context) {
+    logger.info("=== Test getAccount request omits batchesDaysBack when absent ===");
+
+    client.login("admin", "password").thenAcceptAsync(v -> {
+      var params = PatronAccountRequestParams.defaultParams(patronId);
+      client.getAccount(params,
+        resp -> {
+          assertEquals(200, resp.statusCode());
+          assertNull(mockOkapi.getLastBatchesDaysBack());
+          context.completeNow();
+        },
+        context::failNow);
+    });
+  }
+
+  @Test
   void testGetAccountWithSortedLoans(VertxTestContext context) {
     logger.info("=== Test successful getAccount request w/ sorted loans data ===");
 
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, true, true, false, "testSort", null, null);
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, "testSort", null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -226,7 +259,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, "1", null);
+      var params = new PatronAccountRequestParams(patronId, true, true, true, false, null, "1", null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -251,7 +284,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, null, "-1");
+      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, null, "-1", null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -270,7 +303,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, "-1", null);
+      var params = new PatronAccountRequestParams(PATRON_ID, true, true, true, false, null, "-1", null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -289,7 +322,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId_notFound, true, true, true, false, null, null, null);
+      var params = new PatronAccountRequestParams(patronId_notFound, true, true, true, false, null, null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -307,7 +340,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, true, false, false, null, null, null);
+      var params = new PatronAccountRequestParams(patronId, true, true, false, false, null, null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -325,7 +358,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, true, false, true, false, null, null, null);
+      var params = new PatronAccountRequestParams(patronId, true, false, true, false, null, null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);
@@ -343,7 +376,7 @@ class PatronOkapiClientTest {
     client.login("admin", "password").thenAcceptAsync(v -> {
       assertEquals(MOCK_TOKEN, client.getToken());
 
-      var params = new PatronAccountRequestParams(patronId, false, true, true, false, null, null, null);
+      var params = new PatronAccountRequestParams(patronId, false, true, true, false, null, null, null, null);
       client.getAccount(params,
         resp -> {
           logResponseBody(resp);

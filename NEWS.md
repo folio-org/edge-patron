@@ -1,3 +1,6 @@
+## 5.4.2 2026-11-10
+* Add `batchesDaysBack` query parameter to GET /patron/account and GET /patron/account/{id} ([EDGPATRON-212](https://folio-org.atlassian.net/browse/EDGPATRON-212))
+
 ## 5.4.1 2026-08-19
 * Add missing interface dependencies ([EDGPATRON-207](https://folio-org.atlassian.net/browse/EDGPATRON-207))
 
